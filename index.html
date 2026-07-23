@@ -6,11 +6,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta property="og:title" content="Jimothy's Ballard Adventure 🦝">
+<meta property="og:title" content="Jimothy's Seattle Adventure 🦝">
 <meta property="og:description" content="Guide Seattle's famous round raccoon through Ballard! Collect fish &amp; coffee, dodge cars &amp; dogs!">
 <meta property="og:image" content="https://pedrour.github.io/jimothy-adventure/preview.png">
 <meta name="twitter:card" content="summary_large_image">
-<title>Jimothy's Ballard Adventure 🦝</title>
+<title>Jimothy's Seattle Adventure 🦝</title>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -111,7 +111,7 @@
 </head>
 <body>
 
-<div id="title-bar">🦝 JIMOTHY'S BALLARD ADVENTURE</div>
+<div id="title-bar">🦝 JIMOTHY'S SEATTLE ADVENTURE</div>
 <canvas id="c"></canvas>
 <div id="bottom-bar">
   <div id="hint">SPACE/↑ Jump &nbsp;│&nbsp; ↓ Duck &nbsp;│&nbsp; P Pause</div>
@@ -123,7 +123,7 @@
 'use strict';
 
 /* ================================================================
-   JIMOTHY'S BALLARD ADVENTURE
+   JIMOTHY'S SEATTLE ADVENTURE
    ──────────────────────────────────────────────────────────────
    Based on Jimothy the real raccoon living in Ballard, Seattle.
    Went viral July 2026 due to "short spine syndrome" giving
@@ -1420,7 +1420,7 @@ function drawTitleScreen() {
   ctx.fillStyle = '#ffcc44';
   ctx.font = 'bold 18px Courier New';
   ctx.fillText('🦝 JIMOTHY\'S', VW / 2, by + 32);
-  ctx.fillText('BALLARD ADVENTURE', VW / 2, by + 54);
+  ctx.fillText('SEATTLE ADVENTURE', VW / 2, by + 54);
 
   ctx.fillStyle = '#aaa';
   ctx.font = '9px Courier New';
@@ -1696,13 +1696,13 @@ CV.addEventListener('click', () => doJump());
 
 // ── SHARE ─────────────────────────────────────────────────────────
 function shareScore() {
-  const text = `🦝 I scored ${~~score} points in Jimothy's Ballard Adventure!\n` +
+  const text = `🦝 I scored ${~~score} points in Jimothy's Seattle Adventure!\n` +
                `Help Seattle's famous round raccoon dodge bikes, orcas & techies in Ballard!\n` +
                `Play free: https://pedrour.github.io/jimothy-adventure\n` +
                `#Jimothy #HotJimothySummer #Ballard #Seattle`;
 
   if (navigator.share) {
-    navigator.share({ title: "Jimothy's Ballard Adventure 🦝", text, url: 'https://pedrour.github.io/jimothy-adventure' })
+    navigator.share({ title: "Jimothy's Seattle Adventure 🦝", text, url: 'https://pedrour.github.io/jimothy-adventure' })
       .catch(() => copyFallback(text));
   } else {
     copyFallback(text);

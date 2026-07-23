@@ -1,4 +1,4 @@
-# 🦝 Jimothy's Ballard Adventure
+# 🦝 Jimothy's Seattle Adventure
 
 A free, 16-bit style browser game starring **Jimothy** — Seattle's viral round raccoon from Ballard.
 
