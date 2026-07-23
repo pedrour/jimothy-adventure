@@ -146,17 +146,20 @@ function sfxMilestone(){ beep(660,.1,'square',.1); beep(880,.1,'square',.1,.1); 
 // ── Colour palette ──────────────────────────────────────────────
 const COL = {
   '.': null,
-  'B': '#111111',  // outline / black
-  'G': '#aaaaaa',  // raccoon light gray
-  'D': '#666666',  // dark gray (ear inner, shadows)
-  'W': '#ffffff',  // white (eyes, highlights)
-  'P': '#ff8899',  // pink nose
+  'B': '#111111',  // black: outlines, mask, dark
+  // Jimothy-specific (tuned to real photo: dark charcoal raccoon)
+  'G': '#606060',  // Jimothy body: dark charcoal gray
+  'D': '#363636',  // Jimothy very dark: back ridge, shadows, mask edges
+  'L': '#909090',  // lighter gray: tail rings, belly highlight
+  'v': '#d0ccc0',  // cream: Jimothy's white cheek patches
+  // General sprite colours
+  'W': '#ffffff',  // white (eye dot, gull)
+  'P': '#dd8899',  // pink nose
   'R': '#cc2222',  // red (car body)
   'Y': '#ffcc00',  // yellow (taxi)
   'b': '#4477cc',  // blue (car window, fish)
   'T': '#996633',  // brown (dog, coffee)
   'S': '#cccccc',  // silver (car body)
-  'L': '#dddddd',  // light silver
   'g': '#44bb44',  // green (leaves, flag)
   'o': '#ff8800',  // orange
   'c': '#5a2a0c',  // coffee dark
@@ -189,60 +192,61 @@ function px(pixels, x, y, sc = SC, flash = false) {
 }
 
 // ── JIMOTHY SPRITES (12×10 px, scale 3 → 36×30 on screen) ──────
-// His signature look: SHORT SPINE SYNDROME → very round compact body,
-// no visible neck, wide head fused into body, stubby little legs.
-// He literally looks like a fuzzy ball waddling around Ballard. 🦝
+// Real Jimothy: dark charcoal raccoon, SHORT SPINE SYNDROME.
+// Side-profile facing RIGHT: tail (left) → arched dark back → head (right).
+// Classic raccoon mask: B-W-B eye, cream (v) cheek patch, pink nose.
+// G=#606060 dark body, D=#363636 very dark ridge, L=tail rings, v=cream cheek.
 
 const JIM = {
   run: [
-    [ // stride 1 — right leg forward
-      '..BBBBBBBB..',
-      '.BGDGGGGDGB.',
-      'BGGGGGGGGGGB',
-      'BGBBWWBBWWGB',
-      'BGBBBBBBBBGB',
-      'BGGGGPGGGGGB',
-      '.BGGGGGGGGB.',
-      '..BBBBBBBB..',
-      '..BGBB.BGB..',
-      '..BBB..BBB..',
+    [ // stride 1 — front leg reaching right, back leg kicking left
+      '...BDDDDB...',  // arched back peak (signature short-spine hunch)
+      '..BDGGGGDB..',  // body forming, dark dorsal stripe
+      '.LBGGGGGGDB.',  // tail ring (L), wide body, head begins
+      'LLBGGGGGGDB.',  // 2 tail rings, body, forehead (D=dark)
+      'LLBGGGGGGBWB',  // body, raccoon eye: B-W-B (mask-eye-mask)
+      '.LBGGGGGGvPB',  // body, cream cheek (v) + pink nose (P) + tip
+      '..BGGGGLBvvB',  // belly (L), jaw edge (B), lower cheek cream
+      '..BGB...BGB.',  // legs: back-leg (cols 2-4), front-leg (cols 8-10)
+      '..BB....BB..',  // paws
+      '............',  // ground clearance
     ],
-    [ // stride 2 — left leg forward
-      '..BBBBBBBB..',
-      '.BGDGGGGDGB.',
-      'BGGGGGGGGGGB',
-      'BGBBWWBBWWGB',
-      'BGBBBBBBBBGB',
-      'BGGGGPGGGGGB',
-      '.BGGGGGGGGB.',
-      '..BBBBBBBB..',
-      '...BGBBGB...',
-      '...BBB.BBB..',
+    [ // stride 2 — legs switching (mid-gait)
+      '...BDDDDB...',
+      '..BDGGGGDB..',
+      '.LBGGGGGGDB.',
+      'LLBGGGGGGDB.',
+      'LLBGGGGGGBWB',
+      '.LBGGGGGGvPB',
+      '..BGGGGLBvvB',
+      '...BGB.BGB..',  // legs slightly closer — alternate stride phase
+      '...BB..BB...',  // paws
+      '............',
     ],
   ],
   jump: [
-    '..BBBBBBBB..',
-    '.BGDGGGGDGB.',
-    'BGGGGGGGGGGB',
-    'BGBBWWBBWWGB',
-    'BGBBBBBBBBGB',
-    'BGGGGPGGGGGB',
-    '.BGGGGGGGGB.',
-    '..BBBBBBBB..',
-    '.BGB....BGB.',  // legs spread (wheee!)
-    '.BBB....BBB.',
+    '...BDDDDB...',  // back peak
+    '..BDGGGGDB..',
+    '.LBGGGGGGDB.',
+    'LLBGGGGGGDB.',
+    'LLBGGGGGGBWB',
+    '.LBGGGGGGvPB',
+    '..BGGGGLBvvB',
+    '.BGB....BGB.',  // legs SPREAD WIDE (wheee! 🦝)
+    '.BB......BB.',  // paws stretched
+    '............',
   ],
   duck: [
-    '............',
-    '..BBBBBBBB..',
-    '.BGDGGGGDGB.',
-    'BGGGGGGGGGGB',
-    'BGBBWWBBWWGB',
-    'BGBBBBBBBBGB',
-    'BGGGGPGGGGGB',
-    'BGGGGGGGGGGB',
-    '.BBBBBBBBBB.',
-    '............',
+    '............',  // top clearance (body shifted down)
+    '...BDDDDB...',  // back peak
+    '..BDGGGGDB..',
+    '.LBGGGGGGDB.',
+    'LLBGGGGGGDB.',
+    'LLBGGGGGGBWB',
+    '.LBGGGGGGvPB',
+    '..BGGGGLBvvB',
+    '..BBB.BBB...',  // stubby crouching legs
+    '..BB..BB....',  // paws flat — very low to ground
   ],
 };
 
@@ -372,7 +376,7 @@ const BUILDINGS = [
   { x: 275, w: 70,  h: 100, c: '#7a8898', border: '#4a5868', sign: 'BALLARD\nLOCKS',    locks: true  },
   { x: 355, w: 75,  h:  82, c: '#c8b880', border: '#907840', sign: "HATTIE'S\nHAT"                   },
   { x: 440, w: 60,  h: 118, c: '#e8dcc8', border: '#aa8860', sign: "IVAR'S\nSEAFOOD"                 },
-  { x: 510, w: 95,  h:  95, c: '#c87850', border: '#8a4820', sign: 'PIKE\nPLACE'                     },
+  { x: 510, w: 95,  h:  95, c: '#8a5040', border: '#5a3020', sign: 'PIKE\nPLACE', pikeplace: true     },
   { x: 615, w: 72,  h: 125, c: '#1e5c3a', border: '#134028', sign: 'STARBUCKS\nRESERVE', siren: true },
   { x: 697, w: 58,  h:  88, c: '#e8dcc8', border: '#aa8860', sign: 'ANCHOR\nBREW'                    },
   { x: 765, w: 82,  h: 105, c: '#c8b880', border: '#907840', sign: 'NORSE\nCRAFT'                    },
@@ -397,55 +401,102 @@ function drawCloud(x, y, w = 60, h = 22) {
 }
 
 function drawSpaceNeedle(cx, baseY, sc = 1) {
-  if (cx < -70 * sc || cx > VW + 70 * sc) return;
-  const a = 0.82; // opacity
-  ctx.fillStyle = `rgba(210,210,204,${a})`;
+  if (cx < -80 * sc || cx > VW + 80 * sc) return;
+  const a = 0.84;
 
-  // Base platform
-  ctx.fillRect(cx - 24*sc, baseY - 5*sc, 48*sc, 5*sc);
+  // ── Tripod base (hourglass bezier legs, Victor Steinbrueck design) ──
+  // Each leg splays outward from the stem (waist ~34px up) to the ground,
+  // with a gentle S-curve — wide at bottom, pinched at the stem join.
+  const stemBot = baseY - 34 * sc;  // where legs meet the column
+  ctx.fillStyle = `rgba(195,195,190,${a})`;
 
   // Left leg
   ctx.beginPath();
-  ctx.moveTo(cx - 23*sc, baseY - 5*sc);
-  ctx.lineTo(cx - 3*sc,  baseY - 34*sc);
-  ctx.lineTo(cx + 3*sc,  baseY - 34*sc);
-  ctx.lineTo(cx - 13*sc, baseY - 5*sc);
+  ctx.moveTo(cx - 3*sc, stemBot);           // inner top of leg (meets stem)
+  ctx.bezierCurveTo(
+    cx - 8*sc,  stemBot + 8*sc,            // curve gently outward on the way down
+    cx - 20*sc, baseY  - 10*sc,            // splay wide near base
+    cx - 28*sc, baseY                       // outer ground point
+  );
+  ctx.lineTo(cx - 20*sc, baseY);           // inner ground point
+  ctx.bezierCurveTo(
+    cx - 13*sc, baseY  - 12*sc,            // curve back inward rising
+    cx - 5*sc,  stemBot + 6*sc,            // narrow again near stem
+    cx + 1*sc,  stemBot                     // inner top, opposite side of stem
+  );
   ctx.closePath(); ctx.fill();
 
-  // Right leg
+  // Right leg (mirror)
   ctx.beginPath();
-  ctx.moveTo(cx + 23*sc, baseY - 5*sc);
-  ctx.lineTo(cx + 3*sc,  baseY - 34*sc);
-  ctx.lineTo(cx - 3*sc,  baseY - 34*sc);
-  ctx.lineTo(cx + 13*sc, baseY - 5*sc);
+  ctx.moveTo(cx + 3*sc, stemBot);
+  ctx.bezierCurveTo(
+    cx + 8*sc,  stemBot + 8*sc,
+    cx + 20*sc, baseY  - 10*sc,
+    cx + 28*sc, baseY
+  );
+  ctx.lineTo(cx + 20*sc, baseY);
+  ctx.bezierCurveTo(
+    cx + 13*sc, baseY  - 12*sc,
+    cx + 5*sc,  stemBot + 6*sc,
+    cx - 1*sc,  stemBot
+  );
   ctx.closePath(); ctx.fill();
 
-  // Main stem
-  ctx.fillRect(cx - 2*sc, baseY - 96*sc, 4*sc, 62*sc);
+  // Ground ring / base pad
+  ctx.fillStyle = `rgba(175,175,170,${a})`;
+  ctx.fillRect(cx - 30*sc, baseY, 60*sc, 3*sc);
 
-  // Saucer / observation deck
-  ctx.fillStyle = `rgba(185,188,182,${a})`;
+  // ── Central column (stem) ─────────────────────────────────────────
+  ctx.fillStyle = `rgba(205,205,200,${a})`;
+  ctx.fillRect(cx - 2*sc, baseY - 96*sc, 4*sc, 62*sc);   // lower column
+  ctx.fillStyle = `rgba(192,192,186,${a})`;
+  ctx.fillRect(cx - 2*sc, baseY - 130*sc, 3*sc, 34*sc);  // upper column
+
+  // ── Saucer (the real needle's most recognizable feature) ──────────
+  // Large overhanging flat-bottom disk + curved upper deck + halo ring
+  const saucY = baseY - 100*sc;
+
+  // Saucer shadow/bottom (flat disk, wide overhang)
+  ctx.fillStyle = `rgba(155,158,152,${a})`;
   ctx.beginPath();
-  ctx.ellipse(cx, baseY - 98*sc, 20*sc, 7*sc, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // Top of saucer (sunlit)
-  ctx.fillStyle = `rgba(232,232,226,${a})`;
-  ctx.beginPath();
-  ctx.ellipse(cx, baseY - 101*sc, 18*sc, 5*sc, 0, Math.PI, 0);
-  ctx.fill();
-  // Dome
-  ctx.fillStyle = `rgba(210,210,204,${a})`;
-  ctx.beginPath();
-  ctx.ellipse(cx, baseY - 102*sc, 11*sc, 7*sc, 0, Math.PI, 0);
+  ctx.ellipse(cx, saucY + 3*sc, 28*sc, 5*sc, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Upper column
-  ctx.fillStyle = `rgba(190,190,184,${a})`;
-  ctx.fillRect(cx - 2*sc, baseY - 128*sc, 3*sc, 28*sc);
+  // Main saucer body
+  ctx.fillStyle = `rgba(188,190,184,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(cx, saucY, 26*sc, 6*sc, 0, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Spire tip
-  ctx.fillStyle = `rgba(160,160,154,${a})`;
-  ctx.fillRect(cx - 1*sc, baseY - 152*sc, 2*sc, 24*sc);
+  // Saucer top deck (sunlit curve)
+  ctx.fillStyle = `rgba(226,228,222,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(cx, saucY - 1*sc, 22*sc, 5*sc, 0, Math.PI, 0);
+  ctx.fill();
+
+  // Halo ring at waist (where saucer meets column)
+  ctx.fillStyle = `rgba(170,172,166,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(cx, saucY + 5*sc, 14*sc, 3*sc, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Observation deck dome
+  ctx.fillStyle = `rgba(208,210,204,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(cx, saucY - 4*sc, 12*sc, 7*sc, 0, Math.PI, 0);
+  ctx.fill();
+
+  // ── Spire (tall needle above saucer) ─────────────────────────────
+  ctx.fillStyle = `rgba(185,185,180,${a})`;
+  ctx.fillRect(cx - 1*sc, baseY - 162*sc, 2*sc, 32*sc);  // spire shaft
+
+  // Spire tip (very thin)
+  ctx.fillStyle = `rgba(155,155,150,${a})`;
+  ctx.beginPath();
+  ctx.moveTo(cx, baseY - 186*sc);            // apex
+  ctx.lineTo(cx - 1*sc, baseY - 162*sc);
+  ctx.lineTo(cx + 1*sc, baseY - 162*sc);
+  ctx.closePath(); ctx.fill();
 }
 
 function drawGreatWheel(cx, baseY, radius = 46) {
@@ -593,6 +644,60 @@ function drawFirTree(x, baseY, h = 45, dark = false) {
   ctx.fillRect(x - 2, baseY - h * 0.12, 4, h * 0.12 + 2);
 }
 
+function drawGasWorks(cx, baseY) {
+  // Gas Works Park on Lake Union — 6 industrial retort towers, rust-metal silhouette
+  if (cx < -130 || cx > VW + 130) return;
+  const a = 0.60;
+  const metal  = `rgba(80,58,38,${a})`;
+  const dark   = `rgba(46,32,20,${a})`;
+  const pipe   = `rgba(62,44,28,${a})`;
+
+  // Tower layout: [dx from cx, height, radius]
+  const towers = [
+    { dx: -68, h: 68, r: 10 },
+    { dx: -44, h: 46, r:  8 },
+    { dx: -22, h: 54, r:  9 },
+    { dx:   4, h: 66, r: 10 },
+    { dx:  28, h: 44, r:  8 },
+    { dx:  50, h: 38, r:  7 },
+  ];
+
+  // Horizontal connecting pipes
+  ctx.fillStyle = pipe;
+  ctx.fillRect(cx - 74, baseY - 40, 128, 4);
+  ctx.fillRect(cx - 74, baseY - 26, 128, 3);
+
+  for (const t of towers) {
+    const tx = cx + t.dx;
+    const ty = baseY - t.h;
+    // Cylinder body
+    ctx.fillStyle = metal;
+    ctx.fillRect(tx - t.r, ty, t.r * 2, t.h);
+    // Shadow side
+    ctx.fillStyle = dark;
+    ctx.fillRect(tx + t.r - 4, ty, 4, t.h);
+    // Top cap ellipse
+    ctx.fillStyle = dark;
+    ctx.beginPath();
+    ctx.ellipse(tx, ty, t.r, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Rivet rings up the cylinder
+    ctx.fillStyle = dark;
+    for (let ry = ty + 14; ry < baseY - 4; ry += 14) {
+      ctx.fillRect(tx - t.r, ~~ry, t.r * 2, 2);
+    }
+    // Exhaust stack on the two tallest towers
+    if (t.h >= 62) {
+      ctx.fillStyle = dark;
+      ctx.fillRect(tx - 3, ty - 9, 6, 9);
+      ctx.fillRect(tx - 6, ty - 11, 12, 2);
+    }
+  }
+  // Ground base
+  ctx.fillStyle = dark;
+  ctx.fillRect(cx - 76, baseY - 4, 132, 4);
+}
+
 function drawBackground(scroll) {
   // ── LAYER 1 — Seattle summer daytime sky ────────────────────────
   const sky = ctx.createLinearGradient(0, 0, 0, GROUND);
@@ -645,6 +750,13 @@ function drawBackground(scroll) {
   const needleOff = (scroll * 0.12) % NEEDLE_TILE;
   for (let pass = -1; pass <= 1; pass++) {
     drawSpaceNeedle(VW * 0.28 - needleOff + pass * NEEDLE_TILE, GROUND, 1.55);
+  }
+
+  // ── LAYER 6b — Gas Works Park on Lake Union (0.14×) ────────────
+  const GW_TILE = 2000;
+  const gwOff = (scroll * 0.14) % GW_TILE;
+  for (let pass = -1; pass <= 1; pass++) {
+    drawGasWorks(VW * 0.55 - gwOff + pass * GW_TILE, GROUND - 2);
   }
 
   // ── LAYER 7 — Seattle Great Wheel (waterfront, 0.18×) ───────────
@@ -705,18 +817,80 @@ function drawBackground(scroll) {
         ctx.fillRect(bx + b.w/2 + 2, by - 35, 3, 11);
       }
 
-      // Locks gate
+      // Ballard Locks — Hiram M. Chittenden Locks with miter gates + lock chamber
       if (b.locks) {
-        ctx.fillStyle = '#4a6070'; ctx.fillRect(bx + 8, by + b.h - 55, b.w - 16, 55);
-        ctx.fillStyle = '#38505e';
-        for (let gi = 0; gi < 5; gi++) ctx.fillRect(bx + 8, by + b.h - 55 + gi * 11, b.w - 16, 3);
-        ctx.fillStyle = '#6aaccc'; ctx.fillRect(bx + 8, by + b.h - 16, b.w - 16, 16);
-        // Water ripples
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.fillRect(bx + 12, by + b.h - 10, 10, 1);
-        ctx.fillRect(bx + 28, by + b.h - 7, 8, 1);
+        const lx = bx + 4, lw = b.w - 8;
+        const lockTop = by + b.h - 60, lockH = 60;
+        // Concrete lock walls (two lanes)
+        ctx.fillStyle = '#788898'; ctx.fillRect(lx, lockTop, lw, lockH);
+        // Lock chamber (lower water level, left bay)
+        const mid = lx + lw / 2;
+        ctx.fillStyle = '#5a7a8a';
+        ctx.fillRect(lx + 2, lockTop + 6, lw/2 - 6, lockH - 20);
+        // Higher water level (right / salt water side)
+        ctx.fillStyle = '#4a8aaa';
+        ctx.fillRect(mid + 2, lockTop + 14, lw/2 - 6, lockH - 28);
+        // Water surfaces
+        ctx.fillStyle = '#5abadc';
+        ctx.fillRect(lx + 2, lockTop + 6, lw/2 - 6, 4);      // low water surface
+        ctx.fillStyle = '#78c8e0';
+        ctx.fillRect(mid + 2, lockTop + 14, lw/2 - 6, 4);   // high water surface
+        // Ripples
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        for (let ri = 0; ri < 3; ri++) {
+          ctx.fillRect(lx + 4 + ri * 8, lockTop + 8, 5, 1);
+          ctx.fillRect(mid + 4 + ri * 8, lockTop + 17, 5, 1);
+        }
+        // Miter gates — V-shape meeting at center seam
+        ctx.strokeStyle = '#2a3a44'; ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(lx + 2, lockTop + 6);        // left wall
+        ctx.lineTo(mid - 2, lockTop + 20);       // apex meeting point
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(mid - 2, lockTop + 20);
+        ctx.lineTo(mid - 2 + lw/2 - 4, lockTop + 6);   // right wall
+        ctx.stroke();
+        // Gate hinge bolts
+        ctx.fillStyle = '#1a2a34';
+        ctx.fillRect(lx + 2, lockTop + 4, 4, 4);
+        ctx.fillRect(mid + lw/2 - 8, lockTop + 4, 4, 4);
+        // Water level difference arrow hint
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(mid - 1, lockTop + 8, 2, 10);  // divider wall
         ctx.fillStyle = '#ddeeff'; ctx.font = '6px Courier New'; ctx.textAlign = 'center';
-        ctx.fillText('LOCKS', bx + b.w/2, by + b.h - 60); ctx.textAlign = 'left';
+        ctx.fillText('LOCKS', bx + b.w/2, by + b.h - 64); ctx.textAlign = 'left';
+      }
+
+      // Pike Place Market — red PUBLIC MARKET sign + round clock
+      if (b.pikeplace) {
+        // Brick facade (darker red-brown for Pike Place)
+        ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(bx, by, b.w, b.h);
+        // Iconic red sign background
+        const sx = bx + 3, sy = by + 10, sw = b.w - 6, sh = 22;
+        ctx.fillStyle = '#cc2200'; ctx.fillRect(sx, sy, sw, sh);
+        ctx.fillStyle = '#ee4422'; ctx.fillRect(sx, sy, sw, 3); // lit top edge
+        // "PUBLIC MARKET" in white (two lines, narrow)
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 5px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText('PUBLIC MARKET', bx + b.w/2, sy + 9);
+        ctx.font = '4px Courier New';
+        ctx.fillText('C  E  N  T  E  R', bx + b.w/2, sy + 16);
+        ctx.textAlign = 'left';
+        // Round clock face (right side of sign)
+        const ckx = bx + b.w - 14, cky = sy + sh + 10;
+        ctx.fillStyle = '#eecc44'; ctx.beginPath(); ctx.arc(ckx, cky, 9, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(ckx, cky, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#eecc44'; ctx.beginPath(); ctx.arc(ckx, cky, 7, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#222'; ctx.font = '4px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('12', ckx, cky - 3); ctx.fillText('6', ckx, cky + 7);
+        // Clock hands (fixed at ~10:10 — classic display pose)
+        ctx.strokeStyle = '#111'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(ckx, cky); ctx.lineTo(ckx - 4, cky - 3); ctx.stroke(); // minute → ~10
+        ctx.beginPath(); ctx.moveTo(ckx, cky); ctx.lineTo(ckx + 4, cky - 3); ctx.stroke(); // hour → ~2
+        ctx.textAlign = 'left';
+        // Neon "OPEN" below sign
+        ctx.fillStyle = '#ff8822'; ctx.font = 'bold 6px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText('★ OPEN ★', bx + b.w/2, sy + sh + 12); ctx.textAlign = 'left';
       }
 
       // Starbucks green siren circle
