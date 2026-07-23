@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta property="og:title" content="Jimothy's Ballard Adventure 🦝">
+<meta property="og:description" content="Guide Seattle's famous round raccoon through Ballard! Collect fish &amp; coffee, dodge cars &amp; dogs!">
+<meta property="og:image" content="https://pedrour.github.io/jimothy-adventure/preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<title>Jimothy's Ballard Adventure 🦝</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #08081a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    -webkit-user-select: none;
+    user-select: none;
+    overflow: hidden;
+    gap: 0;
+  }
+
+  #title-bar {
+    font-size: clamp(11px, 2.2vw, 18px);
+    color: #ffcc44;
+    text-shadow: 2px 2px 0 #5a1e85, -1px -1px 0 #222;
+    letter-spacing: 2px;
+    text-align: center;
+    padding: 6px 8px 4px;
+    line-height: 1.3;
+  }
+
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    border: 3px solid #5a3e85;
+    box-shadow:
+      0 0 0 1px #9a6ed5,
+      0 0 24px rgba(90,62,133,.9),
+      0 0 60px rgba(90,62,133,.4);
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  #bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 4px 2px;
+    width: 100%;
+    max-width: 802px;
+  }
+
+  #hint { font-size: 9px; color: #555; letter-spacing: 0.5px; }
+
+  #share-btn {
+    background: #5a3e85;
+    color: #ffcc44;
+    border: 2px solid #9a7ec5;
+    padding: 5px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    display: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  #share-btn:hover, #share-btn:active { background: #7a5ea5; }
+</style>
+</head>
+<body>
+
+<div id="title-bar">🦝 JIMOTHY'S BALLARD ADVENTURE</div>
+<canvas id="c"></canvas>
+<div id="bottom-bar">
+  <div id="hint">SPACE / TAP → Jump &nbsp;│&nbsp; ↓ / Swipe Down → Duck &nbsp;│&nbsp; P → Pause</div>
+  <button id="share-btn" onclick="shareScore()">📤 Share Score</button>
+</div>
+
+<script>
+'use strict';
+
+/* ================================================================
+   JIMOTHY'S BALLARD ADVENTURE
+   ──────────────────────────────────────────────────────────────
+   Based on Jimothy the real raccoon living in Ballard, Seattle.
+   Went viral July 2026 due to "short spine syndrome" giving
+   him his adorable round, compact shape — he looks like a ball!
+   He was named by Kiana Hall who saw him under a car and said
+   "he just looked like a Jimothy to me." 🦝
+   ================================================================ */
+
+// ── Canvas setup ────────────────────────────────────────────────
+const CV  = document.getElementById('c');
+const ctx = CV.getContext('2d');
+const shareBtn = document.getElementById('share-btn');
+
+const VW = 800, VH = 260;
+CV.width = VW; CV.height = VH;
+
+function resize() {
+  const aw = Math.min(VW, window.innerWidth - 10);
+  const ah = Math.round(VH * aw / VW);
+  CV.style.width  = aw + 'px';
+  CV.style.height = ah + 'px';
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Web Audio (retro 16-bit sounds) ─────────────────────────────
+let AC = null;
+function getAC() {
+  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+  return AC;
+}
+
+function beep(freq, dur, type = 'square', vol = 0.12, delay = 0) {
+  try {
+    const ac = getAC();
+    const g = ac.createGain();
+    const o = ac.createOscillator();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ac.currentTime + delay);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + delay + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(ac.currentTime + delay);
+    o.stop(ac.currentTime + delay + dur);
+  } catch (_) {}
+}
+
+function sfxJump()    { beep(330, .12, 'square', .1); beep(440, .1, 'square', .08, .06); }
+function sfxCollect() { beep(660, .07, 'sine', .12); beep(880, .07, 'sine', .1, .07); }
+function sfxHit()     { beep(200, .08, 'sawtooth', .18); beep(130, .2, 'sawtooth', .12, .06); }
+function sfxDuck()    { beep(220, .08, 'square', .08); }
+function sfxPower()   { [440,550,660,880,1100].forEach((f,i)=>beep(f,.1,'sine',.1,i*.07)); }
+function sfxGameOver(){ beep(440,.1,'sawtooth',.15); beep(330,.12,'sawtooth',.15,.12); beep(220,.4,'sawtooth',.18,.25); }
+function sfxMilestone(){ beep(660,.1,'square',.1); beep(880,.1,'square',.1,.1); beep(1100,.15,'square',.1,.2); }
+
+// ── Colour palette ──────────────────────────────────────────────
+const COL = {
+  '.': null,
+  'B': '#111111',  // outline / black
+  'G': '#aaaaaa',  // raccoon light gray
+  'D': '#666666',  // dark gray (ear inner, shadows)
+  'W': '#ffffff',  // white (eyes, highlights)
+  'P': '#ff8899',  // pink nose
+  'R': '#cc2222',  // red (car body)
+  'Y': '#ffcc00',  // yellow (taxi)
+  'b': '#4477cc',  // blue (car window, fish)
+  'T': '#996633',  // brown (dog, coffee)
+  'S': '#cccccc',  // silver (car body)
+  'L': '#dddddd',  // light silver
+  'g': '#44bb44',  // green (leaves, flag)
+  'o': '#ff8800',  // orange
+  'c': '#5a2a0c',  // coffee dark
+  'f': '#88ddff',  // fish scale blue
+  'k': '#ffee44',  // gold / star
+  'r': '#8c3311',  // brick red
+  'e': '#eedd99',  // beige / cream
+  'n': '#c8b49a',  // nordic cream
+  'M': '#773300',  // medium brown
+  'N': '#222244',  // dark night blue
+  'p': '#cc88ee',  // purple
+  'A': '#88aacc',  // sky blue
+  'C': '#444466',  // dark brick / concrete
+};
+
+// ── Pixel art renderer ──────────────────────────────────────────
+const SC = 3; // sprite pixel → screen pixel scale
+
+function px(pixels, x, y, sc = SC, flash = false) {
+  for (let r = 0; r < pixels.length; r++) {
+    const row = pixels[r];
+    for (let c = 0; c < row.length; c++) {
+      const ch = row[c];
+      if (ch !== '.' && COL[ch]) {
+        ctx.fillStyle = flash ? '#ffffff' : COL[ch];
+        ctx.fillRect(~~(x + c * sc), ~~(y + r * sc), sc, sc);
+      }
+    }
+  }
+}
+
+// ── JIMOTHY SPRITES (12×10 px, scale 3 → 36×30 on screen) ──────
+// His signature look: SHORT SPINE SYNDROME → very round compact body,
+// no visible neck, wide head fused into body, stubby little legs.
+// He literally looks like a fuzzy ball waddling around Ballard. 🦝
+
+const JIM = {
+  run: [
+    [ // stride 1 — right leg forward
+      '..BBBBBBBB..',
+      '.BGDGGGGDGB.',
+      'BGGGGGGGGGGB',
+      'BGBBWWBBWWGB',
+      'BGBBBBBBBBGB',
+      'BGGGGPGGGGGB',
+      '.BGGGGGGGGB.',
+      '..BBBBBBBB..',
+      '..BGBB.BGB..',
+      '..BBB..BBB..',
+    ],
+    [ // stride 2 — left leg forward
+      '..BBBBBBBB..',
+      '.BGDGGGGDGB.',
+      'BGGGGGGGGGGB',
+      'BGBBWWBBWWGB',
+      'BGBBBBBBBBGB',
+      'BGGGGPGGGGGB',
+      '.BGGGGGGGGB.',
+      '..BBBBBBBB..',
+      '...BGBBGB...',
+      '...BBB.BBB..',
+    ],
+  ],
+  jump: [
+    '..BBBBBBBB..',
+    '.BGDGGGGDGB.',
+    'BGGGGGGGGGGB',
+    'BGBBWWBBWWGB',
+    'BGBBBBBBBBGB',
+    'BGGGGPGGGGGB',
+    '.BGGGGGGGGB.',
+    '..BBBBBBBB..',
+    '.BGB....BGB.',  // legs spread (wheee!)
+    '.BBB....BBB.',
+  ],
+  duck: [
+    '............',
+    '..BBBBBBBB..',
+    '.BGDGGGGDGB.',
+    'BGGGGGGGGGGB',
+    'BGBBWWBBWWGB',
+    'BGBBBBBBBBGB',
+    'BGGGGPGGGGGB',
+    'BGGGGGGGGGGB',
+    '.BBBBBBBBBB.',
+    '............',
+  ],
+};
+
+// ── OBSTACLE SPRITES ────────────────────────────────────────────
+
+// Cars (16×8 → 48×24) — three flavours
+const CARS = [
+  [ // Red sedan
+    '................',
+    '....BBBBBBBB....',
+    '...BRRbbbbRRB...',
+    '..BRRRbbbbRRRB..',
+    '.BRRRRRRRRRRRRB.',
+    'BSSSSSSSSSSSSSSB',
+    '.B.BBB......BBB.',
+    '..BB..........BB',
+  ],
+  [ // Blue hatchback
+    '................',
+    '....BBBBBBBB....',
+    '...BbbbgggbbbB..',
+    '..BbbbbbbbbbbB..',
+    '.BSSSSSSSSSSSSB.',
+    'BSSSSSSSSSSSSSSB',
+    '.B.BBB......BBB.',
+    '..BB..........BB',
+  ],
+  [ // Yellow taxi
+    '................',
+    '....BBBBBBBB....',
+    '...BYYbbbbYYB...',
+    '..BYYYbbbbYYYB..',
+    '.BYYYYYYYYYYYY..',
+    'BYYYYYYYYYYYYYB.',
+    '.B.BBB......BBB.',
+    '..BB..........BB',
+  ],
+];
+
+// Dog on leash (9×9 → 27×27)
+const DOG = [
+  '.BBBBB...',
+  'BTTTTB...',
+  'BTTTTTTB.',
+  'BTBWWbTB.',
+  'BTTTTTTB.',
+  'BTTTTTB..',
+  '.BTTTB...',
+  '.BTB.BTB.',
+  '.BBB.BBB.',
+];
+
+// Fire hydrant (5×7 → 15×21) — classic runner obstacle!
+const HYDRANT = [
+  '.BBB.',
+  'BRRRB',
+  'BRRRB',
+  'BWWWB',
+  'BRRRB',
+  'BRRRB',
+  'BBBBB',
+];
+
+// Seagull (11×5 → 33×15) — duck to avoid!
+const GULL = [
+  '....BBBBB..',
+  '..BWWWWWWb.',
+  '.BWWWWWWWWb',
+  'BWWWBWWBWWb',
+  'BBB..BB.BBB',
+];
+
+// ── COLLECTIBLE SPRITES ──────────────────────────────────────────
+
+// Fish (+10 pts) — 8×5 → 24×15
+const FISH = [
+  '..bbbfb.',
+  '.bffbfBb',
+  'bfWbfffb',
+  '.bffbfBb',
+  '..bbbfb.',
+];
+
+// Coffee cup (+5 pts) — 5×8 → 15×24
+const COFFEE = [
+  '.BBB.',
+  'BcccB',
+  'BcccB',
+  'BcccB',
+  'BcccB',
+  '.BBB.',
+  '..B..',
+  '.BBB.',
+];
+
+// Trash can (+3 pts) — Raccoon fave! 6×7 → 18×21
+const TRASH = [
+  '..BBB.',
+  '.BLLLB',
+  '.BLLLB',
+  '.BLLLB',
+  '.BLLLB',
+  '.BLLLB',
+  '.BBBBB',
+];
+
+// Power-up star "Hot Jimothy Summer!" (9×9 → 27×27)
+const STAR = [
+  '....k....',
+  '...kkk...',
+  '.kkkkkkk.',
+  'kkkkkkkkk',
+  '.kkkkkkk.',
+  '..kkkkk..',
+  '...kkk...',
+  '....k....',
+  '.........',
+];
+
+// ── BACKGROUND BUILDING DATA ─────────────────────────────────────
+// Each building has x, width, height, colour, sign text
+// Tiles repeat across the scrolling background
+const BLDG_TILE_W = 960; // world width before repeat
+
+const BUILDINGS = [
+  { x:  0,  w: 75, h: 110, c: '#c57a3d', border: '#7a3d0a', sign: 'BALLARD\nBREWERY', winC: '#c7e0f4' },
+  { x: 85,  w: 55, h:  85, c: '#d9c9a8', border: '#9a7a50', sign: 'CAFE\nMOCA',       winC: '#ffe88a' },
+  { x:150,  w:110, h: 145, c: '#7a9968', border: '#3a5a3a', sign: 'NORDIC\nMUSEUM',   winC: '#c7e0f4', dome: true },
+  { x:270,  w: 65, h:  95, c: '#c57a3d', border: '#7a3d0a', sign: 'LOCKS\nGIFT',      winC: '#ffe88a' },
+  { x:345,  w: 80, h:  80, c: '#a89a7a', border: '#6a5a3a', sign: "HATTIE'S\nHAT",   winC: '#ffe88a' },
+  { x:435,  w: 55, h: 115, c: '#d9c9a8', border: '#9a7a50', sign: 'BEACON\nBOOKS',    winC: '#ffe88a' },
+  { x:500,  w: 90, h:  90, c: '#c57a3d', border: '#7a3d0a', sign: 'BALLARD\nMKT',     winC: '#c7e0f4' },
+  { x:600,  w: 70, h: 120, c: '#7a9968', border: '#3a5a3a', sign: 'SEA\nFOOD',        winC: '#ffe88a' },
+  { x:680,  w: 60, h:  85, c: '#d9c9a8', border: '#9a7a50', sign: 'LOCKS\nINFO',      winC: '#c7e0f4' },
+  { x:750,  w: 80, h: 100, c: '#a89a7a', border: '#6a5a3a', sign: 'GRAINS\n& HOPS',  winC: '#ffe88a' },
+  { x:840,  w: 65, h: 110, c: '#c57a3d', border: '#7a3d0a', sign: 'PIZZA\nTIME',      winC: '#ffe88a' },
+];
+
+function drawBackground(scroll) {
+  // Sky gradient (Seattle evening)
+  const sky = ctx.createLinearGradient(0, 0, 0, GROUND);
+  sky.addColorStop(0,   '#0e1a3a');
+  sky.addColorStop(0.5, '#2a4a7a');
+  sky.addColorStop(1,   '#5a8ac0');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, VW, GROUND);
+
+  // Stars in sky
+  ctx.fillStyle = '#ffffff';
+  const starSeed = 42;
+  for (let i = 0; i < 40; i++) {
+    const sx = ((i * 237 + starSeed) % VW);
+    const sy = ((i * 137) % (GROUND * 0.5));
+    const blink = (Math.sin(Date.now() * 0.001 + i) + 1) * 0.5;
+    if (blink > 0.4) {
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+  }
+
+  // Distant hills (very slow parallax)
+  const hillOff = -(scroll * 0.05) % VW;
+  ctx.fillStyle = '#1e3558';
+  for (let pass = 0; pass < 2; pass++) {
+    const hx = hillOff + pass * VW;
+    ctx.beginPath();
+    ctx.moveTo(hx, GROUND);
+    for (let x = 0; x <= VW; x += 40) {
+      const hy = GROUND - 50 - Math.abs(Math.sin((x + hx * 0.3) * 0.01) * 60);
+      ctx.lineTo(hx + x, hy);
+    }
+    ctx.lineTo(hx + VW, GROUND);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Buildings (medium parallax: 0.7x scroll speed)
+  const bOff = -(scroll * 0.7) % BLDG_TILE_W;
+  for (let pass = 0; pass < 2; pass++) {
+    const baseX = bOff + pass * BLDG_TILE_W;
+    for (const b of BUILDINGS) {
+      const bx = baseX + b.x;
+      if (bx + b.w < -5 || bx > VW + 5) continue;
+      const by = GROUND - b.h;
+
+      // Building body
+      ctx.fillStyle = b.c;
+      ctx.fillRect(bx, by, b.w, b.h);
+
+      // Pixel border
+      ctx.fillStyle = b.border;
+      ctx.fillRect(bx, by, b.w, 2);
+      ctx.fillRect(bx, by, 2, b.h);
+      ctx.fillRect(bx + b.w - 2, by, 2, b.h);
+
+      // Nordic Museum dome
+      if (b.dome) {
+        ctx.fillStyle = '#5a7a56';
+        ctx.beginPath();
+        ctx.ellipse(bx + b.w / 2, by + 2, b.w * 0.38, 28, 0, Math.PI, 0);
+        ctx.fill();
+        ctx.fillStyle = '#3a5a38';
+        ctx.fillRect(bx + b.w / 2 - 3, by - 24, 6, 30);
+        // Flag on top
+        ctx.fillStyle = '#cc2222';
+        ctx.fillRect(bx + b.w / 2 - 3, by - 32, 12, 8);
+        ctx.fillStyle = '#dddddd';
+        ctx.fillRect(bx + b.w / 2 - 3, by - 30, 3, 4);
+      }
+
+      // Windows (pixel style)
+      const winW = 10, winH = 10;
+      for (let wy = by + 14; wy < by + b.h - 22; wy += 18) {
+        for (let wx = bx + 8; wx < bx + b.w - 10; wx += 16) {
+          // Randomly lit (deterministic per position)
+          const lit = ((wx * 7 + wy * 13) % 3) !== 0;
+          ctx.fillStyle = lit ? b.winC : '#1a2a3a';
+          ctx.fillRect(wx, wy, winW, winH);
+          ctx.fillStyle = b.border;
+          ctx.fillRect(wx - 1, wy - 1, winW + 2, 1);
+          ctx.fillRect(wx - 1, wy - 1, 1, winH + 2);
+          ctx.fillRect(wx + winW, wy - 1, 1, winH + 2);
+          ctx.fillRect(wx - 1, wy + winH, winW + 2, 1);
+        }
+      }
+
+      // Sign
+      if (b.sign && b.w > 40) {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(bx + 4, by + b.h - 28, b.w - 8, 20);
+        ctx.fillStyle = '#ffee44';
+        ctx.font = 'bold 6px Courier New';
+        ctx.textAlign = 'center';
+        const lines = b.sign.split('\n');
+        lines.forEach((l, i) => ctx.fillText(l, bx + b.w / 2, by + b.h - 21 + i * 8));
+        ctx.textAlign = 'left';
+      }
+    }
+  }
+
+  // Ground: sidewalk bricks
+  ctx.fillStyle = '#8a7a6a';
+  ctx.fillRect(0, GROUND, VW, VH - GROUND);
+
+  // Sidewalk brick pattern
+  const brickW = 30, brickH = 8;
+  const brickOff = (scroll * 1.0) % brickW;
+  for (let by2 = GROUND; by2 < GROUND + 28; by2 += brickH + 1) {
+    const rowShift = (Math.floor((by2 - GROUND) / (brickH + 1)) % 2) * (brickW / 2);
+    for (let bx2 = -brickOff - brickW + rowShift; bx2 < VW + brickW; bx2 += brickW + 1) {
+      ctx.fillStyle = '#9a8a7a';
+      ctx.fillRect(bx2, by2, brickW, brickH);
+      ctx.fillStyle = '#7a6a5a';
+      ctx.fillRect(bx2, by2, brickW, 1); // top shadow
+      ctx.fillRect(bx2, by2, 1, brickH); // left shadow
+    }
+  }
+
+  // Road line at very bottom
+  ctx.fillStyle = '#555566';
+  ctx.fillRect(0, GROUND + 28, VW, VH - GROUND - 28);
+  // Road dashes
+  ctx.fillStyle = '#ffcc00';
+  const dashW = 24, dashOff = (scroll * 1.0) % (dashW * 2 + 20);
+  for (let dx = -dashOff; dx < VW; dx += dashW * 2 + 20) {
+    ctx.fillRect(dx, GROUND + 38, dashW, 3);
+  }
+}
+
+// ── PARTICLES ────────────────────────────────────────────────────
+const particles = [];
+
+function spawnParticles(x, y, color, count = 8) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * (2 + Math.random() * 3),
+      vy: Math.sin(angle) * (2 + Math.random() * 3) - 2,
+      life: 1.0,
+      color,
+      size: 4 + Math.random() * 4,
+    });
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x  += p.vx * dt * 60;
+    p.y  += p.vy * dt * 60;
+    p.vy += 0.15 * dt * 60;
+    p.life -= 0.03 * dt * 60;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(~~(p.x - p.size / 2), ~~(p.y - p.size / 2), ~~p.size, ~~p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ── FLOATING SCORE TEXT ──────────────────────────────────────────
+const floats = [];
+
+function spawnFloat(x, y, text, color = '#ffee44') {
+  floats.push({ x, y, text, color, life: 1.0 });
+}
+
+function updateFloats(dt) {
+  for (let i = floats.length - 1; i >= 0; i--) {
+    floats[i].y  -= 1.5 * dt * 60;
+    floats[i].life -= 0.025 * dt * 60;
+    if (floats[i].life <= 0) floats.splice(i, 1);
+  }
+}
+
+function drawFloats() {
+  ctx.font = 'bold 12px Courier New';
+  ctx.textAlign = 'center';
+  for (const f of floats) {
+    ctx.globalAlpha = f.life;
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, ~~f.x, ~~f.y);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'left';
+}
+
+// ── GAME CONSTANTS ───────────────────────────────────────────────
+const GROUND      = 200;   // Y of ground surface
+const JIM_X       =  80;   // Jimothy's fixed screen X
+const JIM_PX_W    =  12;   // sprite pixels wide
+const JIM_PX_H    =  10;   // sprite pixels tall
+const JIM_W       = JIM_PX_W * SC;  // 36
+const JIM_H       = JIM_PX_H * SC;  // 30
+const JIM_H_DUCK  = 18;    // hitbox height when ducking
+const GRAVITY     = 0.58;
+const JUMP_VY     = -12;
+const BASE_SPEED  = 4.5;
+
+// ── GAME STATE ───────────────────────────────────────────────────
+const STATE = { TITLE: 0, PLAYING: 1, PAUSED: 2, DEAD: 3, GAMEOVER: 4 };
+
+let state      = STATE.TITLE;
+let score      = 0;
+let hiScore    = +localStorage.getItem('jimothy_hi') || 0;
+let speed      = BASE_SPEED;
+let scroll     = 0;
+let gameTime   = 0;
+let lastTime   = null;
+let deathTimer = 0;
+
+// Jimothy
+const jim = {
+  y:          GROUND - JIM_H,
+  vy:         0,
+  onGround:   true,
+  ducking:    false,
+  invincible: 0,      // seconds remaining
+  flashTimer: 0,
+  frame:      0,
+  frameTimer: 0,
+  lives:      3,
+};
+
+// Active entities on screen
+let obstacles   = [];
+let collectibles = [];
+
+// Spawn timers
+let obstacleTimer    = 0;
+let obstacleInterval = 2.2;  // seconds between obstacles
+let collectTimer     = 0;
+let collectInterval  = 1.6;
+
+// Milestone tracking
+let lastMilestone = 0;
+
+// ── HITBOX HELPERS ────────────────────────────────────────────────
+function jimBox() {
+  if (jim.ducking) {
+    return { x: JIM_X + 4, y: GROUND - JIM_H_DUCK - 2, w: JIM_W - 8, h: JIM_H_DUCK };
+  }
+  return { x: JIM_X + 4, y: ~~jim.y + 3, w: JIM_W - 8, h: JIM_H - 6 };
+}
+
+function hits(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x &&
+         a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// ── SPAWN LOGIC ───────────────────────────────────────────────────
+function spawnObstacle() {
+  const x = VW + 20;
+  const roll = Math.random();
+
+  if (roll < 0.40) {
+    // Car
+    const carIdx = Math.floor(Math.random() * 3);
+    obstacles.push({
+      type: 'car', sprite: CARS[carIdx],
+      x, y: GROUND - 24, w: 48, h: 24,
+    });
+  } else if (roll < 0.70) {
+    // Dog
+    obstacles.push({
+      type: 'dog', sprite: DOG,
+      x, y: GROUND - 27, w: 27, h: 27,
+    });
+  } else if (roll < 0.85) {
+    // Hydrant
+    obstacles.push({
+      type: 'hydrant', sprite: HYDRANT,
+      x, y: GROUND - 21, w: 15, h: 21,
+    });
+  } else {
+    // Double car — two in a row (harder!)
+    const carIdx = Math.floor(Math.random() * 3);
+    const car2   = Math.floor(Math.random() * 3);
+    obstacles.push({ type:'car', sprite:CARS[carIdx], x, y:GROUND-24, w:48, h:24 });
+    obstacles.push({ type:'car', sprite:CARS[car2],   x:x+75, y:GROUND-24, w:48, h:24 });
+  }
+
+  // Sometimes add a seagull above (duck to avoid!)
+  if (Math.random() < 0.25) {
+    obstacles.push({
+      type: 'gull', sprite: GULL,
+      x: x + 80 + Math.random() * 60,
+      y: GROUND - JIM_H + 8,   // head height → must duck
+      w: 33, h: 15,
+    });
+  }
+}
+
+function spawnCollectible() {
+  const x   = VW + 20;
+  const roll = Math.random();
+
+  if (roll < 0.40) {
+    collectibles.push({
+      type: 'fish', sprite: FISH,
+      x, y: GROUND - 30,   // at Jimothy's mid-body → just collect naturally
+      w: 24, h: 15,
+      pts: 10, color: '#88ddff',
+    });
+  } else if (roll < 0.65) {
+    collectibles.push({
+      type: 'coffee', sprite: COFFEE,
+      x, y: GROUND - 24, w: 15, h: 24,
+      pts: 5, color: '#cc8833',
+    });
+  } else if (roll < 0.85) {
+    collectibles.push({
+      type: 'trash', sprite: TRASH,
+      x, y: GROUND - 21, w: 18, h: 21,
+      pts: 3, color: '#aaaaaa',
+    });
+  } else {
+    // Power-up star — floats high, must jump
+    collectibles.push({
+      type: 'star', sprite: STAR,
+      x, y: GROUND - JIM_H - 35,   // up in the air
+      w: 27, h: 27,
+      pts: 0, color: '#ffee44', power: true,
+    });
+  }
+}
+
+// ── UPDATE ────────────────────────────────────────────────────────
+function update(dt) {
+  // DEAD state: play out death animation then transition to GAMEOVER
+  if (state === STATE.DEAD) {
+    updateParticles(dt);
+    updateFloats(dt);
+    deathTimer -= dt;
+    if (deathTimer <= 0) {
+      state = STATE.GAMEOVER;
+      shareBtn.style.display = 'inline-block';
+    }
+    return;
+  }
+
+  if (state !== STATE.PLAYING) return;
+
+  gameTime  += dt;
+  scroll    += speed * dt * 60;
+
+  // Difficulty ramp: speed increases every 300 pts
+  speed = BASE_SPEED + Math.floor(score / 300) * 0.6;
+  obstacleInterval = Math.max(0.9, 2.2 - score * 0.0015);
+  collectInterval  = Math.max(0.7, 1.6 - score * 0.001);
+
+  // Milestone shout-out
+  const milestone = Math.floor(score / 500) * 500;
+  if (milestone > 0 && milestone !== lastMilestone) {
+    lastMilestone = milestone;
+    sfxMilestone();
+  }
+
+  // ── Jimothy physics ──────────────────────────────────────────
+  if (!jim.onGround) {
+    jim.vy += GRAVITY * dt * 60;
+    jim.y  += jim.vy  * dt * 60;
+  }
+
+  if (jim.y >= GROUND - JIM_H) {
+    jim.y        = GROUND - JIM_H;
+    jim.vy       = 0;
+    jim.onGround = true;
+  }
+
+  // Run animation
+  if (jim.onGround && !jim.ducking) {
+    jim.frameTimer += dt;
+    if (jim.frameTimer > 0.12) {
+      jim.frameTimer = 0;
+      jim.frame = (jim.frame + 1) % 2;
+    }
+  }
+
+  // Invincibility countdown (power-up)
+  if (jim.invincible > 0) {
+    jim.invincible -= dt;
+    jim.flashTimer += dt;
+    if (jim.invincible <= 0) {
+      jim.invincible = 0;
+      jim.flashTimer = 0;
+    }
+  }
+
+  // ── Obstacle spawning ─────────────────────────────────────────
+  obstacleTimer += dt;
+  if (obstacleTimer >= obstacleInterval) {
+    obstacleTimer = 0;
+    spawnObstacle();
+  }
+
+  // ── Collectible spawning ──────────────────────────────────────
+  collectTimer += dt;
+  if (collectTimer >= collectInterval) {
+    collectTimer = 0;
+    spawnCollectible();
+  }
+
+  const jb = jimBox();
+
+  // ── Move & check obstacles ────────────────────────────────────
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    o.x -= speed * dt * 60;
+
+    if (o.x + o.w < -10) {
+      obstacles.splice(i, 1);
+      continue;
+    }
+
+    if (!jim.invincible && hits(jb, o)) {
+      // Hit!
+      jim.lives--;
+      sfxHit();
+      spawnParticles(JIM_X + JIM_W / 2, jim.y + JIM_H / 2, '#ff4444');
+      obstacles.splice(i, 1);
+
+      if (jim.lives <= 0) {
+        state = STATE.DEAD;
+        deathTimer = 1.8;
+        sfxGameOver();
+        if (score > hiScore) {
+          hiScore = score;
+          localStorage.setItem('jimothy_hi', hiScore);
+        }
+      } else {
+        // Brief invincibility after hit
+        jim.invincible = 1.5;
+      }
+    }
+  }
+
+  // ── Move & check collectibles ─────────────────────────────────
+  for (let i = collectibles.length - 1; i >= 0; i--) {
+    const c = collectibles[i];
+    c.x -= speed * dt * 60;
+
+    if (c.x + c.w < -10) {
+      collectibles.splice(i, 1);
+      continue;
+    }
+
+    if (hits(jb, c)) {
+      collectibles.splice(i, 1);
+      sfxCollect();
+      spawnParticles(c.x + c.w / 2, c.y + c.h / 2, c.color, 6);
+
+      if (c.power) {
+        jim.invincible = 4.0;
+        sfxPower();
+        spawnFloat(c.x + c.w / 2, c.y - 10, '🔥 HOT JIMOTHY SUMMER!', '#ffcc00');
+      } else {
+        const gained = jim.invincible > 0 ? c.pts * 2 : c.pts;
+        score += gained;
+        spawnFloat(c.x + c.w / 2, c.y - 10, '+' + gained + (jim.invincible > 0 ? ' ×2!' : ''), c.color);
+      }
+    }
+  }
+
+  // Also add continuous score for distance
+  score += dt * 5 * (speed / BASE_SPEED);
+
+  updateParticles(dt);
+  updateFloats(dt);
+}
+
+// ── DRAW HUD ──────────────────────────────────────────────────────
+function drawHUD() {
+  // Score
+  ctx.fillStyle = '#ffcc44';
+  ctx.font = 'bold 14px Courier New';
+  ctx.fillText('SCORE: ' + ~~score, 10, 20);
+
+  ctx.fillStyle = '#888888';
+  ctx.font = '10px Courier New';
+  ctx.fillText('BEST: ' + ~~hiScore, 10, 34);
+
+  // Speed indicator
+  const spd = Math.min(Math.floor((speed - BASE_SPEED) / 0.6) + 1, 10);
+  ctx.fillStyle = '#66bbff';
+  ctx.font = '10px Courier New';
+  ctx.fillText('SPD: ' + '▮'.repeat(spd) + '▯'.repeat(Math.max(0, 5 - spd)), VW - 110, 20);
+
+  // Lives (pixel hearts)
+  for (let i = 0; i < 3; i++) {
+    drawPixelHeart(VW - 110 + i * 22, 28, i < jim.lives);
+  }
+
+  // Power-up bar
+  if (jim.invincible > 0) {
+    ctx.fillStyle = '#333';
+    ctx.fillRect(VW / 2 - 60, 8, 120, 10);
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(VW / 2 - 60, 8, (jim.invincible / 4.0) * 120, 10);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 7px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔥 HOT JIMOTHY SUMMER 🔥', VW / 2, 17);
+    ctx.textAlign = 'left';
+  }
+}
+
+function drawPixelHeart(x, y, filled) {
+  const c = filled ? '#ee3333' : '#444';
+  // 7×6 pixel heart
+  const H = [
+    '.BB.BB.',
+    'BRRRRRRB',  // note: ignore width inconsistency, drawn by coord
+  ];
+  // Draw heart manually with 3px pixels
+  const s = 3;
+  const heart = [
+    [0,0,1,0,1,0,0],
+    [1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,0],
+    [0,0,1,1,1,0,0],
+    [0,0,0,1,0,0,0],
+  ];
+  for (let r = 0; r < heart.length; r++) {
+    for (let col = 0; col < heart[r].length; col++) {
+      if (heart[r][col]) {
+        ctx.fillStyle = filled ? (r === 0 ? '#cc1111' : '#ee3333') : '#444';
+        ctx.fillRect(x + col * s, y + r * s, s, s);
+      }
+    }
+  }
+}
+
+// ── DRAW SCREENS ──────────────────────────────────────────────────
+function drawTitleScreen() {
+  // Overlay
+  ctx.fillStyle = 'rgba(0,0,0,0.72)';
+  ctx.fillRect(0, 0, VW, VH);
+
+  // Title box
+  const bx = VW / 2 - 200, by = 30, bw = 400, bh = 180;
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.fillStyle = '#5a3e85';
+  ctx.fillRect(bx, by, bw, 3);
+  ctx.fillRect(bx, by + bh - 3, bw, 3);
+  ctx.fillRect(bx, by, 3, bh);
+  ctx.fillRect(bx + bw - 3, by, 3, bh);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffcc44';
+  ctx.font = 'bold 18px Courier New';
+  ctx.fillText('🦝 JIMOTHY\'S', VW / 2, by + 32);
+  ctx.fillText('BALLARD ADVENTURE', VW / 2, by + 54);
+
+  ctx.fillStyle = '#aaa';
+  ctx.font = '9px Courier New';
+  ctx.fillText('Based on Jimothy the real raccoon of Ballard, Seattle', VW / 2, by + 74);
+  ctx.fillText('who went viral July 2026 for his adorably round shape!', VW / 2, by + 86);
+  ctx.fillStyle = '#888';
+  ctx.fillText('(Short spine syndrome makes him look like a fuzzy ball!)', VW / 2, by + 98);
+
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px Courier New';
+  ctx.fillText('JUMP over cars, dogs & hydrants', VW / 2, by + 118);
+  ctx.fillText('DUCK under seagulls', VW / 2, by + 132);
+  ctx.fillText('COLLECT fish, coffee & trash!', VW / 2, by + 146);
+
+  // Blink START
+  if (Math.floor(Date.now() / 500) % 2 === 0) {
+    ctx.fillStyle = '#ffcc44';
+    ctx.font = 'bold 14px Courier New';
+    ctx.fillText('▶  PRESS SPACE / TAP TO START  ◀', VW / 2, by + 170);
+  }
+
+  ctx.textAlign = 'left';
+
+  // Draw Jimothy in title
+  px(JIM.run[0], VW / 2 - 18, by + bh - 4, SC);
+}
+
+function drawGameOverScreen() {
+  ctx.fillStyle = 'rgba(0,0,0,0.78)';
+  ctx.fillRect(0, 0, VW, VH);
+
+  const bx = VW / 2 - 170, by = 40, bw = 340, bh = 168;
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.fillStyle = '#cc2222';
+  ctx.fillRect(bx, by, bw, 3);
+  ctx.fillRect(bx, by + bh - 3, bw, 3);
+  ctx.fillRect(bx, by, 3, bh);
+  ctx.fillRect(bx + bw - 3, by, 3, bh);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#cc4444';
+  ctx.font = 'bold 20px Courier New';
+  ctx.fillText('GAME OVER', VW / 2, by + 34);
+
+  ctx.fillStyle = '#ffcc44';
+  ctx.font = 'bold 13px Courier New';
+  ctx.fillText('SCORE: ' + ~~score, VW / 2, by + 60);
+
+  if (score >= hiScore) {
+    ctx.fillStyle = '#44ffaa';
+    ctx.font = 'bold 11px Courier New';
+    ctx.fillText('🏆 NEW BEST SCORE! 🏆', VW / 2, by + 80);
+  } else {
+    ctx.fillStyle = '#888';
+    ctx.font = '11px Courier New';
+    ctx.fillText('BEST: ' + ~~hiScore, VW / 2, by + 80);
+  }
+
+  ctx.fillStyle = '#aaa';
+  ctx.font = '9px Courier New';
+  ctx.fillText('Jimothy waddled ' + ~~(scroll / 50) + ' m through Ballard', VW / 2, by + 100);
+
+  ctx.fillStyle = '#88ddff';
+  ctx.font = '9px Courier New';
+  ctx.fillText('Real Jimothy spotted in Ballard, Seattle — July 2026', VW / 2, by + 116);
+  ctx.fillStyle = '#666';
+  ctx.fillText('Short spine syndrome • Internet sensation • Round legend', VW / 2, by + 128);
+
+  if (Math.floor(Date.now() / 500) % 2 === 0) {
+    ctx.fillStyle = '#ffcc44';
+    ctx.font = 'bold 11px Courier New';
+    ctx.fillText('▶  SPACE / TAP TO PLAY AGAIN  ◀', VW / 2, by + 152);
+  }
+
+  ctx.textAlign = 'left';
+}
+
+function drawPauseScreen() {
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, VW, VH);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffcc44';
+  ctx.font = 'bold 22px Courier New';
+  ctx.fillText('⏸  PAUSED', VW / 2, VH / 2 - 10);
+  ctx.fillStyle = '#aaa';
+  ctx.font = '11px Courier New';
+  ctx.fillText('Press P to resume', VW / 2, VH / 2 + 14);
+  ctx.textAlign = 'left';
+}
+
+// ── DRAW JIMOTHY ─────────────────────────────────────────────────
+function drawJimothy() {
+  const doFlash = jim.invincible > 0 && Math.floor(jim.flashTimer * 10) % 2 === 1;
+
+  let sprite;
+  if (jim.ducking) {
+    sprite = JIM.duck;
+  } else if (!jim.onGround) {
+    sprite = JIM.jump;
+  } else {
+    sprite = JIM.run[jim.frame];
+  }
+
+  const drawY = jim.ducking ? GROUND - JIM_H : ~~jim.y;
+  px(sprite, JIM_X, drawY, SC, doFlash);
+
+  // Power-up glow ring
+  if (jim.invincible > 0 && !doFlash) {
+    ctx.strokeStyle = '#ffcc00';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.5 + 0.4 * Math.sin(Date.now() * 0.008);
+    ctx.beginPath();
+    ctx.ellipse(
+      JIM_X + JIM_W / 2, drawY + JIM_H / 2,
+      JIM_W / 2 + 4, JIM_H / 2 + 4,
+      0, 0, Math.PI * 2
+    );
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 1;
+  }
+}
+
+// ── MAIN DRAW ─────────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, VW, VH);
+
+  drawBackground(scroll);
+
+  // Obstacles
+  for (const o of obstacles) {
+    px(o.sprite, o.x, o.y, SC);
+  }
+
+  // Collectibles (with bob animation)
+  const bobOffset = Math.sin(Date.now() * 0.004) * 3;
+  for (const c of collectibles) {
+    const yOff = (c.type === 'star' || c.type === 'fish') ? bobOffset : 0;
+    px(c.sprite, c.x, c.y + yOff, SC);
+    // Star sparkle
+    if (c.type === 'star') {
+      ctx.fillStyle = '#ffee44';
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(Date.now() * 0.008);
+      ctx.fillRect(c.x + 10, c.y + yOff + 10, 4, 4);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  drawJimothy();
+  drawParticles();
+  drawFloats();
+
+  if (state === STATE.PLAYING || state === STATE.DEAD) drawHUD();
+  if (state === STATE.TITLE)    drawTitleScreen();
+  if (state === STATE.GAMEOVER) drawGameOverScreen();
+  if (state === STATE.PAUSED)   { drawHUD(); drawPauseScreen(); }
+}
+
+// ── GAME LOOP ─────────────────────────────────────────────────────
+function loop(ts) {
+  if (!lastTime) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 1000, 0.05); // cap at 50ms
+  lastTime = ts;
+
+  update(dt);
+  draw();
+
+  requestAnimationFrame(loop);
+}
+
+// ── INPUT ─────────────────────────────────────────────────────────
+function doJump() {
+  if (state === STATE.TITLE || state === STATE.GAMEOVER) {
+    startGame();
+    return;
+  }
+  if (state === STATE.PAUSED) return;
+  if (state !== STATE.PLAYING) return;
+  if (jim.ducking) return;
+
+  if (jim.onGround) {
+    jim.vy = JUMP_VY;
+    jim.onGround = false;
+    sfxJump();
+  }
+}
+
+function doDuck(active) {
+  if (state !== STATE.PLAYING) return;
+  if (jim.ducking === active) return;
+  jim.ducking = active;
+  if (active) sfxDuck();
+}
+
+function startGame() {
+  state      = STATE.PLAYING;
+  score      = 0;
+  speed      = BASE_SPEED;
+  scroll     = 0;
+  gameTime   = 0;
+  lastMilestone = 0;
+
+  jim.y          = GROUND - JIM_H;
+  jim.vy         = 0;
+  jim.onGround   = true;
+  jim.ducking    = false;
+  jim.invincible = 0;
+  jim.flashTimer = 0;
+  jim.frame      = 0;
+  jim.lives      = 3;
+
+  obstacles   = [];
+  collectibles = [];
+  particles.length = 0;
+  floats.length    = 0;
+  obstacleTimer    = 0;
+  collectTimer     = 0;
+  lastTime         = null;
+  shareBtn.style.display = 'none';
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    e.preventDefault();
+    doJump();
+  }
+  if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+    e.preventDefault();
+    doDuck(true);
+  }
+  if (e.code === 'KeyP') {
+    if (state === STATE.PLAYING) state = STATE.PAUSED;
+    else if (state === STATE.PAUSED) state = STATE.PLAYING;
+  }
+});
+
+document.addEventListener('keyup', e => {
+  if (e.code === 'ArrowDown' || e.code === 'KeyS') doDuck(false);
+});
+
+// Touch
+let touchStartY = null;
+let touchStartTime = 0;
+
+CV.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+}, { passive: false });
+
+CV.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (touchStartY === null) return;
+
+  const endY  = e.changedTouches[0].clientY;
+  const dy    = endY - touchStartY;
+  const dt    = Date.now() - touchStartTime;
+
+  if (dy > 40 && dt < 400) {
+    // Swipe down → duck briefly
+    doDuck(true);
+    setTimeout(() => doDuck(false), 400);
+  } else {
+    doJump();
+  }
+  touchStartY = null;
+}, { passive: false });
+
+// Click (desktop fallback)
+CV.addEventListener('click', () => doJump());
+
+// ── SHARE ─────────────────────────────────────────────────────────
+function shareScore() {
+  const text = `🦝 I scored ${~~score} points in Jimothy's Ballard Adventure!\n` +
+               `Help Seattle's famous round raccoon dodge cars in Ballard!\n` +
+               `Play free: https://pedrour.github.io/jimothy-adventure\n` +
+               `#Jimothy #HotJimothySummer #Ballard #Seattle`;
+
+  if (navigator.share) {
+    navigator.share({ title: "Jimothy's Ballard Adventure 🦝", text, url: 'https://pedrour.github.io/jimothy-adventure' })
+      .catch(() => copyFallback(text));
+  } else {
+    copyFallback(text);
+  }
+}
+
+function copyFallback(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Score copied! Share it anywhere 🦝');
+  }).catch(() => {
+    prompt('Copy and share your score!', text);
+  });
+}
+
+// ── KICK OFF ──────────────────────────────────────────────────────
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
