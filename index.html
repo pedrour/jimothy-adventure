@@ -363,152 +363,436 @@ const STAR = [
 ];
 
 // ── BACKGROUND BUILDING DATA ─────────────────────────────────────
-// Each building has x, width, height, colour, sign text
-// Tiles repeat across the scrolling background
-const BLDG_TILE_W = 960; // world width before repeat
+const BLDG_TILE_W = 1000;
 
 const BUILDINGS = [
-  { x:  0,  w: 75, h: 110, c: '#c57a3d', border: '#7a3d0a', sign: 'BALLARD\nBREWERY', winC: '#c7e0f4' },
-  { x: 85,  w: 55, h:  85, c: '#d9c9a8', border: '#9a7a50', sign: 'CAFE\nMOCA',       winC: '#ffe88a' },
-  { x:150,  w:110, h: 145, c: '#7a9968', border: '#3a5a3a', sign: 'NORDIC\nMUSEUM',   winC: '#c7e0f4', dome: true },
-  { x:270,  w: 65, h:  95, c: '#c57a3d', border: '#7a3d0a', sign: 'LOCKS\nGIFT',      winC: '#ffe88a' },
-  { x:345,  w: 80, h:  80, c: '#a89a7a', border: '#6a5a3a', sign: "HATTIE'S\nHAT",   winC: '#ffe88a' },
-  { x:435,  w: 55, h: 115, c: '#d9c9a8', border: '#9a7a50', sign: 'BEACON\nBOOKS',    winC: '#ffe88a' },
-  { x:500,  w: 90, h:  90, c: '#c57a3d', border: '#7a3d0a', sign: 'BALLARD\nMKT',     winC: '#c7e0f4' },
-  { x:600,  w: 70, h: 120, c: '#7a9968', border: '#3a5a3a', sign: 'SEA\nFOOD',        winC: '#ffe88a' },
-  { x:680,  w: 60, h:  85, c: '#d9c9a8', border: '#9a7a50', sign: 'LOCKS\nINFO',      winC: '#c7e0f4' },
-  { x:750,  w: 80, h: 100, c: '#a89a7a', border: '#6a5a3a', sign: 'GRAINS\n& HOPS',  winC: '#ffe88a' },
-  { x:840,  w: 65, h: 110, c: '#c57a3d', border: '#7a3d0a', sign: 'PIZZA\nTIME',      winC: '#ffe88a' },
+  { x:   0, w: 80,  h: 115, c: '#c87850', border: '#8a4820', sign: 'BALLARD\nBREWERY',  locks: false },
+  { x:  90, w: 50,  h:  80, c: '#e8dcc8', border: '#aa8860', sign: "DICK'S\nDRIVE-IN"                },
+  { x: 150, w: 115, h: 150, c: '#8aaa78', border: '#507050', sign: 'NORDIC\nMUSEUM',     dome: true   },
+  { x: 275, w: 70,  h: 100, c: '#7a8898', border: '#4a5868', sign: 'BALLARD\nLOCKS',    locks: true  },
+  { x: 355, w: 75,  h:  82, c: '#c8b880', border: '#907840', sign: "HATTIE'S\nHAT"                   },
+  { x: 440, w: 60,  h: 118, c: '#e8dcc8', border: '#aa8860', sign: "IVAR'S\nSEAFOOD"                 },
+  { x: 510, w: 95,  h:  95, c: '#c87850', border: '#8a4820', sign: 'PIKE\nPLACE'                     },
+  { x: 615, w: 72,  h: 125, c: '#1e5c3a', border: '#134028', sign: 'STARBUCKS\nRESERVE', siren: true },
+  { x: 697, w: 58,  h:  88, c: '#e8dcc8', border: '#aa8860', sign: 'ANCHOR\nBREW'                    },
+  { x: 765, w: 82,  h: 105, c: '#c8b880', border: '#907840', sign: 'NORSE\nCRAFT'                    },
+  { x: 857, w: 68,  h: 115, c: '#c87850', border: '#8a4820', sign: 'REI\nCO-OP'                      },
 ];
 
-function drawBackground(scroll) {
-  // Sky gradient (Seattle evening)
-  const sky = ctx.createLinearGradient(0, 0, 0, GROUND);
-  sky.addColorStop(0,   '#0e1a3a');
-  sky.addColorStop(0.5, '#2a4a7a');
-  sky.addColorStop(1,   '#5a8ac0');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, VW, GROUND);
+// ── LANDMARK DRAWING HELPERS ─────────────────────────────────────
 
-  // Stars in sky
+function drawCloud(x, y, w = 60, h = 22) {
+  if (x + w + 30 < 0 || x - 30 > VW) return;
+  const bw = w / 3.5;
   ctx.fillStyle = '#ffffff';
-  const starSeed = 42;
-  for (let i = 0; i < 40; i++) {
-    const sx = ((i * 237 + starSeed) % VW);
-    const sy = ((i * 137) % (GROUND * 0.5));
-    const blink = (Math.sin(Date.now() * 0.001 + i) + 1) * 0.5;
-    if (blink > 0.4) {
-      ctx.fillRect(sx, sy, 2, 2);
-    }
-  }
+  ctx.beginPath();
+  ctx.arc(x,          y,          bw * 1.1, 0, Math.PI * 2);
+  ctx.arc(x + bw,     y - h * 0.3, bw * 1.3, 0, Math.PI * 2);
+  ctx.arc(x + bw*2.1, y - h * 0.4, bw * 1.4, 0, Math.PI * 2);
+  ctx.arc(x + bw*3.2, y - h * 0.2, bw * 1.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(x - bw * 0.5, y, w + bw * 1.2, h * 0.55);
+  ctx.fillStyle = 'rgba(195, 220, 240, 0.5)';
+  ctx.fillRect(x, y + h * 0.1, w, h * 0.45);
+}
 
-  // Distant hills (very slow parallax)
-  const hillOff = -(scroll * 0.05) % VW;
-  ctx.fillStyle = '#1e3558';
-  for (let pass = 0; pass < 2; pass++) {
-    const hx = hillOff + pass * VW;
+function drawSpaceNeedle(cx, baseY, sc = 1) {
+  if (cx < -70 * sc || cx > VW + 70 * sc) return;
+  const a = 0.82; // opacity
+  ctx.fillStyle = `rgba(210,210,204,${a})`;
+
+  // Base platform
+  ctx.fillRect(cx - 24*sc, baseY - 5*sc, 48*sc, 5*sc);
+
+  // Left leg
+  ctx.beginPath();
+  ctx.moveTo(cx - 23*sc, baseY - 5*sc);
+  ctx.lineTo(cx - 3*sc,  baseY - 34*sc);
+  ctx.lineTo(cx + 3*sc,  baseY - 34*sc);
+  ctx.lineTo(cx - 13*sc, baseY - 5*sc);
+  ctx.closePath(); ctx.fill();
+
+  // Right leg
+  ctx.beginPath();
+  ctx.moveTo(cx + 23*sc, baseY - 5*sc);
+  ctx.lineTo(cx + 3*sc,  baseY - 34*sc);
+  ctx.lineTo(cx - 3*sc,  baseY - 34*sc);
+  ctx.lineTo(cx + 13*sc, baseY - 5*sc);
+  ctx.closePath(); ctx.fill();
+
+  // Main stem
+  ctx.fillRect(cx - 2*sc, baseY - 96*sc, 4*sc, 62*sc);
+
+  // Saucer / observation deck
+  ctx.fillStyle = `rgba(185,188,182,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY - 98*sc, 20*sc, 7*sc, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Top of saucer (sunlit)
+  ctx.fillStyle = `rgba(232,232,226,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY - 101*sc, 18*sc, 5*sc, 0, Math.PI, 0);
+  ctx.fill();
+  // Dome
+  ctx.fillStyle = `rgba(210,210,204,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY - 102*sc, 11*sc, 7*sc, 0, Math.PI, 0);
+  ctx.fill();
+
+  // Upper column
+  ctx.fillStyle = `rgba(190,190,184,${a})`;
+  ctx.fillRect(cx - 2*sc, baseY - 128*sc, 3*sc, 28*sc);
+
+  // Spire tip
+  ctx.fillStyle = `rgba(160,160,154,${a})`;
+  ctx.fillRect(cx - 1*sc, baseY - 152*sc, 2*sc, 24*sc);
+}
+
+function drawGreatWheel(cx, baseY, radius = 46) {
+  if (cx < -radius - 20 || cx > VW + radius + 20) return;
+  const cy = baseY - radius;
+
+  // Pier posts
+  ctx.fillStyle = '#7a6858';
+  ctx.fillRect(cx - 6, baseY - 18, 12, 22);
+  ctx.fillRect(cx - 14, baseY - 6, 28, 8);
+
+  // Outer ring
+  ctx.strokeStyle = '#c04422';
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
+
+  // Inner ring
+  ctx.strokeStyle = '#a83318';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, radius * 0.85, 0, Math.PI * 2); ctx.stroke();
+
+  // Spokes
+  const rot = scroll * 0.00065;
+  ctx.strokeStyle = '#c04422'; ctx.lineWidth = 2;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + rot;
     ctx.beginPath();
-    ctx.moveTo(hx, GROUND);
-    for (let x = 0; x <= VW; x += 40) {
-      const hy = GROUND - 50 - Math.abs(Math.sin((x + hx * 0.3) * 0.01) * 60);
-      ctx.lineTo(hx + x, hy);
-    }
-    ctx.lineTo(hx + VW, GROUND);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius);
+    ctx.stroke();
   }
 
-  // Buildings (medium parallax: 0.7x scroll speed)
+  // Center hub
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#888'; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+
+  // Gondolas
+  const gondolaColors = ['#2266bb', '#aa2222', '#228822', '#aa6600'];
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + rot;
+    const gx = ~~(cx + Math.cos(a) * radius);
+    const gy = ~~(cy + Math.sin(a) * radius);
+    ctx.fillStyle = gondolaColors[i % gondolaColors.length];
+    ctx.fillRect(gx - 4, gy, 8, 7);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(gx - 4, gy, 8, 2);
+  }
+}
+
+function drawMountRainier(cx, baseY) {
+  if (cx < -200 || cx > VW + 200) return;
+  const w = 165, h = 80;
+
+  // Foothills
+  ctx.fillStyle = 'rgba(65, 92, 58, 0.5)';
+  ctx.beginPath();
+  ctx.moveTo(cx - w * 0.7, baseY);
+  ctx.quadraticCurveTo(cx - w * 0.3, baseY - 26, cx, baseY - h * 0.5);
+  ctx.quadraticCurveTo(cx + w * 0.3, baseY - 26, cx + w * 0.7, baseY);
+  ctx.closePath(); ctx.fill();
+
+  // Rocky body
+  ctx.fillStyle = 'rgba(112, 108, 98, 0.58)';
+  ctx.beginPath();
+  ctx.moveTo(cx - w * 0.5, baseY);
+  ctx.lineTo(cx - 10, baseY - h * 0.82);
+  ctx.lineTo(cx,      baseY - h);
+  ctx.lineTo(cx + 10, baseY - h * 0.82);
+  ctx.lineTo(cx + w * 0.5, baseY);
+  ctx.closePath(); ctx.fill();
+
+  // Glacier cap
+  ctx.fillStyle = 'rgba(238, 242, 246, 0.72)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 46, baseY - h * 0.6);
+  ctx.lineTo(cx - 24, baseY - h * 0.77);
+  ctx.lineTo(cx,      baseY - h);
+  ctx.lineTo(cx + 24, baseY - h * 0.77);
+  ctx.lineTo(cx + 46, baseY - h * 0.6);
+  ctx.lineTo(cx + 28, baseY - h * 0.48);
+  ctx.lineTo(cx - 28, baseY - h * 0.48);
+  ctx.closePath(); ctx.fill();
+
+  // Bright summit snow
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 20, baseY - h * 0.84);
+  ctx.lineTo(cx,      baseY - h);
+  ctx.lineTo(cx + 20, baseY - h * 0.84);
+  ctx.lineTo(cx +  8, baseY - h * 0.72);
+  ctx.lineTo(cx -  8, baseY - h * 0.72);
+  ctx.closePath(); ctx.fill();
+
+  // Atmospheric haze (distance effect)
+  ctx.fillStyle = 'rgba(175, 215, 238, 0.3)';
+  ctx.beginPath();
+  ctx.moveTo(cx - w * 0.7, baseY);
+  ctx.lineTo(cx, baseY - h);
+  ctx.lineTo(cx + w * 0.7, baseY);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawOlympicRange(offset) {
+  const tileW = 920;
+  const pts = [
+    [0,20],[0.08,48],[0.16,36],[0.25,64],[0.33,56],
+    [0.42,34],[0.50,60],[0.58,45],[0.66,30],[0.74,52],
+    [0.82,38],[0.90,24],[1.0,20],
+  ];
+  for (let pass = -1; pass <= 1; pass++) {
+    const bx = offset + pass * tileW;
+    if (bx + tileW < -50 || bx > VW + 50) continue;
+    ctx.fillStyle = 'rgba(122, 158, 178, 0.42)';
+    ctx.beginPath();
+    ctx.moveTo(bx, GROUND - 22);
+    for (const [rx, ry] of pts) ctx.lineTo(bx + rx * tileW, GROUND - 22 - ry);
+    ctx.lineTo(bx + tileW, GROUND - 22); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = 'rgba(228, 240, 250, 0.52)';
+    for (const [rx, peakH] of [[0.08,48],[0.25,64],[0.50,60],[0.74,52]]) {
+      const px = bx + rx * tileW, py = GROUND - 22 - peakH;
+      ctx.beginPath();
+      ctx.moveTo(px - 13, py + 17); ctx.lineTo(px, py); ctx.lineTo(px + 13, py + 17);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+}
+
+function drawFirTree(x, baseY, h = 45, dark = false) {
+  const bw = h * 0.56, tiers = 3;
+  for (let t = 0; t < tiers; t++) {
+    const ty = baseY - (t + 1) * (h / (tiers + 0.4));
+    const tw = bw * (1 - t * 0.28);
+    ctx.fillStyle = dark ? '#204820' : '#2a5828';
+    ctx.beginPath();
+    ctx.moveTo(x - tw/2, ty + h / (tiers + 0.4));
+    ctx.lineTo(x, ty); ctx.lineTo(x + tw/2, ty + h / (tiers + 0.4));
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = dark ? '#306030' : '#3a7035';
+    ctx.beginPath();
+    ctx.moveTo(x, ty); ctx.lineTo(x + tw/2, ty + h / (tiers + 0.4));
+    ctx.lineTo(x + tw * 0.1, ty + h / (tiers + 0.4)); ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = '#5a3818';
+  ctx.fillRect(x - 2, baseY - h * 0.12, 4, h * 0.12 + 2);
+}
+
+function drawBackground(scroll) {
+  // ── LAYER 1 — Seattle summer daytime sky ────────────────────────
+  const sky = ctx.createLinearGradient(0, 0, 0, GROUND);
+  sky.addColorStop(0,    '#3a88cc');
+  sky.addColorStop(0.45, '#68b0de');
+  sky.addColorStop(0.82, '#a4d4ee');
+  sky.addColorStop(1,    '#cce6f4');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, VW, GROUND);
+
+  // ── LAYER 2 — Clouds (0.015×) ───────────────────────────────────
+  const cloudOff = (scroll * 0.015) % (VW * 1.65);
+  const cloudData = [
+    { x:  55, y: 20, w: 78, h: 22 }, { x: 255, y: 10, w: 98, h: 26 },
+    { x: 480, y: 26, w: 62, h: 18 }, { x: 678, y: 15, w: 84, h: 22 },
+    { x: 895, y: 28, w: 72, h: 20 }, { x:1090, y: 17, w: 90, h: 24 },
+  ];
+  for (const c of cloudData) {
+    for (let pass = -1; pass <= 1; pass++) {
+      drawCloud(c.x - cloudOff + pass * VW * 1.65, c.y, c.w, c.h);
+    }
+  }
+
+  // ── LAYER 3 — Olympic Mountains / west horizon (0.04×) ──────────
+  const olympicOff = (scroll * 0.04) % 920;
+  drawOlympicRange(VW * 0.5 - olympicOff);
+
+  // ── LAYER 4 — Mount Rainier (SE, 0.025×) ────────────────────────
+  const rainierOff = (scroll * 0.025) % 2400;
+  for (let pass = -1; pass <= 1; pass++) {
+    drawMountRainier(620 - rainierOff + pass * 2400, GROUND - 4);
+  }
+
+  // ── LAYER 5 — Elliott Bay / Lake Union water glimpse ────────────
+  const waterGrad = ctx.createLinearGradient(0, GROUND - 70, 0, GROUND - 28);
+  waterGrad.addColorStop(0, 'rgba(72, 152, 195, 0)');
+  waterGrad.addColorStop(0.45, 'rgba(68, 148, 192, 0.32)');
+  waterGrad.addColorStop(1, 'rgba(55, 120, 162, 0.5)');
+  ctx.fillStyle = waterGrad; ctx.fillRect(0, GROUND - 70, VW, 42);
+
+  // Water sparkle
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  const waveOff = (scroll * 0.28) % 80;
+  for (let wx = -waveOff; wx < VW; wx += 80) {
+    ctx.fillRect(~~wx, GROUND - 52, 20, 1);
+    ctx.fillRect(~~wx + 42, GROUND - 45, 14, 1);
+  }
+
+  // ── LAYER 6 — Space Needle (downtown, 0.12×) ────────────────────
+  const NEEDLE_TILE = 1800;
+  const needleOff = (scroll * 0.12) % NEEDLE_TILE;
+  for (let pass = -1; pass <= 1; pass++) {
+    drawSpaceNeedle(VW * 0.28 - needleOff + pass * NEEDLE_TILE, GROUND, 1.55);
+  }
+
+  // ── LAYER 7 — Seattle Great Wheel (waterfront, 0.18×) ───────────
+  const WHEEL_TILE = 2200;
+  const wheelOff = (scroll * 0.18) % WHEEL_TILE;
+  for (let pass = -1; pass <= 1; pass++) {
+    drawGreatWheel(VW * 0.72 - wheelOff + pass * WHEEL_TILE, GROUND - 18, 48);
+  }
+
+  // ── LAYER 8 — Far fir trees, PNW backdrop (0.45×) ───────────────
+  const FAR_TREE_TILE = 340;
+  const ftOff = (scroll * 0.45) % FAR_TREE_TILE;
+  for (const tx of [28, 88, 162, 238, 292]) {
+    for (let pass = -1; pass <= 1; pass++) {
+      const fx = tx - ftOff + pass * FAR_TREE_TILE;
+      if (fx > -50 && fx < VW + 50) drawFirTree(fx, GROUND - 3, 34, true);
+    }
+  }
+
+  // ── LAYER 9 — Buildings (0.7×) ───────────────────────────────────
   const bOff = -(scroll * 0.7) % BLDG_TILE_W;
-  for (let pass = 0; pass < 2; pass++) {
+  for (let pass = 0; pass < 3; pass++) {
     const baseX = bOff + pass * BLDG_TILE_W;
     for (const b of BUILDINGS) {
       const bx = baseX + b.x;
       if (bx + b.w < -5 || bx > VW + 5) continue;
       const by = GROUND - b.h;
 
-      // Building body
-      ctx.fillStyle = b.c;
-      ctx.fillRect(bx, by, b.w, b.h);
-
-      // Pixel border
+      // Body
+      ctx.fillStyle = b.c; ctx.fillRect(bx, by, b.w, b.h);
+      // Sunlit top
+      ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(bx, by, b.w, 3);
+      // Right-side shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(bx + b.w - 7, by, 7, b.h);
+      // Left border
       ctx.fillStyle = b.border;
-      ctx.fillRect(bx, by, b.w, 2);
       ctx.fillRect(bx, by, 2, b.h);
-      ctx.fillRect(bx + b.w - 2, by, 2, b.h);
+      ctx.fillRect(bx, by, b.w, 2);
 
       // Nordic Museum dome
       if (b.dome) {
-        ctx.fillStyle = '#5a7a56';
+        ctx.fillStyle = '#6aaa60';
         ctx.beginPath();
-        ctx.ellipse(bx + b.w / 2, by + 2, b.w * 0.38, 28, 0, Math.PI, 0);
+        ctx.ellipse(bx + b.w/2, by + 2, b.w * 0.38, 26, 0, Math.PI, 0);
         ctx.fill();
-        ctx.fillStyle = '#3a5a38';
-        ctx.fillRect(bx + b.w / 2 - 3, by - 24, 6, 30);
-        // Flag on top
-        ctx.fillStyle = '#cc2222';
-        ctx.fillRect(bx + b.w / 2 - 3, by - 32, 12, 8);
-        ctx.fillStyle = '#dddddd';
-        ctx.fillRect(bx + b.w / 2 - 3, by - 30, 3, 4);
+        ctx.fillStyle = '#7abb70';
+        ctx.beginPath();
+        ctx.ellipse(bx + b.w/2 - 4, by - 4, b.w * 0.18, 10, -0.3, Math.PI, 0);
+        ctx.fill();
+        // Flagpole
+        ctx.fillStyle = '#5a4020'; ctx.fillRect(bx + b.w/2 - 1, by - 36, 2, 37);
+        // Norwegian flag (red with blue/white cross)
+        ctx.fillStyle = '#cc2222'; ctx.fillRect(bx + b.w/2 + 1, by - 35, 16, 11);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(bx + b.w/2 + 1, by - 32, 5, 5);
+        ctx.fillRect(bx + b.w/2 + 6, by - 32, 11, 5);
+        ctx.fillStyle = '#2244aa';
+        ctx.fillRect(bx + b.w/2 + 2, by - 35, 3, 11);
       }
 
-      // Windows (pixel style)
+      // Locks gate
+      if (b.locks) {
+        ctx.fillStyle = '#4a6070'; ctx.fillRect(bx + 8, by + b.h - 55, b.w - 16, 55);
+        ctx.fillStyle = '#38505e';
+        for (let gi = 0; gi < 5; gi++) ctx.fillRect(bx + 8, by + b.h - 55 + gi * 11, b.w - 16, 3);
+        ctx.fillStyle = '#6aaccc'; ctx.fillRect(bx + 8, by + b.h - 16, b.w - 16, 16);
+        // Water ripples
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.fillRect(bx + 12, by + b.h - 10, 10, 1);
+        ctx.fillRect(bx + 28, by + b.h - 7, 8, 1);
+        ctx.fillStyle = '#ddeeff'; ctx.font = '6px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText('LOCKS', bx + b.w/2, by + b.h - 60); ctx.textAlign = 'left';
+      }
+
+      // Starbucks green siren circle
+      if (b.siren) {
+        ctx.fillStyle = '#00704a';
+        ctx.beginPath(); ctx.arc(bx + b.w/2, by + b.h - 40, 13, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px serif'; ctx.textAlign = 'center';
+        ctx.fillText('★', bx + b.w/2, by + b.h - 35); ctx.textAlign = 'left';
+      }
+
+      // Daytime windows (sky-blue reflections)
       const winW = 10, winH = 10;
-      for (let wy = by + 14; wy < by + b.h - 22; wy += 18) {
+      for (let wy = by + 14; wy < by + b.h - 32; wy += 18) {
         for (let wx = bx + 8; wx < bx + b.w - 10; wx += 16) {
-          // Randomly lit (deterministic per position)
-          const lit = ((wx * 7 + wy * 13) % 3) !== 0;
-          ctx.fillStyle = lit ? b.winC : '#1a2a3a';
+          const pat = (wx * 3 + wy * 7) % 5;
+          ctx.fillStyle = pat < 3 ? '#a0cce8' : (pat === 3 ? '#c0e0f0' : '#dff0fa');
           ctx.fillRect(wx, wy, winW, winH);
+          ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillRect(wx, wy, 3, 3);
           ctx.fillStyle = b.border;
-          ctx.fillRect(wx - 1, wy - 1, winW + 2, 1);
-          ctx.fillRect(wx - 1, wy - 1, 1, winH + 2);
-          ctx.fillRect(wx + winW, wy - 1, 1, winH + 2);
-          ctx.fillRect(wx - 1, wy + winH, winW + 2, 1);
+          ctx.fillRect(wx - 1, wy - 1, winW + 2, 1); ctx.fillRect(wx - 1, wy - 1, 1, winH + 2);
+          ctx.fillRect(wx + winW, wy - 1, 1, winH + 2); ctx.fillRect(wx - 1, wy + winH, winW + 2, 1);
         }
       }
 
-      // Sign
-      if (b.sign && b.w > 40) {
-        ctx.fillStyle = '#111';
-        ctx.fillRect(bx + 4, by + b.h - 28, b.w - 8, 20);
-        ctx.fillStyle = '#ffee44';
-        ctx.font = 'bold 6px Courier New';
-        ctx.textAlign = 'center';
-        const lines = b.sign.split('\n');
-        lines.forEach((l, i) => ctx.fillText(l, bx + b.w / 2, by + b.h - 21 + i * 8));
+      // Awning + sign
+      if (b.sign && b.w > 44) {
+        const awColors = ['#cc4422','#2244aa','#226622','#994400','#226688'];
+        ctx.fillStyle = awColors[Math.floor((b.x / 90) % awColors.length)];
+        ctx.beginPath();
+        ctx.moveTo(bx - 2, by + b.h - 38); ctx.lineTo(bx + b.w + 2, by + b.h - 38);
+        ctx.lineTo(bx + b.w + 6, by + b.h - 28); ctx.lineTo(bx - 6, by + b.h - 28);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        for (let si = 0; si < 5; si++) ctx.fillRect(bx + si * (b.w/5), by + b.h - 38, (b.w/5) * 0.4, 10);
+
+        const signBG = ['#1a3a5a','#3a1a0a','#1a4a1a','#3a2a0a','#0a2a4a'];
+        ctx.fillStyle = signBG[Math.floor((b.x / 90) % signBG.length)];
+        ctx.fillRect(bx + 4, by + b.h - 28, b.w - 8, 22);
+        ctx.fillStyle = '#ffee88'; ctx.font = 'bold 6px Courier New'; ctx.textAlign = 'center';
+        b.sign.split('\n').forEach((l, i) => ctx.fillText(l, bx + b.w/2, by + b.h - 20 + i * 8));
         ctx.textAlign = 'left';
       }
     }
   }
 
-  // Ground: sidewalk bricks
-  ctx.fillStyle = '#8a7a6a';
-  ctx.fillRect(0, GROUND, VW, VH - GROUND);
-
-  // Sidewalk brick pattern
-  const brickW = 30, brickH = 8;
-  const brickOff = (scroll * 1.0) % brickW;
-  for (let by2 = GROUND; by2 < GROUND + 28; by2 += brickH + 1) {
-    const rowShift = (Math.floor((by2 - GROUND) / (brickH + 1)) % 2) * (brickW / 2);
-    for (let bx2 = -brickOff - brickW + rowShift; bx2 < VW + brickW; bx2 += brickW + 1) {
-      ctx.fillStyle = '#9a8a7a';
-      ctx.fillRect(bx2, by2, brickW, brickH);
-      ctx.fillStyle = '#7a6a5a';
-      ctx.fillRect(bx2, by2, brickW, 1); // top shadow
-      ctx.fillRect(bx2, by2, 1, brickH); // left shadow
+  // ── LAYER 10 — Near fir trees on sidewalk edge (0.85×) ──────────
+  const NEAR_TREE_TILE = 270;
+  const ntOff = (scroll * 0.85) % NEAR_TREE_TILE;
+  for (const tx of [38, 128, 205]) {
+    for (let pass = -1; pass <= 2; pass++) {
+      const fx = tx - ntOff + pass * NEAR_TREE_TILE;
+      if (fx > -65 && fx < VW + 65) drawFirTree(fx, GROUND, 54);
     }
   }
 
-  // Road line at very bottom
-  ctx.fillStyle = '#555566';
-  ctx.fillRect(0, GROUND + 28, VW, VH - GROUND - 28);
-  // Road dashes
-  ctx.fillStyle = '#ffcc00';
-  const dashW = 24, dashOff = (scroll * 1.0) % (dashW * 2 + 20);
-  for (let dx = -dashOff; dx < VW; dx += dashW * 2 + 20) {
-    ctx.fillRect(dx, GROUND + 38, dashW, 3);
+  // ── LAYER 11 — Seattle concrete sidewalk ────────────────────────
+  ctx.fillStyle = '#b2aaa0'; ctx.fillRect(0, GROUND, VW, 30);
+  // Concrete panel joints
+  const panelW = 50, panelOff = (scroll * 1.0) % panelW;
+  ctx.fillStyle = '#928a80';
+  for (let p = -panelOff; p < VW + panelW; p += panelW) ctx.fillRect(~~p, GROUND, 1, 30);
+  for (let p = GROUND; p < GROUND + 30; p += 15) ctx.fillRect(0, p, VW, 1);
+  // Texture dots
+  ctx.fillStyle = '#9a9288';
+  for (let i = 0; i < 10; i++) {
+    const dx = ((i * 71) % VW - panelOff * 0.4 + VW) % VW;
+    ctx.fillRect(~~dx, GROUND + 6 + (i % 3) * 9, 2, 2);
   }
+
+  // ── Road (dark Seattle asphalt) ──────────────────────────────────
+  ctx.fillStyle = '#4a4848'; ctx.fillRect(0, GROUND + 30, VW, VH - GROUND - 30);
+  ctx.fillStyle = '#ccaa00';
+  const dashOff = (scroll * 1.0) % 38;
+  for (let dx = -dashOff; dx < VW; dx += 38) ctx.fillRect(~~dx, GROUND + 44, 24, 3);
+  // Road edge white line
+  ctx.fillStyle = '#ddddd0'; ctx.fillRect(0, GROUND + 30, VW, 2);
 }
 
 // ── PARTICLES ────────────────────────────────────────────────────
