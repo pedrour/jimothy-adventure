@@ -330,16 +330,17 @@ const FISH = [
   '..bbbfb.',
 ];
 
-// Coffee cup (+5 pts) — 5×8 → 15×24
+// Seattle to-go coffee cup (+5 pts) — 6×8 → 18×24
+// Green cup with kraft sleeve — no logo, just pure Pacific Northwest vibes
 const COFFEE = [
-  '.BBB.',
-  'BcccB',
-  'BcccB',
-  'BcccB',
-  'BcccB',
-  '.BBB.',
-  '..B..',
-  '.BBB.',
+  '..BB..',   // lid tab
+  '.BBBB.',   // lid dome
+  'BggggB',   // top of green cup
+  'BeeeeB',   // kraft paper sleeve
+  'BeggeB',   // sleeve with leaf design (g=green dots)
+  'BggggB',   // cup base visible below sleeve
+  '.BBBB.',   // base ring
+  '......',   // clearance
 ];
 
 // Trash can (+3 pts) — Raccoon fave! 6×7 → 18×21
@@ -351,6 +352,38 @@ const TRASH = [
   '.BLLLB',
   '.BLLLB',
   '.BBBBB',
+];
+
+// Puget Sound Orca (8×10 → 24×30) — ground obstacle, jump over!
+// Classic black-and-white side profile facing LEFT (toward Jimothy)
+const ORCA = [
+  '....BB..',   // dorsal fin apex
+  '...BBB..',   // dorsal fin base
+  '.BBBBBB.',   // back widens
+  'BBBBBBBB',   // body at widest — pure black back
+  'BWWBBBBB',   // white eye patch (W) — classic orca face marking
+  'BWWBBBBB',   // eye patch continues
+  'BWWWBBBB',   // white belly patch spreads
+  '.BBBBBB.',   // body narrows to tail
+  '..BBBB..',   // tail peduncle
+  '.BB..BB.',   // tail flukes (two lobes)
+];
+
+// Techie with laptop and hoodie (8×12 → 24×36) — walking obstacle
+// The quintessential Seattle tech worker: hoodie up, staring at screen
+const TECHIE = [
+  '..BBBB..',   // hoodie hood top
+  '.BAAAAB.',   // head in hoodie (A=muted steel-blue hoodie)
+  '.BeeeeB.',   // face (e=beige skin, not looking up)
+  'BAAAAAAB',   // hoodie shoulders (6 A's inside B outline)
+  'BASSSSAB',   // torso — laptop open in front (S=silver case)
+  'BASSSSAB',   // laptop body continues
+  'BASffSAB',   // laptop screen glowing (f=light blue)
+  'BAAAAAAB',   // lower hoodie body / kangaroo pocket
+  'BAAAAAAB',   // waist
+  '.BAAAAB.',   // upper legs
+  '.BAAAAB.',   // lower legs
+  '..BBBB..',   // feet / dark shoes
 ];
 
 // Power-up star "Hot Jimothy Summer!" (9×9 → 27×27)
@@ -1101,24 +1134,36 @@ function spawnObstacle() {
   const x = VW + 20;
   const roll = Math.random();
 
-  if (roll < 0.40) {
+  if (roll < 0.32) {
     // Car
     const carIdx = Math.floor(Math.random() * 3);
     obstacles.push({
       type: 'car', sprite: CARS[carIdx],
       x, y: GROUND - 24, w: 48, h: 24,
     });
-  } else if (roll < 0.70) {
+  } else if (roll < 0.52) {
     // Dog
     obstacles.push({
       type: 'dog', sprite: DOG,
       x, y: GROUND - 27, w: 27, h: 27,
     });
-  } else if (roll < 0.85) {
+  } else if (roll < 0.64) {
     // Hydrant
     obstacles.push({
       type: 'hydrant', sprite: HYDRANT,
       x, y: GROUND - 21, w: 15, h: 21,
+    });
+  } else if (roll < 0.77) {
+    // 🐋 Orca leaping from the street — only in Seattle!
+    obstacles.push({
+      type: 'orca', sprite: ORCA,
+      x, y: GROUND - 30, w: 24, h: 30,
+    });
+  } else if (roll < 0.88) {
+    // 💻 Techie blocking the sidewalk, laptop out, not looking up
+    obstacles.push({
+      type: 'techie', sprite: TECHIE,
+      x, y: GROUND - 36, w: 24, h: 36,
     });
   } else {
     // Double car — two in a row (harder!)
@@ -1153,8 +1198,8 @@ function spawnCollectible() {
   } else if (roll < 0.65) {
     collectibles.push({
       type: 'coffee', sprite: COFFEE,
-      x, y: GROUND - 24, w: 15, h: 24,
-      pts: 5, color: '#cc8833',
+      x, y: GROUND - 24, w: 18, h: 24,
+      pts: 5, color: '#44bb44',   // green cup sparkles
     });
   } else if (roll < 0.85) {
     collectibles.push({
@@ -1411,7 +1456,7 @@ function drawTitleScreen() {
 
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 11px Courier New';
-  ctx.fillText('JUMP over cars, dogs & hydrants', VW / 2, by + 118);
+  ctx.fillText('JUMP over cars, dogs, orcas & techies', VW / 2, by + 118);
   ctx.fillText('DUCK under seagulls', VW / 2, by + 132);
   ctx.fillText('COLLECT fish, coffee & trash!', VW / 2, by + 146);
 
