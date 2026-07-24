@@ -292,6 +292,7 @@ const BLDG_LAYOUT=[
 
 // Game state
 let jim,camX,score,totalFood,popups,frame,won,winFrame,fireworks;
+let bgMusicPlaying=false,bgMusicTimeout=null;
 let audio; try{audio=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}
 const keys={};
 const mob={l:false,r:false,j:false,d:false};
@@ -340,6 +341,108 @@ function sndLoot(){
   setTimeout(()=>beep(659,0.08,0.13,'sine'),180);
   setTimeout(()=>beep(880,0.15,0.16,'sine'),280);
 }
+// ── BACKGROUND MUSIC ──
+function startBgMusic(){
+  if(bgMusicPlaying||!audio||audio.state==='suspended')return;
+  bgMusicPlaying=true;bgMusicLoop();
+}
+function stopBgMusic(){
+  bgMusicPlaying=false;
+  if(bgMusicTimeout){clearTimeout(bgMusicTimeout);bgMusicTimeout=null;}
+}
+function bgMusicLoop(){
+  if(!bgMusicPlaying||!audio)return;
+  const now=audio.currentTime;
+  const LOOP=16.0; // 16 bars at 120 BPM = 16 seconds
+  const mg=audio.createGain();
+  mg.gain.setValueAtTime(0.06,now);
+  mg.connect(audio.destination);
+
+  function nb(freq,t,dur,wave,vol){
+    const o=audio.createOscillator(),g=audio.createGain();
+    o.type=wave;o.frequency.setValueAtTime(freq,now+t);
+    g.gain.setValueAtTime(0,now+t);
+    g.gain.linearRampToValueAtTime(vol,now+t+0.02);
+    g.gain.setValueAtTime(vol,now+t+dur*0.82);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+t+dur+0.06);
+    o.connect(g);g.connect(mg);o.start(now+t);o.stop(now+t+dur+0.1);
+  }
+
+  // ─ Time constants: A major, 120 BPM ─
+  // Q=quarter(0.5s) E=eighth(0.25s) S=16th(0.125s) DE=dotted-eighth(0.375s)
+  // One bar (H) = 2 beats = 1.0s. Loop = 16 bars = 16s.
+  const Q=0.5,E=0.25,S=0.125,DE=0.375,H=1.0;
+  // Frequencies: A major (A B C# D E F# G# A)
+  // A3=220 B3=247 C#4=277 D4=294 E4=330 F#4=370
+  // A4=440 B4=494 C#5=554 D5=587 E5=659 F#5=740 G#5=831 A5=880
+
+  // ── Melody (square wave — NES pulse channel feel) ──
+  [
+    // A section (0–4s) — gentle opening, mid-register
+    [440,0.00,Q],[494,0.50,E],[554,0.75,E],           // A4 B4 C#5
+    [659,1.00,DE],[587,1.375,S],[554,1.50,Q],          // E5(dotted8) D5(16) C#5
+    [554,2.00,E],[587,2.25,E],[659,2.50,Q],            // C#5 D5 E5
+    [740,3.00,E],[659,3.25,E],[587,3.50,Q],            // F#5 E5 D5
+    // A′ (4–8s) — descending answer phrase
+    [659,4.00,E],[587,4.25,E],[554,4.50,E],[494,4.75,E], // E5 D5 C#5 B4
+    [440,5.00,E],[494,5.25,E],[554,5.50,Q],            // A4 B4 C#5
+    [587,6.00,E],[659,6.25,E],[740,6.50,E],[659,6.75,E],// D5 E5 F#5 E5
+    [587,7.00,E],[554,7.25,E],[440,7.50,Q],            // D5 C#5 A4 (breathes into loop)
+    // B section (8–12s) — climbs into upper register
+    [880,8.00,DE],[831,8.375,S],[740,8.50,E],[659,8.75,E], // A5 G#5 F#5 E5
+    [587,9.00,E],[659,9.25,E],[740,9.50,Q],            // D5 E5 F#5
+    [659,10.00,E],[587,10.25,E],[554,10.50,E],[494,10.75,E], // E5 D5 C#5 B4
+    [440,11.00,E],[494,11.25,E],[554,11.50,Q],         // A4 B4 C#5
+    // B′ (12–16s) — rising then settling home
+    [587,12.00,E],[659,12.25,E],[740,12.50,E],[831,12.75,E], // D5 E5 F#5 G#5
+    [880,13.00,Q+E],[740,13.75,E],                     // A5(dotted-q) F#5
+    [587,14.00,E],[554,14.25,E],[494,14.50,E],[440,14.75,E], // D5 C#5 B4 A4
+    [440,15.00,H],                                     // A4 holds through loop seam
+  ].forEach(([f,t,d])=>nb(f,t,d,'square',0.62));
+
+  // ── Bass (triangle — warm, smooth analog feel) ──
+  [
+    [220,0.00,Q],[220,0.50,Q],   // A3 A3
+    [165,1.00,Q],[165,1.50,Q],   // E3 E3
+    [147,2.00,Q],[147,2.50,Q],   // D3 D3
+    [165,3.00,Q],[165,3.50,Q],   // E3 E3
+    [220,4.00,Q],[220,4.50,Q],   // A3 A3
+    [220,5.00,Q],[247,5.50,Q],   // A3 B3 (passing)
+    [147,6.00,Q],[147,6.50,Q],   // D3 D3
+    [220,7.00,H],                 // A3 (held)
+    [220,8.00,Q],[165,8.50,Q],   // A3 E3
+    [147,9.00,Q],[165,9.50,Q],   // D3 E3
+    [220,10.00,Q],[165,10.50,Q], // A3 E3
+    [147,11.00,Q],[165,11.50,Q], // D3 E3
+    [147,12.00,Q],[185,12.50,Q], // D3 F#3
+    [220,13.00,H],                // A3 (held)
+    [147,14.00,Q],[165,14.50,Q], // D3 E3
+    [220,15.00,H],                // A3 (held, seam)
+  ].forEach(([f,t,d])=>nb(f,t,d,'triangle',0.68));
+
+  // ── Counter-melody (triangle — soft off-beat harmony fills) ──
+  [
+    [554,0.25,E],[659,0.75,E],   // C#5 E5
+    [659,1.25,E],[880,1.75,E],   // E5 A5
+    [659,2.25,E],[880,2.75,E],   // E5 A5
+    [880,3.25,E],[740,3.75,E],   // A5 F#5
+    [659,4.25,E],[554,4.75,E],   // E5 C#5
+    [440,5.25,E],[554,5.75,E],   // A4 C#5
+    [740,6.25,E],[880,6.75,E],   // F#5 A5
+    [880,7.25,E],[659,7.75,E],   // A5 E5
+    [880,8.25,E],[1109,8.75,E],  // A5 C#6
+    [880,9.25,E],[740,9.75,E],   // A5 F#5
+    [659,10.25,E],[880,10.75,E], // E5 A5
+    [554,11.25,E],[659,11.75,E], // C#5 E5
+    [740,12.25,E],[880,12.75,E], // F#5 A5
+    [1109,13.25,E],[880,13.75,E],// C#6 A5
+    [740,14.25,E],[554,14.75,E], // F#5 C#5
+    [440,15.25,E],[554,15.75,E], // A4 C#5 (into next loop)
+  ].forEach(([f,t,d])=>nb(f,t,d,'triangle',0.28));
+
+  bgMusicTimeout=setTimeout(bgMusicLoop,(LOOP-0.08)*1000);
+}
+
 function sndVictory80s(){
   if(!audio)return;
   const now=audio.currentTime;
@@ -1082,6 +1185,8 @@ function drawHUD(){
 // ── PHYSICS ──
 function update(){
   frame++;
+  // Auto-start bg music as soon as audio context is unlocked
+  if(!bgMusicPlaying&&!won&&audio&&audio.state==='running')startBgMusic();
 
   // Win → animate and restart after brief delay
   if(won){
@@ -1189,7 +1294,7 @@ function update(){
   // Win check
   const allFood=food.every(f=>f.taken);
   const allCans=cans.every(c=>c.searched);
-  if(allFood&&allCans&&!won){won=true;sndVictory80s();}
+  if(allFood&&allCans&&!won){won=true;stopBgMusic();sndVictory80s();}
 }
 
 // ── SHARE ──
@@ -1594,6 +1699,7 @@ function init(){
        jumpHeld:false,digHeld:false};
   camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];
   document.getElementById('share-btn').style.display='none';
+  startBgMusic();
 }
 
 // ── MOBILE ──
