@@ -19,7 +19,7 @@ body{
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 #titlebar{
-  font-size:clamp(9px,2vw,15px);color:#ffcc44;letter-spacing:2px;
+  font-size:clamp(16px,3vw,26px);color:#ffcc44;letter-spacing:2px;
   text-shadow:2px 2px 0 #2a4a8a;text-align:center;padding:3px 8px 2px;
 }
 canvas{
@@ -33,7 +33,7 @@ canvas{
 #btmbar{
   display:flex;justify-content:space-between;align-items:center;
   width:100%;max-width:1206px;padding:2px 6px;
-  font-size:clamp(7px,1.3vw,10px);color:#3a5880;
+  font-size:clamp(13px,2vw,18px);color:#3a5880;
 }
 #mob{
   display:none;position:fixed;bottom:0;left:0;right:0;
@@ -58,7 +58,7 @@ canvas{
 <canvas id="c"></canvas>
 <div id="btmbar">
   <span id="hint">← → Move &nbsp;│&nbsp; SPACE Jump &nbsp;│&nbsp; S Rummage trash</span>
-  <span id="scoretxt" style="color:#ffcc44;font-size:clamp(9px,1.8vw,13px)">🍖 0 bites</span>
+  <span id="scoretxt" style="color:#ffcc44;font-size:clamp(13px,2vw,18px)">🍖 0 bites</span>
 </div>
 <div id="mob">
   <div id="mob-left">
@@ -820,7 +820,7 @@ function drawTrashCan(can){
   if(!can.searched){
     const cx=jim.x+JIM_W/2,ccx=can.x+can.w/2;
     if(Math.abs(cx-ccx)<54&&jim.onGround&&!jim.digging){
-      ctx.fillStyle='rgba(255,220,80,0.9)';ctx.font='bold 9px Courier New';ctx.textAlign='center';
+      ctx.fillStyle='rgba(255,220,80,0.9)';ctx.font='bold 16px Courier New';ctx.textAlign='center';
       ctx.fillText('S / ⬇',sx+w/2,y-8);ctx.textAlign='left';
     }
   }
@@ -984,7 +984,7 @@ function drawHUD(){
   const got=food.filter(f=>f.taken).length+cans.filter(c=>c.searched).length;
   const tot=food.length+cans.length;
   ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(6,6,170,28);
-  ctx.fillStyle='#ffcc44';ctx.font='bold 10px Courier New';
+  ctx.fillStyle='#ffcc44';ctx.font='bold 18px Courier New';
   ctx.fillText(`found ${got}/${tot}`,12,22);
 
   // Popups
@@ -992,7 +992,7 @@ function drawHUD(){
     p.y+=p.vy;p.alpha-=0.022;
     if(p.alpha<=0)return false;
     ctx.fillStyle=`rgba(255,220,60,${p.alpha})`;
-    ctx.font='bold 12px Courier New';ctx.textAlign='center';
+    ctx.font='bold 17px Courier New';ctx.textAlign='center';
     ctx.fillText(p.text,p.x-camX,p.y);ctx.textAlign='left';
     return true;
   });
@@ -1000,18 +1000,18 @@ function drawHUD(){
   // Win message
   if(won){
     ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(VW/2-220,VH/2-50,440,100);
-    ctx.fillStyle='#ffcc44';ctx.font='bold 20px Courier New';ctx.textAlign='center';
-    ctx.fillText('🦝 Jimothy is FULL! Great scavenge! 🦝',VW/2,VH/2-10);
-    ctx.fillStyle='#88bbff';ctx.font='12px Courier New';
-    ctx.fillText(`Total: ${score} bites  |  Press SPACE to play again`,VW/2,VH/2+22);
+    ctx.fillStyle='#ffcc44';ctx.font='bold 40px Courier New';ctx.textAlign='center';
+    ctx.fillText('🦝 Jimothy is FULL! Great scavenge! 🦝',VW/2,VH/2-18);
+    ctx.fillStyle='#88bbff';ctx.font='22px Courier New';
+    ctx.fillText(`Total: ${score} bites  |  Press SPACE to play again`,VW/2,VH/2+28);
     ctx.textAlign='left';
   }
 
   // Controls reminder (fades after 8s)
   if(frame<480){
     const a=Math.max(0,(480-frame)/180);
-    ctx.fillStyle=`rgba(120,180,255,${a*0.9})`;ctx.font='11px Courier New';ctx.textAlign='center';
-    ctx.fillText('← → to move  |  SPACE to jump  |  S near trash to rummage',VW/2,VH-12);
+    ctx.fillStyle=`rgba(120,180,255,${a*0.9})`;ctx.font='19px Courier New';ctx.textAlign='center';
+    ctx.fillText('← → to move  |  SPACE to jump  |  S near trash to rummage',VW/2,VH-18);
     ctx.textAlign='left';
   }
 }
