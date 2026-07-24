@@ -687,117 +687,193 @@ function drawBg(){
     ctx.beginPath();ctx.moveTo(rX,GY-265);ctx.lineTo(rX-9,GY-248);ctx.lineTo(rX+10,GY-245);ctx.closePath();ctx.fill();
   }
 
-  // SEATTLE SKYLINE + SPACE NEEDLE (parallax 6%)
+  // ── SEATTLE LANDMARKS (all parallax 6%, staggered anchors = different screen times) ──
+
+  // PIKE PLACE MARKET — anchor left, visible early game then slides off
+  const ppX2=90-camX*0.06;
+  if(ppX2>-160&&ppX2<VW+90){
+    // Building facade
+    ctx.fillStyle='#8A6844';ctx.fillRect(ppX2-44,GY-82,88,82);
+    ctx.fillStyle='rgba(0,0,0,0.10)';
+    for(let r=0;r<5;r++) ctx.fillRect(ppX2-44,GY-82+r*16,88,2);
+    // Windows (2 rows × 3)
+    ctx.fillStyle='#FFE870';
+    for(let c=0;c<3;c++){ctx.fillRect(ppX2-30+c*22,GY-70,14,18);ctx.fillRect(ppX2-30+c*22,GY-42,14,16);}
+    // Red & white striped awning
+    ctx.save();ctx.beginPath();ctx.rect(ppX2-48,GY-24,96,18);ctx.clip();
+    for(let s=0;s<10;s++){ctx.fillStyle=s%2===0?'#CC1010':'#F0EEEE';ctx.fillRect(ppX2-48+s*10,GY-24,10,18);}
+    ctx.restore();
+    for(let s=0;s<9;s++){ctx.fillStyle='#AA0808';ctx.beginPath();ctx.arc(ppX2-42+s*10,GY-6,5,0,Math.PI);ctx.fill();}
+    // ── NEON SIGN ──
+    const ppSY=GY-148;
+    ctx.fillStyle='#3A2010';ctx.fillRect(ppX2-42,ppSY-4,84,60);
+    ctx.fillStyle='#780000';ctx.fillRect(ppX2-40,ppSY,80,56);
+    ctx.save();
+    ctx.shadowColor='#FF2020';ctx.shadowBlur=16;
+    ctx.strokeStyle='#FF3030';ctx.lineWidth=2;ctx.strokeRect(ppX2-37,ppSY+3,74,50);
+    ctx.fillStyle='#FFBBBB';ctx.textAlign='center';ctx.font='bold 11px Courier New';
+    ctx.fillText('PUBLIC',ppX2,ppSY+18);ctx.fillText('MARKET',ppX2,ppSY+33);
+    ctx.font='bold 9px Courier New';ctx.fillStyle='#FF9999';ctx.fillText('CENTER',ppX2,ppSY+47);
+    ctx.restore();
+    // Animated clock on sign
+    const clkX=ppX2+28,clkY=ppSY+43;
+    ctx.save();ctx.shadowColor='#FF2020';ctx.shadowBlur=8;
+    ctx.fillStyle='#990000';ctx.beginPath();ctx.arc(clkX,clkY,9,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#FF4040';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(clkX,clkY,9,0,Math.PI*2);ctx.stroke();
+    const cA=frame*0.04;
+    ctx.strokeStyle='#FFCCCC';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(clkX,clkY);ctx.lineTo(clkX+Math.cos(cA-Math.PI/2)*6,clkY+Math.sin(cA-Math.PI/2)*6);ctx.stroke();
+    ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(clkX,clkY);ctx.lineTo(clkX+Math.cos(cA*0.083-Math.PI/2)*4,clkY+Math.sin(cA*0.083-Math.PI/2)*4);ctx.stroke();
+    ctx.restore();
+    ctx.textAlign='left';
+  }
+
+  // DOWNTOWN SKYLINE + SPACE NEEDLE — anchor centre, visible first 3/4 of game
   const snX=VW*0.5-camX*0.06;
   if(snX>-450&&snX<VW+450){
-    // Downtown buildings
-    ctx.fillStyle='#3a5068';
+    // Downtown building silhouettes
     [[-265,82,40],[-218,106,36],[-174,138,44],[-120,122,38],[-68,92,40],[-18,96,42],[38,112,36],[84,80,40],[132,92,36]].forEach(([dx,bh,bw])=>{
-      const bx=snX+dx;
-      if(bx<-55||bx>VW+55) return;
-      ctx.fillRect(bx,GY-bh,bw,bh);
+      const bx=snX+dx;if(bx<-55||bx>VW+55)return;
+      ctx.fillStyle='#3a5068';ctx.fillRect(bx,GY-bh,bw,bh);
       ctx.fillStyle='rgba(140,195,225,0.10)';
       for(let wy=GY-bh+6;wy<GY-5;wy+=10) ctx.fillRect(bx+3,wy,bw-6,6);
-      ctx.fillStyle='#162030';
     });
-
-    // SPACE NEEDLE — proper iconic proportions
-    if(snX>-150&&snX<VW+150){
-      ctx.save();
-      ctx.translate(snX,GY-5);
-      const nc='#122038';
-      ctx.fillStyle=nc;
-
-      // Hourglass tripod legs — the signature curved shape
-      ctx.beginPath();
-      ctx.moveTo(-50,0);
-      ctx.bezierCurveTo(-56,-20,-50,-58,-15,-90);
-      ctx.lineTo(-7,-90);
-      ctx.bezierCurveTo(-42,-58,-48,-20,-42,0);
-      ctx.closePath();ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(50,0);
-      ctx.bezierCurveTo(56,-20,50,-58,15,-90);
-      ctx.lineTo(7,-90);
-      ctx.bezierCurveTo(42,-58,48,-20,42,0);
-      ctx.closePath();ctx.fill();
-
-      // Base ground ring
-      ctx.fillRect(-54,-5,108,6);
-
-      // Main shaft (narrows from legs to saucer)
-      ctx.fillRect(-8,-168,16,78);
-
-      // Saucer floor — wide overhang (the UFO part)
-      ctx.beginPath();ctx.ellipse(0,-168,60,13,0,0,Math.PI*2);ctx.fill();
-
-      // Restaurant body
-      ctx.fillRect(-54,-192,108,24);
-
-      // Restaurant top curve
-      ctx.beginPath();ctx.ellipse(0,-192,54,11,0,0,Math.PI*2);ctx.fill();
-
-      // Glass window ring (slightly lighter)
-      ctx.fillStyle='#1c3258';
-      ctx.fillRect(-50,-190,100,18);
-      ctx.fillStyle=nc;
-
-      // Halo ring / antenna base
-      ctx.beginPath();ctx.ellipse(0,-204,36,7,0,0,Math.PI*2);ctx.fill();
-
-      // Upper shaft
-      ctx.fillRect(-6,-224,12,20);
-
-      // Observation bubble
-      ctx.fillRect(-10,-232,20,10);
-
-      // SPIRE — thin, tall
-      ctx.beginPath();
-      ctx.moveTo(0,-285);
-      ctx.lineTo(-4,-232);
-      ctx.lineTo(4,-232);
-      ctx.closePath();ctx.fill();
-
-      // Red warning light at tip
-      ctx.fillStyle='#cc2233';
-      ctx.beginPath();ctx.arc(0,-285,3.5,0,Math.PI*2);ctx.fill();
-
+    // ── SPACE NEEDLE — REAL COLOURS ──
+    if(snX>-180&&snX<VW+180){
+      const nBase=GY-5,H=250;
+      const legJY=nBase-Math.round(H*0.26);
+      const deckY=nBase-Math.round(H*0.86);
+      const topY=nBase-H,antY=topY-58;
+      ctx.save();ctx.translate(snX,0);
+      // Foundation
+      ctx.fillStyle='#A0A098';ctx.beginPath();ctx.ellipse(0,nBase,68,10,0,0,Math.PI*2);ctx.fill();
+      // A-frame legs — Astronaut White
+      ctx.fillStyle='#D8D4C8';
+      ctx.beginPath();ctx.moveTo(-62,nBase-2);ctx.bezierCurveTo(-54,nBase-42,-24,legJY+28,-5,legJY);ctx.lineTo(-2,legJY+10);ctx.bezierCurveTo(-22,legJY+36,-46,nBase-34,-54,nBase+3);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(62,nBase-2);ctx.bezierCurveTo(54,nBase-42,24,legJY+28,5,legJY);ctx.lineTo(2,legJY+10);ctx.bezierCurveTo(22,legJY+36,46,nBase-34,54,nBase+3);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#C0BCB0';ctx.fillRect(-3,legJY,6,nBase-legJY);
+      // Column — white shaft
+      const cg2=ctx.createLinearGradient(-5,0,5,0);
+      cg2.addColorStop(0,'#C8C4B8');cg2.addColorStop(0.4,'#F0EEE8');cg2.addColorStop(1,'#C8C4B8');
+      ctx.fillStyle=cg2;ctx.fillRect(-4,deckY+18,8,legJY-deckY-18);
+      // Skirt ring — charcoal
+      ctx.fillStyle='#6A7A88';ctx.beginPath();ctx.ellipse(0,deckY+17,48,11,0,0,Math.PI*2);ctx.fill();
+      // Restaurant — steel blue glass
+      const rg2=ctx.createLinearGradient(-36,0,36,0);
+      rg2.addColorStop(0,'#7A8A9A');rg2.addColorStop(0.5,'#B0BCC8');rg2.addColorStop(1,'#7A8A9A');
+      ctx.fillStyle=rg2;ctx.fillRect(-36,deckY+2,72,16);
+      ctx.fillStyle='#8898A8';ctx.beginPath();ctx.ellipse(0,deckY+2,36,8,0,0,Math.PI*2);ctx.fill();
+      for(let i=0;i<6;i++){ctx.fillStyle=i%2===0?'#FFE840':'#AAD8FF';ctx.fillRect(-26+i*10,deckY+4,7,9);}
+      // Saucer — charcoal halo (the Space Needle's defining feature)
+      ctx.fillStyle='#2E3E4E';ctx.beginPath();ctx.ellipse(0,deckY-7,54,13,0,0,Math.PI*2);ctx.fill();
+      const sg2=ctx.createLinearGradient(-54,0,54,0);
+      sg2.addColorStop(0,'#3A4A58');sg2.addColorStop(0.5,'#C0CAD4');sg2.addColorStop(1,'#3A4A58');
+      ctx.fillStyle=sg2;ctx.beginPath();ctx.ellipse(0,deckY-11,54,13,0,0,Math.PI*2);ctx.fill();
+      // Saucer rim windows
+      for(let i=0;i<14;i++){
+        const wa=(i/14)*Math.PI*2;
+        ctx.fillStyle=i%3===0?'#FFE840':'#80DDFF';
+        ctx.beginPath();ctx.arc(Math.cos(wa)*50,deckY-11+Math.sin(wa)*10,2,0,Math.PI*2);ctx.fill();
+      }
+      // Walkway
+      ctx.fillStyle='#4A5A68';ctx.beginPath();ctx.ellipse(0,deckY-17,46,8,0,0,Math.PI*2);ctx.fill();
+      // Upper dome
+      ctx.fillStyle='#8AA8C4';ctx.beginPath();ctx.ellipse(0,deckY-22,38,17,0,Math.PI,0);ctx.fill();
+      // Shaft above deck
+      ctx.fillStyle='#D0CCC4';ctx.fillRect(-3,topY,6,deckY-26-topY);
+      // Antenna
+      ctx.strokeStyle='#D0CCC4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,topY);ctx.lineTo(0,antY+14);ctx.stroke();
+      ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,antY+14);ctx.lineTo(0,antY);ctx.stroke();
+      ctx.fillStyle='#FF2222';ctx.beginPath();ctx.arc(0,antY,4,0,Math.PI*2);ctx.fill();
       ctx.restore();
     }
+  }
 
-    // GREAT WHEEL (Pier 57, parallax 5%)
-    const gwX=VW*0.84-camX*0.05;
-    if(gwX>-130&&gwX<VW+130){
-      const gwr=76,gwCY=GY-gwr-10;
-      ctx.fillStyle='#162030';
-      // Ground base
-      ctx.fillRect(gwX-64,GY-22,128,22);
-      // Center column
-      ctx.fillRect(gwX-10,gwCY,20,gwr);
-      // Angled support struts
-      ctx.beginPath();ctx.moveTo(gwX-8,gwCY+gwr);ctx.lineTo(gwX-58,GY-18);ctx.lineTo(gwX-48,GY-18);ctx.lineTo(gwX,gwCY+gwr-10);ctx.closePath();ctx.fill();
-      ctx.beginPath();ctx.moveTo(gwX+8,gwCY+gwr);ctx.lineTo(gwX+58,GY-18);ctx.lineTo(gwX+48,GY-18);ctx.lineTo(gwX,gwCY+gwr-10);ctx.closePath();ctx.fill();
-      // Outer rim
-      ctx.strokeStyle='#162030';ctx.lineWidth=7;
-      ctx.beginPath();ctx.arc(gwX,gwCY,gwr,0,Math.PI*2);ctx.stroke();
-      // Inner ring
-      ctx.lineWidth=3;ctx.strokeStyle='#1e2e44';
-      ctx.beginPath();ctx.arc(gwX,gwCY,gwr*0.52,0,Math.PI*2);ctx.stroke();
-      // Spokes (16)
-      ctx.strokeStyle='#162030';ctx.lineWidth=2;
-      for(let a=0;a<16;a++){
-        const ang=a/16*Math.PI*2;
-        ctx.beginPath();ctx.moveTo(gwX,gwCY);
-        ctx.lineTo(gwX+Math.cos(ang)*gwr,gwCY+Math.sin(ang)*gwr);ctx.stroke();
-      }
-      // Gondolas
-      ctx.fillStyle='#1e2e44';
-      for(let a=0;a<16;a++){
-        const ang=a/16*Math.PI*2;
-        ctx.fillRect(gwX+Math.cos(ang)*(gwr-5)-5,gwCY+Math.sin(ang)*(gwr-5)-5,10,9);
-      }
+  // GREAT WHEEL — REAL COLOURS, anchor right of downtown
+  const gwX=370-camX*0.06;
+  if(gwX>-160&&gwX<VW+160){
+    const gwr=62,gwCY=GY-gwr-14;
+    ctx.save();ctx.translate(gwX,0);
+    ctx.fillStyle='#8A9090';ctx.fillRect(-56,GY-14,112,14);
+    ctx.fillStyle='#D0CCCA';
+    ctx.beginPath();ctx.moveTo(-gwr*0.7,GY-2);ctx.lineTo(-5,gwCY);ctx.lineTo(5,gwCY);ctx.lineTo(-gwr*0.7+14,GY-2);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(gwr*0.7,GY-2);ctx.lineTo(-5,gwCY);ctx.lineTo(5,gwCY);ctx.lineTo(gwr*0.7-14,GY-2);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#C0BCB4';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-gwr*0.5,GY-28);ctx.lineTo(gwr*0.5,GY-28);ctx.stroke();
+    // Spokes — rotating!
+    const gwRot=(frame*0.008)%(Math.PI*2);
+    ctx.strokeStyle='#C4C0B8';ctx.lineWidth=1.5;
+    for(let i=0;i<16;i++){const a=gwRot+(i/16)*Math.PI*2;ctx.beginPath();ctx.moveTo(0,gwCY);ctx.lineTo(Math.cos(a)*gwr,gwCY+Math.sin(a)*gwr);ctx.stroke();}
+    // Outer rim
+    ctx.strokeStyle='#D0CCC4';ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,gwCY,gwr,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='#C0BCB4';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,gwCY,gwr*0.6,0,Math.PI*2);ctx.stroke();
+    // Colourful gondolas
+    for(let i=0;i<16;i++){
+      const a=gwRot+(i/16)*Math.PI*2;
+      ctx.fillStyle=`hsl(${(i*22+Math.floor(frame/3))%360},68%,65%)`;
+      ctx.fillRect(Math.cos(a)*gwr-4,gwCY+Math.sin(a)*gwr,9,7);
     }
+    ctx.fillStyle='#B4B0A8';ctx.beginPath();ctx.arc(0,gwCY,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#D8D4CC';ctx.beginPath();ctx.arc(0,gwCY,3,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+
+  // FREMONT TROLL — appears from the right in the second half of the game
+  const ftX=570-camX*0.06;
+  if(ftX>-260&&ftX<VW+210){
+    ctx.save();ctx.translate(ftX,GY);
+    // Aurora Bridge
+    ctx.strokeStyle='#607880';ctx.lineWidth=9;
+    ctx.beginPath();ctx.arc(0,-68,132,Math.PI*1.15,Math.PI*1.85);ctx.stroke();
+    ctx.fillStyle='#586878';ctx.fillRect(-120,-60,240,12);
+    ctx.fillRect(-100,-60,16,60);ctx.fillRect(84,-60,16,60);
+    // Troll body — ferrocement gray
+    const tg=ctx.createRadialGradient(-8,-56,8,2,-46,84);
+    tg.addColorStop(0,'#9E9C94');tg.addColorStop(0.5,'#7A7872');tg.addColorStop(1,'#484644');
+    ctx.fillStyle=tg;
+    ctx.beginPath();
+    ctx.moveTo(-74,0);ctx.bezierCurveTo(-84,-20,-80,-60,-58,-86);
+    ctx.bezierCurveTo(-40,-106,-8,-120,12,-114);
+    ctx.bezierCurveTo(34,-108,46,-94,50,-72);
+    ctx.bezierCurveTo(56,-52,50,-28,46,-8);
+    ctx.bezierCurveTo(36,8,18,12,2,6);
+    ctx.bezierCurveTo(-22,10,-52,6,-74,0);
+    ctx.closePath();ctx.fill();
+    // Left arm holding VW Bug
+    ctx.fillStyle='#7C7A72';
+    ctx.beginPath();ctx.moveTo(-64,-40);ctx.bezierCurveTo(-84,-46,-112,-42,-124,-22);ctx.bezierCurveTo(-129,-10,-124,6,-114,10);ctx.bezierCurveTo(-102,13,-88,5,-72,-12);ctx.bezierCurveTo(-67,-22,-62,-30,-58,-36);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#686664';
+    [[-123,-24],[-119,-12],[-113,7],[-102,13]].forEach(([fx,fy])=>{ctx.beginPath();ctx.ellipse(fx,fy,6,4,0.4,0,Math.PI*2);ctx.fill();});
+    // Head
+    ctx.fillStyle='#8E8C84';ctx.beginPath();ctx.ellipse(10,-110,40,35,0.05,0,Math.PI*2);ctx.fill();
+    // Nose ridge
+    ctx.fillStyle='#747270';ctx.beginPath();ctx.moveTo(2,-126);ctx.bezierCurveTo(-4,-114,3,-99,7,-94);ctx.bezierCurveTo(12,-99,17,-114,10,-126);ctx.closePath();ctx.fill();
+    // Grimace mouth
+    ctx.strokeStyle='#484644';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-15,-94);ctx.bezierCurveTo(-4,-89,18,-89,30,-94);ctx.stroke();
+    ctx.fillStyle='#C8C4BC';[[-11,-95],[-3,-95],[8,-95],[19,-95]].forEach(([tx,ty])=>{ctx.fillRect(tx,ty,6,6);});
+    // LEFT EYE = HUBCAP (the troll's iconic chrome eye)
+    ctx.fillStyle='#8888A0';ctx.beginPath();ctx.arc(-16,-115,16,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#B8B8CC';ctx.beginPath();ctx.arc(-16,-115,12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#DCDCE8';ctx.beginPath();ctx.arc(-16,-115,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.85)';ctx.beginPath();ctx.arc(-20,-120,3,0,Math.PI*2);ctx.fill();
+    // Right eye — dark socket
+    ctx.fillStyle='#303030';ctx.beginPath();ctx.ellipse(28,-114,12,11,0.1,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#181818';ctx.beginPath();ctx.ellipse(28,-114,6,6,0,0,Math.PI*2);ctx.fill();
+    // Brow
+    ctx.strokeStyle='#686660';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-34,-126);ctx.bezierCurveTo(-12,-135,10,-131,24,-126);ctx.stroke();
+    // Hair
+    ctx.strokeStyle='#686664';ctx.lineWidth=3;
+    [[-24,-144,-32,-162],[-10,-147,-14,-166],[6,-146,10,-164],[22,-142,28,-159]].forEach(([x1,y1,x2,y2])=>{
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x1-2,y1-6,x2+2,y2+5,x2,y2);ctx.stroke();
+    });
+    // VW Bug in claw
+    ctx.save();ctx.translate(-121,-22);ctx.rotate(-0.22);
+    ctx.fillStyle='#B0B8C0';ctx.beginPath();ctx.ellipse(0,0,22,13,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#8090A0';ctx.beginPath();ctx.ellipse(-3,-4,15,9,0.1,Math.PI,0);ctx.fill();
+    ctx.fillStyle='rgba(160,200,240,0.6)';ctx.fillRect(-15,-9,10,8);ctx.fillRect(-1,-9,10,8);
+    ctx.fillStyle='#606870';ctx.beginPath();ctx.arc(-16,8,6,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(14,8,6,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    ctx.restore();
   }
 
   // BALLARD BUILDINGS near background (parallax 20%)
