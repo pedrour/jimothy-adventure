@@ -730,43 +730,72 @@ function drawBranch(p){
   for(let bx=sx+8;bx<sx+p.w-6;bx+=12) ctx.fillRect(bx,p.y+4,1,p.h-6);
 }
 
+function drawFirTree(sx,baseY){
+  const h=230,th=166;
+  ctx.fillStyle='#3e2008';ctx.fillRect(sx-6,baseY-th,12,th);
+  ctx.fillStyle='#5a3818';ctx.fillRect(sx-4,baseY-th,5,th);
+  ctx.fillStyle='#2e1806';
+  ctx.beginPath();ctx.moveTo(sx-6,baseY);ctx.lineTo(sx-20,baseY+4);ctx.lineTo(sx-14,baseY-14);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(sx+6,baseY);ctx.lineTo(sx+20,baseY+4);ctx.lineTo(sx+14,baseY-14);ctx.closePath();ctx.fill();
+  [[22,60,26,'#162e18','#2a5c2a'],[43,53,23,'#182f18','#2c5e2c'],
+   [65,46,20,'#1a3219','#2e622e'],[86,38,17,'#1c341a','#306430'],
+   [106,30,14,'#1e361b','#326632'],[125,21,11,'#20381c','#346834'],
+   [144,13,7,'#223a1c','#366a36']
+  ].forEach(([dy,w,droop,dark,light])=>{
+    const fy=baseY-dy;
+    ctx.fillStyle=dark;
+    ctx.beginPath();ctx.moveTo(sx-2,fy);
+    ctx.bezierCurveTo(sx-w*.45,fy-3,sx-w,fy+droop*.45,sx-w+2,fy+droop);
+    ctx.quadraticCurveTo(sx-w*.6,fy+droop+6,sx-w*.44,fy+droop+1);
+    ctx.bezierCurveTo(sx-w*.26,fy+droop-5,sx-2,fy+8,sx-2,fy+8);
+    ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(sx+2,fy);
+    ctx.bezierCurveTo(sx+w*.45,fy-3,sx+w,fy+droop*.45,sx+w-2,fy+droop);
+    ctx.quadraticCurveTo(sx+w*.6,fy+droop+6,sx+w*.44,fy+droop+1);
+    ctx.bezierCurveTo(sx+w*.26,fy+droop-5,sx+2,fy+8,sx+2,fy+8);
+    ctx.closePath();ctx.fill();
+    ctx.fillStyle=light;
+    ctx.beginPath();ctx.moveTo(sx,fy+1);
+    ctx.bezierCurveTo(sx-w*.32,fy-1,sx-w*.76,fy+droop*.36,sx-w*.66,fy+droop*.74);
+    ctx.lineTo(sx,fy+5);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(sx,fy+1);
+    ctx.bezierCurveTo(sx+w*.32,fy-1,sx+w*.76,fy+droop*.36,sx+w*.66,fy+droop*.74);
+    ctx.lineTo(sx,fy+5);ctx.closePath();ctx.fill();
+  });
+  ctx.fillStyle='#162c16';
+  ctx.beginPath();ctx.moveTo(sx,baseY-h);ctx.lineTo(sx-8,baseY-th+10);ctx.lineTo(sx+8,baseY-th+10);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#2a5a28';
+  ctx.beginPath();ctx.moveTo(sx,baseY-h+2);ctx.lineTo(sx-4,baseY-th+12);ctx.lineTo(sx+4,baseY-th+12);ctx.closePath();ctx.fill();
+}
+function drawMapleTree(sx,baseY){
+  const th=86;
+  ctx.fillStyle='#3a1e08';ctx.fillRect(sx-7,baseY-th,14,th);
+  ctx.fillStyle='#5a3420';ctx.fillRect(sx-5,baseY-th,6,th);
+  ctx.fillStyle='#2a1606';
+  ctx.beginPath();ctx.moveTo(sx-7,baseY);ctx.lineTo(sx-22,baseY+4);ctx.lineTo(sx-15,baseY-16);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(sx+7,baseY);ctx.lineTo(sx+22,baseY+4);ctx.lineTo(sx+15,baseY-16);ctx.closePath();ctx.fill();
+  const cy=baseY-152;
+  [[0,0,56,48,'#194018'],[-42,16,36,32,'#173a15'],[42,16,36,32,'#173a15'],
+   [-26,-28,30,26,'#1b4419'],[28,-26,28,24,'#1b4419'],
+   [0,-40,22,20,'#1e4a1c'],[-16,32,22,19,'#153812'],[18,34,20,18,'#153812'],
+   [-56,28,18,16,'#133610'],[56,28,18,16,'#133610']
+  ].forEach(([dx,dy,rx,ry,c])=>{
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(sx+dx,cy+dy,rx,ry,0,0,Math.PI*2);ctx.fill();
+  });
+  [[-8,-12,22,19,'#285e24'],[16,-4,18,16,'#246020'],[-24,4,14,12,'#226020'],
+   [6,-30,14,12,'#2a6426'],[-18,18,16,13,'#1e5018']
+  ].forEach(([dx,dy,rx,ry,c])=>{
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(sx+dx,cy+dy,rx,ry,0,0,Math.PI*2);ctx.fill();
+  });
+  [[-4,-18,10,9,'#347030'],[12,-10,8,7,'#2e6c2a']].forEach(([dx,dy,rx,ry,c])=>{
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(sx+dx,cy+dy,rx,ry,0,0,Math.PI*2);ctx.fill();
+  });
+}
 function drawTree(wx){
   const sx=wx-camX;
-  if(sx<-110||sx>VW+110)return;
-  const h=220;
-  // Trunk — Douglas fir, reddish-brown furry bark
-  ctx.fillStyle='#5a3018';ctx.fillRect(sx-7,GY-h,14,h);
-  ctx.fillStyle='#6a4020';ctx.fillRect(sx-5,GY-h,6,h);
-  ctx.fillStyle='#4a2610';ctx.fillRect(sx+2,GY-h,4,h);
-  // Root flare at base
-  ctx.fillStyle='#4a2810';
-  ctx.beginPath();ctx.moveTo(sx-7,GY);ctx.lineTo(sx-16,GY+4);ctx.lineTo(sx-12,GY-18);ctx.closePath();ctx.fill();
-  ctx.beginPath();ctx.moveTo(sx+7,GY);ctx.lineTo(sx+16,GY+4);ctx.lineTo(sx+12,GY-18);ctx.closePath();ctx.fill();
-
-  // Foliage — 6 tiers of drooping fir branches (Douglas fir style)
-  const tiers=[
-    [95,h*0.85,32],[80,h*0.72,28],[68,h*0.60,26],
-    [56,h*0.48,22],[44,h*0.37,18],[32,h*0.27,14]
-  ];
-  tiers.forEach(([tw,ty,drop])=>{
-    const fy=GY-ty;
-    // Outer dark layer
-    ctx.fillStyle='#1a3e1e';
-    ctx.beginPath();ctx.moveTo(sx,fy-drop);ctx.lineTo(sx-tw/2,fy+drop/2);ctx.lineTo(sx+tw/2,fy+drop/2);ctx.closePath();ctx.fill();
-    // Mid green
-    ctx.fillStyle='#265e28';
-    ctx.beginPath();ctx.moveTo(sx,fy-drop+6);ctx.lineTo(sx-tw/2+10,fy+drop/2);ctx.lineTo(sx+tw/2-10,fy+drop/2);ctx.closePath();ctx.fill();
-    // Light inner highlights
-    ctx.fillStyle='#2e7030';
-    ctx.beginPath();ctx.moveTo(sx,fy-drop+10);ctx.lineTo(sx-tw/4,fy+drop/4);ctx.lineTo(sx+tw/4,fy+drop/4);ctx.closePath();ctx.fill();
-    // Drooping branch tips
-    ctx.fillStyle='#1a3e1e';
-    ctx.beginPath();ctx.moveTo(sx-tw/2,fy);ctx.quadraticCurveTo(sx-tw/2-8,fy+12,sx-tw/2-4,fy+drop/2+8);ctx.lineTo(sx-tw/2,fy+drop/2);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(sx+tw/2,fy);ctx.quadraticCurveTo(sx+tw/2+8,fy+12,sx+tw/2+4,fy+drop/2+8);ctx.lineTo(sx+tw/2,fy+drop/2);ctx.closePath();ctx.fill();
-  });
-  // Tip (very top)
-  ctx.fillStyle='#1a3e1e';
-  ctx.beginPath();ctx.moveTo(sx,GY-h-18);ctx.lineTo(sx-12,GY-h+10);ctx.lineTo(sx+12,GY-h+10);ctx.closePath();ctx.fill();
+  if(sx<-130||sx>VW+130)return;
+  if(Math.floor(wx/400)%2===0)drawFirTree(sx,GY);
+  else drawMapleTree(sx,GY);
 }
 
 function drawTrashCan(can){
@@ -870,18 +899,36 @@ function drawGround(){
 }
 
 function drawWorld(){
-  // Background trees (parallax 22%) — dark silhouettes behind buildings
+  // Background trees (parallax 22%) — organic silhouettes behind buildings
   TREE_XS.forEach(wx=>{
     const sx=wx-camX*0.22;
-    if(sx<-100||sx>VW+100)return;
-    const h=195;
-    [[85,h*0.84,26],[70,h*0.64,22],[56,h*0.46,18],[40,h*0.28,14]].forEach(([tw,ty,drop])=>{
-      const fy=GY-ty;
-      ctx.fillStyle='#182e1a';
-      ctx.beginPath();ctx.moveTo(sx,fy-drop);ctx.lineTo(sx-tw/2,fy+drop/2);ctx.lineTo(sx+tw/2,fy+drop/2);ctx.closePath();ctx.fill();
-      ctx.fillStyle='#1e3a20';
-      ctx.beginPath();ctx.moveTo(sx,fy-drop+8);ctx.lineTo(sx-tw/2+10,fy+drop/2);ctx.lineTo(sx+tw/2-10,fy+drop/2);ctx.closePath();ctx.fill();
-    });
+    if(sx<-120||sx>VW+120)return;
+    const bY=GY;
+    if(Math.floor(wx/400)%2===0){
+      const h=168;
+      ctx.fillStyle='#0d1f0e';
+      ctx.beginPath();
+      ctx.moveTo(sx,bY-h);
+      ctx.bezierCurveTo(sx+10,bY-h+22,sx+40,bY-h*.67,sx+46,bY-h*.61);
+      ctx.quadraticCurveTo(sx+37,bY-h*.55,sx+44,bY-h*.51);
+      ctx.bezierCurveTo(sx+52,bY-h*.44,sx+54,bY-h*.37,sx+50,bY-h*.30);
+      ctx.quadraticCurveTo(sx+56,bY-h*.24,sx+56,bY-h*.22);
+      ctx.lineTo(sx+6,bY-6);ctx.lineTo(sx-6,bY-6);
+      ctx.lineTo(sx-56,bY-h*.22);
+      ctx.quadraticCurveTo(sx-56,bY-h*.24,sx-50,bY-h*.30);
+      ctx.bezierCurveTo(sx-54,bY-h*.37,sx-52,bY-h*.44,sx-44,bY-h*.51);
+      ctx.quadraticCurveTo(sx-37,bY-h*.55,sx-46,bY-h*.61);
+      ctx.bezierCurveTo(sx-40,bY-h*.67,sx-10,bY-h+22,sx,bY-h);
+      ctx.closePath();ctx.fill();
+    } else {
+      const cy=bY-148;
+      ctx.fillStyle='#0d1e0d';
+      [[0,0,48,42],[-36,15,32,27],[36,15,32,27],[-22,-24,26,22],[24,-22,24,20],
+       [0,-34,18,16],[-14,30,19,16],[16,30,17,15]
+      ].forEach(([dx,dy,rx,ry])=>{
+        ctx.beginPath();ctx.ellipse(sx+dx,cy+dy,rx,ry,0,0,Math.PI*2);ctx.fill();
+      });
+    }
   });
 
   // In-world trees (at branch positions)
