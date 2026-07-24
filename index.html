@@ -99,115 +99,111 @@ const COL={
   'g':'#44bb44','o':'#ff8800','c':'#5a2a0c','f':'#88ddff','k':'#ffee44',
 };
 
-// Jimothy sprite 28×24 — round ball body, raccoon mask, SC=2 → 56×48px on screen
-// walk frame 1
-const JW1=[
-  '............................',  //  0
-  '......BDDDDDDDB.............',  //  1  back arch
-  '....BDGGGGGGGGGGGDB.........',  //  2
-  '.LLLBGGGGGGGGGGGGGGGDB......',  //  3  tail light ring
-  'LLLBGGGGGGGGGGGGGGGGGGDB....',  //  4
-  'LLLBGGGGGGGGGGGGGGGGGGGGBDB.',  //  5  ear stub (BDB)
-  'DLLBGGGGGGGGGGGGGGGGGGGGBPB.',  //  6  ear peak: pink inner ear
-  'DLLBGGGGGGGGGGGGGGGGGGGBDWDv',  //  7  eye: D=mask W=white D=pupil v=cheek
-  'DLLBGGGGGGGGGGGGGGGGGGGBDDvP',  //  8  lower mask + nose tip P
-  'DLLBGGGGGGGGGGGGGGGGGGGGBvvP',  //  9  muzzle cheeks + nose
-  '.LLBGGGGGGGGGGGGGGGGGGGGGvvB',  // 10  lower cheek, body closes
-  '.LLBGGGGGGGGGGGGGGGGGGGGGGvB',  // 11
-  '..LBGGGGGGGGGGGGGGGGGGGGGGvB',  // 12
-  '..LBGGGGGGGGGGGGGGGGGGGGGLvB',  // 13  belly starts (L=lighter fur)
-  '...BGGGGGGGGGGGGGGGGGGGGGLvB', // 14  belly peak
-  '...BGGGGGGGGGGGGGGGGGGGGGLvB', // 15
-  '....BGGGGGGGGGGGGGGGGGGGGLvB',  // 16  start tapering
-  '.....BGGGGGGGGGGGGGGGGGGLv..',  // 17
-  '......BGGGGGGGGGGGGGGGGLv...',  // 18
-  '.......BGGGGGGGGGGGGGGGB....',  // 19  body bottom
-  '..........BGGGGGGGB.........',  // 20  leg bases
-  '.........BGB....BGB.........',  // 21  legs stride 1
-  '.........BGB....BGB.........',  // 22
-  '.........BB.....BB..........',  // 23  paws
-];
-// walk frame 2 — legs alternate
-const JW2=[
-  '............................',
-  '......BDDDDDDDB.............',
-  '....BDGGGGGGGGGGGDB.........',
-  '.LLLBGGGGGGGGGGGGGGGDB......',
-  'LLLBGGGGGGGGGGGGGGGGGGDB....',
-  'LLLBGGGGGGGGGGGGGGGGGGGGBDB.',
-  'DLLBGGGGGGGGGGGGGGGGGGGGBPB.',
-  'DLLBGGGGGGGGGGGGGGGGGGGBDWDv',
-  'DLLBGGGGGGGGGGGGGGGGGGGBDDvP',
-  'DLLBGGGGGGGGGGGGGGGGGGGGBvvP',
-  '.LLBGGGGGGGGGGGGGGGGGGGGGvvB',
-  '.LLBGGGGGGGGGGGGGGGGGGGGGGvB',
-  '..LBGGGGGGGGGGGGGGGGGGGGGGvB',
-  '..LBGGGGGGGGGGGGGGGGGGGGGLvB',
-  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
-  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
-  '....BGGGGGGGGGGGGGGGGGGGGLvB',
-  '.....BGGGGGGGGGGGGGGGGGGLv..',
-  '......BGGGGGGGGGGGGGGGGLv...',
-  '.......BGGGGGGGGGGGGGGGB....',
-  '..........BGGGGGGGB.........',
-  '..........BGB..BGB..........',  // legs stride 2
-  '..........BGB..BGB..........',
-  '..........BB...BB...........',
-];
-// jump — legs spread wide
-const JJP=[
-  '............................',
-  '......BDDDDDDDB.............',
-  '....BDGGGGGGGGGGGDB.........',
-  '.LLLBGGGGGGGGGGGGGGGDB......',
-  'LLLBGGGGGGGGGGGGGGGGGGDB....',
-  'LLLBGGGGGGGGGGGGGGGGGGGGBDB.',
-  'DLLBGGGGGGGGGGGGGGGGGGGGBPB.',
-  'DLLBGGGGGGGGGGGGGGGGGGGBDWDv',
-  'DLLBGGGGGGGGGGGGGGGGGGGBDDvP',
-  'DLLBGGGGGGGGGGGGGGGGGGGGBvvP',
-  '.LLBGGGGGGGGGGGGGGGGGGGGGvvB',
-  '.LLBGGGGGGGGGGGGGGGGGGGGGGvB',
-  '..LBGGGGGGGGGGGGGGGGGGGGGGvB',
-  '..LBGGGGGGGGGGGGGGGGGGGGGLvB',
-  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
-  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
-  '....BGGGGGGGGGGGGGGGGGGGGLvB',
-  '.....BGGGGGGGGGGGGGGGGGGLv..',
-  '......BGGGGGGGGGGGGGGGGLv...',
-  '.......BGGGGGGGGGGGGGGGB....',
-  '..........BGGGGGGGB.........',
-  '.......BGB......BGB.........',  // legs spread wide
-  '.......BGB......BGB.........',
-  '.......BB.......BB..........',
-];
-// dig — unused (rummage anim uses JW1/JW2), kept for completeness
-const JDG=[
-  '............................',
-  '............................',
-  '..........BGGGGGGGB.........', // 28 chars
-  '........BGGGGGGGGGGGLv......',
-  '......BGGGGGGGGGGGGGGGLv....',
-  '....BGGGGGGGGGGGGGGGGGGGLLv.',
-  '...LBGGGGGGGGGGGGGGGGGGGLvB.',
-  '...LBGGGGGGGGGGGGGGGGGGGvvB.',
-  '..DLBGGGGGGGGGGGGGGGGGGGvPB.',
-  '..DLBGGGGGGGGGGGGGGGGGGGBWBv',
-  '..DLBGGGGGGGGGGGGGGGGGGGBDBv',
-  '..LLBGGGGGGGGGGGGGGGGGGDBv..',
-  '...LBGGGGGGGGGGGGGGGGGDBv...',
-  '....BDGGGGGGGGGGGGGGGDBv....',
-  '.......BDDDDDDDDDBv..........',
-  '.........BGGGGGGBv...........',
-  '........BBGGGGGGBBv..........',
-  '............................',
-  '............................',
-  '............................',
-  '............................',
-  '............................',
-  '............................',
-  '............................',
-];
+// Jimothy drawn with canvas primitives — round ball shape for short-spine-syndrome look
+// Helpers kept but sprites removed
+
+// quadratic bezier interpolation
+function _bez(a,b,c,t){return (1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;}
+
+// Core canvas drawing function — all coords relative to world space
+// cx,cy = body center; flip = facing left; jumping/walkTick for animation
+function _drawJimCanvas(cx,cy,flip,jumping,walkTick){
+  ctx.save();
+  if(flip){ctx.translate(cx*2,0);ctx.scale(-1,1);}
+
+  const rx = jumping ? 14 : 17;   // body x-radius (squash/stretch on jump)
+  const ry = jumping ? 21 : 17;   // body y-radius
+
+  // ── TAIL (quadratic arc, upper-left of body) ──
+  const tBx=cx-rx*0.6, tBy=cy+ry*0.3;      // tail base
+  const tMx=cx-rx*1.5, tMy=cy-ry*0.5;      // control point
+  const tTx=cx-rx*1.0, tTy=cy-ry*1.1;      // tail tip
+  const RINGS=['#303030','#909090','#303030','#909090','#303030','#C8C0B0'];
+  for(let i=0;i<=9;i++){
+    const t=i/9;
+    const tx=_bez(tBx,tMx,tTx,t), ty=_bez(tBy,tMy,tTy,t);
+    const r=5.5-t*3;
+    ctx.beginPath();ctx.arc(tx,ty,r,0,Math.PI*2);
+    ctx.fillStyle=RINGS[Math.floor(t*5)];ctx.fill();
+  }
+
+  // ── MAIN BODY (nearly circular) ──
+  const bodyGrad=ctx.createRadialGradient(cx+rx*0.25,cy+ry*0.25,1,cx,cy,Math.max(rx,ry)*1.1);
+  bodyGrad.addColorStop(0,'#9E9888');
+  bodyGrad.addColorStop(0.55,'#706860');
+  bodyGrad.addColorStop(1,'#3C3830');
+  ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+  ctx.fillStyle=bodyGrad;ctx.fill();
+
+  // ── BELLY PATCH (cream, front-lower) ──
+  ctx.beginPath();
+  ctx.ellipse(cx+rx*0.22,cy+ry*0.28,rx*0.44,ry*0.5,0.1,0,Math.PI*2);
+  ctx.fillStyle='#D8D2C4';ctx.fill();
+
+  // ── BACK EAR (behind head, dark) ──
+  ctx.beginPath();
+  ctx.ellipse(cx-rx*0.12,cy-ry*0.82,6,8,0.18,0,Math.PI*2);
+  ctx.fillStyle='#3A3530';ctx.fill();
+
+  // ── FACE MASK (black raccoon band across eyes) ──
+  const faceX=cx+rx*0.46, faceY=cy-ry*0.06;
+  ctx.beginPath();
+  ctx.ellipse(faceX-5,faceY-1,rx*0.56,ry*0.22,-0.12,0,Math.PI*2);
+  ctx.fillStyle='#111111';ctx.fill();
+
+  // ── EYE ──
+  const eyeX=faceX+1, eyeY=faceY-2.5;
+  ctx.beginPath();ctx.arc(eyeX,eyeY,5,0,Math.PI*2);
+  ctx.fillStyle='#FFFFFF';ctx.fill();
+  ctx.beginPath();ctx.arc(eyeX+1,eyeY+0.5,3,0,Math.PI*2);
+  ctx.fillStyle='#0A0A0A';ctx.fill();
+  ctx.beginPath();ctx.arc(eyeX+1.5,eyeY-1.5,1.2,0,Math.PI*2);
+  ctx.fillStyle='#FFFFFF';ctx.fill(); // shine
+
+  // ── MUZZLE / CHEEKS ──
+  ctx.beginPath();
+  ctx.ellipse(faceX+rx*0.22,faceY+ry*0.14,rx*0.22,ry*0.2,0,0,Math.PI*2);
+  ctx.fillStyle='#E8E0D0';ctx.fill();
+
+  // ── NOSE ──
+  ctx.beginPath();
+  ctx.ellipse(faceX+rx*0.37,faceY+ry*0.1,3.5,2.5,0,0,Math.PI*2);
+  ctx.fillStyle='#CC6677';ctx.fill();
+
+  // ── FRONT EAR ──
+  const ear1X=cx+rx*0.28, ear1Y=cy-ry*0.84;
+  ctx.beginPath();ctx.ellipse(ear1X,ear1Y,7,9,-0.25,0,Math.PI*2);
+  ctx.fillStyle='#4A4540';ctx.fill();
+  ctx.beginPath();ctx.ellipse(ear1X,ear1Y+1,4.5,6,-0.25,0,Math.PI*2);
+  ctx.fillStyle='#C07888';ctx.fill();
+
+  // ── BODY OUTLINE ──
+  ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+  ctx.strokeStyle='#1C1810';ctx.lineWidth=1.5;ctx.stroke();
+
+  // ── LEGS ──
+  const swing=Math.sin(walkTick*0.55)*8;
+  // front leg
+  ctx.beginPath();
+  ctx.ellipse(cx+rx*0.36,cy+ry*0.84+swing*0.25,5,7,0.08+swing*0.015,0,Math.PI*2);
+  ctx.fillStyle='#555048';ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx+rx*0.4,cy+ry+1.5+swing*0.35,6,4,0,0,Math.PI*2);
+  ctx.fillStyle='#222018';ctx.fill();
+  // back leg
+  ctx.beginPath();
+  ctx.ellipse(cx-rx*0.18,cy+ry*0.88-swing*0.25,5,7,-0.08-swing*0.015,0,Math.PI*2);
+  ctx.fillStyle='#444038';ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx-rx*0.14,cy+ry+1-swing*0.35,6,4,0,0,Math.PI*2);
+  ctx.fillStyle='#222018';ctx.fill();
+
+  ctx.restore();
+}
+
+// Stub arrays kept only for drawRummageAnim compatibility
+const JW1=null,JW2=null,JJP=null,JDG=null;
+
 
 // Platforms: {x,y,w,h,type}  y=top surface
 const PLATFORMS=[
@@ -316,6 +312,8 @@ const BLDG_LAYOUT=[
 
 // Game state
 let jim,camX,score,totalFood,popups,frame,won,winFrame,fireworks;
+let particles=[];   // collect burst particles
+let coffeeBoost=0;  // frames of speed boost remaining
 let bgMusicPlaying=false,bgMusicTimeout=null;
 let audio; try{audio=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}
 const keys={};
@@ -735,7 +733,7 @@ function drawBg(){
   // Washington State Ferry — MV Tacoma class (double-ended, 4 car lanes, 2 passenger decks)
   const ferryX=VW*0.72-camX*0.012;
   if(ferryX>-240&&ferryX<VW+240){
-    ctx.save();ctx.translate(ferryX,psY+18);
+    ctx.save();ctx.translate(ferryX,psY+18);ctx.scale(0.58,0.58);
     // ── HULL ── (white with green boot stripe)
     // Hull tapers slightly at bow/stern (both ends symmetric)
     ctx.fillStyle='#EDEAE2';
@@ -823,7 +821,7 @@ function drawBg(){
   // ── SEATTLE LANDMARKS (all parallax 6%, staggered anchors = different screen times) ──
 
   // PIKE PLACE MARKET — real neon sign (anchor left, visible early game)
-  const ppX2=90-camX*0.06;
+  const ppX2=680-camX*0.06;
   if(ppX2>-180&&ppX2<VW+120){
     // Building / market arcade beneath the sign
     ctx.fillStyle='#786050';ctx.fillRect(ppX2-48,GY-78,96,78);
@@ -1386,24 +1384,28 @@ function drawWorld(){
 
 // ── JIMOTHY DRAW ──
 function drawJim(){
-  const sx=jim.x-camX;
-  const sy=jim.y;
-  const flip=jim.facing<0;
+  if(jim.digging){drawRummageAnim(jim.x-camX,jim.y,jim.facing<0);return;}
 
-  if(jim.digging){
-    drawRummageAnim(sx,sy,flip);
-    return;
-  }
-
-  let sprite;
-  if(!jim.onGround) sprite=JJP;
-  else if(jim.vx!==0) sprite=(jim.walkFrame===0?JW1:JW2);
-  else sprite=JW1;
+  const cx=jim.x-camX+JIM_W/2;
+  const isJumping=!jim.onGround;
+  const isIdle=jim.vx===0&&jim.onGround;
+  const breathe=isIdle?Math.sin(frame*0.09)*1.2:0;
+  const bob=!isIdle&&jim.onGround?Math.sin(jim.walkTick*0.55)*2.5:0;
+  const cy=jim.y+JIM_H*0.48+breathe*0.3+bob;
 
   ctx.save();
-  ctx.translate(sx+JIM_W/2,0);
-  ctx.scale(flip?-1:1,1);
-  px(sprite,-JIM_W/2,sy,SC);
+  if(coffeeBoost>0){
+    ctx.shadowColor='#FF8C00';ctx.shadowBlur=14+Math.sin(frame*0.3)*5;
+    if(jim.vx!==0){
+      for(let t=4;t>=1;t--){
+        ctx.save();ctx.globalAlpha=0.13/t;
+        _drawJimCanvas(cx-jim.facing*t*10,cy,jim.facing<0,isJumping,jim.walkTick);
+        ctx.restore();
+      }
+    }
+  }
+  ctx.shadowBlur=0;
+  _drawJimCanvas(cx,cy,jim.facing<0,isJumping,jim.walkTick);
   ctx.restore();
 }
 
@@ -1412,30 +1414,58 @@ function drawHUD(){
   // Score
   document.getElementById('scoretxt').textContent=`🍖 ${score} bites`;
 
-  // Collected / total
+  // Collected / total pill
   const got=food.filter(f=>f.taken).length+cans.filter(c=>c.searched).length;
   const tot=food.length+cans.length;
-  ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(6,6,170,28);
-  ctx.fillStyle='#ffcc44';ctx.font='bold 18px Courier New';
-  ctx.fillText(`found ${got}/${tot}`,12,22);
+  ctx.fillStyle='rgba(0,0,0,0.55)';
+  ctx.beginPath();ctx.roundRect(6,6,160,28,8);ctx.fill();
+  ctx.fillStyle='#ffcc44';ctx.font='bold 15px Courier New';
+  ctx.fillText(`🦝 ${got}/${tot} snacks`,12,23);
+
+  // Progress bar (bottom of screen)
+  const barW=VW-24,barX=12,barY=VH-18,barH=7;
+  ctx.fillStyle='rgba(0,0,0,0.45)';
+  ctx.beginPath();ctx.roundRect(barX,barY,barW,barH,4);ctx.fill();
+  const prog=got/tot;
+  const barGrad=ctx.createLinearGradient(barX,0,barX+barW,0);
+  barGrad.addColorStop(0,'#FFD700');barGrad.addColorStop(0.5,'#FF8C00');barGrad.addColorStop(1,'#FF4500');
+  ctx.fillStyle=barGrad;
+  ctx.beginPath();ctx.roundRect(barX,barY,barW*prog,barH,4);ctx.fill();
+  // Jimothy icon on progress bar
+  const iconX=barX+barW*prog;
+  if(prog>0.04){ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('🦝',iconX,barY-2);ctx.textAlign='left';}
+
+  // Coffee boost indicator
+  if(coffeeBoost>0){
+    ctx.save();
+    ctx.fillStyle=`rgba(255,140,0,${0.4+0.3*Math.sin(frame*0.3)})`;
+    ctx.beginPath();ctx.roundRect(VW-90,6,84,28,8);ctx.fill();
+    ctx.fillStyle='#FFF';ctx.font='bold 13px Courier New';ctx.textAlign='center';
+    ctx.fillText('☕ ZOOM!',VW-48,23);ctx.textAlign='left';
+    ctx.restore();
+  }
 
   // Popups
   popups=popups.filter(p=>{
-    p.y+=p.vy;p.alpha-=0.022;
+    p.y+=p.vy;p.alpha-=0.018;
     if(p.alpha<=0)return false;
-    ctx.fillStyle=`rgba(255,220,60,${p.alpha})`;
-    ctx.font='bold 17px Courier New';ctx.textAlign='center';
-    ctx.fillText(p.text,p.x-camX,p.y);ctx.textAlign='left';
+    ctx.save();
+    ctx.fillStyle=`rgba(255,235,80,${p.alpha})`;
+    ctx.strokeStyle=`rgba(0,0,0,${p.alpha*0.6})`;
+    ctx.lineWidth=3;
+    ctx.font='bold 16px Courier New';ctx.textAlign='center';
+    ctx.strokeText(p.text,p.x-camX,p.y);
+    ctx.fillText(p.text,p.x-camX,p.y);
+    ctx.textAlign='left';ctx.restore();
     return true;
   });
 
-  // Win message
   // Controls reminder (fades after 8s)
   if(frame<480){
     const a=Math.max(0,(480-frame)/180);
     ctx.fillStyle=`rgba(120,180,255,${a*0.9})`;ctx.font='16px Courier New';ctx.textAlign='center';
-    ctx.fillText('← → MOVE  |  SPACE JUMP',VW/2,VH-34);
-    ctx.fillText('S to rummage trash',VW/2,VH-14);
+    ctx.fillText('← → MOVE  |  SPACE JUMP',VW/2,VH-40);
+    ctx.fillText('S to rummage trash',VW/2,VH-20);
     ctx.textAlign='left';
   }
 }
@@ -1474,8 +1504,9 @@ function update(){
   const jumpPressed=keys['Space']||keys['ArrowUp']||keys['KeyW']||mob.j;
   const digPressed=keys['ArrowDown']||keys['KeyS']||mob.d;
 
-  if(left){jim.vx=Math.max(jim.vx-1.8,-WALK_SPD);}
-  else if(right){jim.vx=Math.min(jim.vx+1.8,WALK_SPD);}
+  const curSpd=coffeeBoost>0?WALK_SPD*1.65:WALK_SPD;
+  if(left){jim.vx=Math.max(jim.vx-2.2,-curSpd);}
+  else if(right){jim.vx=Math.min(jim.vx+2.2,curSpd);}
   else{jim.vx*=0.72;}
   if(Math.abs(jim.vx)<0.1)jim.vx=0;
 
@@ -1532,17 +1563,29 @@ function update(){
   if(jim.y>GY+100){jim.y=GY-JIM_H;jim.vy=0;jim.onGround=true;}
 
   // Food collection
+  const COLLECT_WORDS=['Yum!','Nice!','Snack!','Score!','Tasty!','🦝!','Om nom!','Delish!'];
   const jcx=jim.x+JIM_W/2,jcy=jim.y+JIM_H/2;
   food.forEach(f=>{
     if(f.taken)return;
     const dx=jcx-f.x,dy=jcy-f.y;
     if(Math.sqrt(dx*dx+dy*dy)<32){
       f.taken=true;score+=f.pts;
-      popups.push({x:f.x,y:f.y-10,text:`+${f.pts}`,alpha:1,vy:-1.6});
+      const word=COLLECT_WORDS[Math.floor(Math.random()*COLLECT_WORDS.length)];
+      popups.push({x:f.x,y:f.y-16,text:`+${f.pts} ${word}`,alpha:1,vy:-1.8});
       sndCollect();
       if(audio&&audio.state==='suspended')audio.resume();
+      // Coffee speed boost
+      if(f.type==='coffee') coffeeBoost=220;
+      // Particle burst
+      const cols=['#FFD700','#FF8C00','#FF4500','#00FF7F','#00BFFF','#FF69B4','#ADFF2F','#FF6347'];
+      for(let i=0;i<14;i++){
+        const a=(i/14)*Math.PI*2,spd=2.5+Math.random()*2.5;
+        particles.push({x:f.x,y:f.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd-1,life:1,col:cols[i%cols.length],r:4+Math.random()*3});
+      }
     }
   });
+  // Coffee boost timer
+  coffeeBoost=Math.max(0,coffeeBoost-1);
 
   // Camera
   const targetCamX=jim.x-VW*0.35;
@@ -1578,11 +1621,9 @@ function drawRummageAnim(sx,sy,flip){
 
   // Jimothy bouncing next to can, facing it
   const bob=Math.sin(t*0.28)*7;
-  ctx.save();
-  ctx.translate(sx+JIM_W/2,0);
-  ctx.scale(flip?-1:1,1);
-  px(t%18<9?JW1:JW2,-JIM_W/2,sy+bob,SC);
-  ctx.restore();
+  const cx2=sx+JIM_W/2;
+  const cy2=sy+JIM_H*0.48+bob;
+  _drawJimCanvas(cx2,cy2,flip,false,t*2);
 
   // Colourful sparkle burst expanding from can top
   const SPARK=['#ffee44','#ff9922','#44ffbb','#ff66cc','#66ddff','#ffaa44','#88ff66','#ff4488'];
@@ -2187,6 +2228,16 @@ function loop(){
     drawBg();
     drawWorld();
     drawJim();
+    // Draw collect-burst particles
+    particles=particles.filter(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.028;
+      if(p.life<=0)return false;
+      ctx.save();ctx.globalAlpha=p.life;
+      ctx.beginPath();ctx.arc(p.x-camX,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.col;ctx.fill();
+      ctx.restore();
+      return true;
+    });
     drawHUD();
   }
   requestAnimationFrame(loop);
@@ -2199,7 +2250,7 @@ function init(){
   jim={x:140,y:GY-JIM_H,vx:0,vy:0,onGround:true,facing:1,
        walkTick:0,walkFrame:0,digging:false,digTick:0,digTarget:null,
        jumpHeld:false,digHeld:false};
-  camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];
+  camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];particles=[];coffeeBoost=0;
   document.getElementById('share-btn').style.display='none';
   startBgMusic();
 }
