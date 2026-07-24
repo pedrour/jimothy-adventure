@@ -27,12 +27,12 @@ canvas{
   border:3px solid #2a4878;
   box-shadow:0 0 0 1px #4a78c8,0 0 28px rgba(42,72,120,.85);
   touch-action:none;cursor:default;
-  max-width:min(1000px,100vw - 6px);
-  max-height:min(520px,52vh);
+  max-width:min(1200px,100vw - 6px);
+  max-height:min(640px,52vh);
 }
 #btmbar{
   display:flex;justify-content:space-between;align-items:center;
-  width:100%;max-width:1006px;padding:2px 6px;
+  width:100%;max-width:1206px;padding:2px 6px;
   font-size:clamp(7px,1.3vw,10px);color:#3a5880;
 }
 #mob{
@@ -76,13 +76,13 @@ canvas{
 
 const C = document.getElementById('c');
 const ctx = C.getContext('2d');
-C.width = 1000; C.height = 520;
+C.width = 1200; C.height = 640;
 
-const VW=1000,VH=520,WORLD_W=5800;
+const VW=1200,VH=640,WORLD_W=5800;
 const SC=3;
 const JIM_PW=20,JIM_PH=18,JIM_W=60,JIM_H=54;
 const GRAVITY=0.46,JUMP_VY=-11.2,WALK_SPD=2.8;
-const GY=462; // ground Y (top surface)
+const GY=570; // ground Y (top surface)
 
 const COL={
   '.':null,'B':'#111111','G':'#585858','D':'#303030','L':'#909090',
@@ -263,15 +263,21 @@ const TREE_XS=[
   524,880,1386,1742,2100,2682,3024,3422,3766,4122,4504,4862,5206
 ];
 
-// Background house positions (world x, drawn at parallax)
-const HOUSE_WS=[
-  {x:120, w:130,h:88},{x:380,w:115,h:92},{x:640,w:140,h:80},
-  {x:900, w:120,h:95},{x:1160,w:135,h:85},{x:1440,w:125,h:90},
-  {x:1720,w:140,h:82},{x:2000,w:118,h:94},{x:2280,w:132,h:86},
-  {x:2560,w:128,h:92},{x:2840,w:140,h:84},{x:3120,w:120,h:90},
-  {x:3400,w:135,h:88},{x:3680,w:125,h:94},{x:3960,w:140,h:82},
-  {x:4240,w:118,h:90},{x:4520,w:132,h:86},{x:4800,w:128,h:92},
-  {x:5080,w:140,h:84},{x:5360,w:120,h:90},
+// Background building layout (parallax-space x, 0-2100 covers full camera range at 0.20x)
+// Mix of Ballard craftsman bungalows, modern townhomes (Seattle box), and apartments
+const BLDG_LAYOUT=[
+  {x:15, type:'craftsman',w:148,h:92},
+  {x:195,type:'townhome', w:54,h:152},{x:257,type:'townhome',w:54,h:162},{x:319,type:'townhome',w:54,h:148},
+  {x:408,type:'craftsman',w:142,h:88},
+  {x:582,type:'apartment',w:162,h:120},
+  {x:776,type:'craftsman',w:150,h:96},
+  {x:958,type:'townhome', w:52,h:155},{x:1018,type:'townhome',w:52,h:145},
+  {x:1094,type:'craftsman',w:140,h:86},
+  {x:1262,type:'apartment',w:165,h:116},
+  {x:1460,type:'craftsman',w:148,h:92},
+  {x:1640,type:'townhome', w:54,h:158},{x:1702,type:'townhome',w:54,h:148},{x:1764,type:'townhome',w:54,h:165},
+  {x:1848,type:'craftsman',w:142,h:90},
+  {x:2025,type:'apartment',w:160,h:118},
 ];
 
 // Game state
@@ -342,140 +348,425 @@ function tryDig(){
   }
 }
 
+// ── BUILDING HELPERS (near background) ──
+function drawCraftsman(sx,w,h){
+  // 1920s Ballard craftsman bungalow
+  ctx.fillStyle='#1e2e42';
+  ctx.fillRect(sx,GY-h,w,h);
+  // Gable roof
+  ctx.fillStyle='#14202e';
+  ctx.beginPath();ctx.moveTo(sx-13,GY-h);ctx.lineTo(sx+w/2,GY-h-h*0.40);ctx.lineTo(sx+w+13,GY-h);ctx.closePath();ctx.fill();
+  // Dormer in roof (if wide enough)
+  if(w>130){
+    const dw=30,dh=20,dx=sx+w*0.58-15,dy=GY-h-h*0.26-dh;
+    ctx.fillStyle='#1e2e42';ctx.fillRect(dx,dy,dw,dh);
+    ctx.fillStyle='#14202e';
+    ctx.beginPath();ctx.moveTo(dx-4,dy+dh);ctx.lineTo(dx+dw/2,dy);ctx.lineTo(dx+dw+4,dy+dh);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#2a4060';ctx.fillRect(dx+5,dy+4,dw-10,dh-7);
+  }
+  // Porch gable
+  const pw=w*0.48;
+  ctx.fillStyle='#12202e';
+  ctx.beginPath();ctx.moveTo(sx-3,GY-h*0.44);ctx.lineTo(sx+pw/2,GY-h*0.44-20);ctx.lineTo(sx+pw+3,GY-h*0.44);ctx.closePath();ctx.fill();
+  ctx.fillRect(sx-5,GY-h*0.44-2,pw+10,5);
+  // Porch platform + columns
+  ctx.fillStyle='#101c2a';
+  ctx.fillRect(sx-5,GY-22,pw+10,6);
+  ctx.fillRect(sx+4,GY-h*0.44,6,h*0.44-22);
+  ctx.fillRect(sx+pw-8,GY-h*0.44,6,h*0.44-22);
+  // Chimney
+  ctx.fillStyle='#182636';ctx.fillRect(sx+w*0.70,GY-h-h*0.34,13,h*0.30);
+  // Windows
+  ctx.fillStyle='#2a4060';
+  ctx.fillRect(sx+pw+10,GY-h+14,22,18);
+  if(w>130) ctx.fillRect(sx+pw+40,GY-h+14,22,18);
+  ctx.fillRect(sx+pw+10,GY-h*0.70+8,20,15);
+  if(w>130) ctx.fillRect(sx+pw+38,GY-h*0.70+8,20,15);
+}
+function drawTownhome(sx,w,h){
+  // Modern Seattle townhome (narrow, tall, flat roof, big windows, garage)
+  ctx.fillStyle='#1c2c40';
+  ctx.fillRect(sx,GY-h,w,h);
+  // Parapet
+  ctx.fillStyle='#101a28';ctx.fillRect(sx-2,GY-h-8,w+4,9);
+  // Vertical cladding lines
+  ctx.fillStyle='#18243a';
+  for(let lx=sx+9;lx<sx+w-3;lx+=10) ctx.fillRect(lx,GY-h,2,h-32);
+  // Garage door (ground floor)
+  ctx.fillStyle='#141e30';ctx.fillRect(sx+4,GY-33,w-8,31);
+  ctx.fillStyle='#0e1620';
+  for(let gy2=GY-31;gy2<GY-5;gy2+=7) ctx.fillRect(sx+5,gy2,w-10,1);
+  ctx.fillStyle='#304868';ctx.fillRect(sx+w/2-5,GY-17,10,3);
+  // 3 floors of large windows
+  ctx.fillStyle='#2a4468';
+  const fh=Math.floor((h-40)/3);
+  for(let f=0;f<3;f++){
+    const wy=GY-h+8+f*fh;
+    ctx.fillRect(sx+5,wy,w-10,fh-8);
+    ctx.fillStyle='#1c2c40';
+    ctx.fillRect(sx+w/2-1,wy,2,fh-8);
+    ctx.fillRect(sx+5,wy+(fh-8)/2,w-10,2);
+    ctx.fillStyle='#2a4468';
+  }
+}
+function drawApartment(sx,w,h){
+  // Mid-century Ballard apartment
+  ctx.fillStyle='#1a2838';ctx.fillRect(sx,GY-h,w,h);
+  ctx.fillStyle='#0e1822';ctx.fillRect(sx,GY-h-6,w,7);
+  ctx.fillStyle='#182030';
+  for(let ry=GY-h+14;ry<GY-6;ry+=28) ctx.fillRect(sx,ry,w,2);
+  ctx.fillStyle='#2c4460';
+  const cols=Math.floor(w/34),rows=Math.floor((h-18)/30);
+  for(let r=0;r<rows;r++)
+    for(let cl=0;cl<cols;cl++)
+      ctx.fillRect(sx+cl*34+8,GY-h+12+r*30,20,18);
+  ctx.fillStyle='#0e1820';ctx.fillRect(sx+w/2-10,GY-28,20,26);
+  ctx.fillStyle='#182030';
+  ctx.beginPath();ctx.arc(sx+w/2,GY-28,10,Math.PI,0);ctx.fill();
+}
+
 // ── BACKGROUND DRAW ──
 function drawBg(){
-  // Sky gradient
+  // Sky — Seattle blue-gray
   const sg=ctx.createLinearGradient(0,0,0,VH);
-  sg.addColorStop(0,'#1a304c');sg.addColorStop(0.55,'#3a5a7a');sg.addColorStop(1,'#7a9aaa');
+  sg.addColorStop(0,'#1a3050');sg.addColorStop(0.42,'#2d5070');sg.addColorStop(0.80,'#508098');sg.addColorStop(1,'#6e9aaa');
   ctx.fillStyle=sg;ctx.fillRect(0,0,VW,VH);
 
-  // Overcast cloud wisps
-  ctx.fillStyle='rgba(180,200,210,0.07)';
-  for(let i=0;i<6;i++){
-    const cx=((i*280-camX*0.015+WORLD_W)%WORLD_W)/WORLD_W*VW;
-    ctx.beginPath();ctx.ellipse(cx,55+i*18,110+i*20,22+i*5,0,0,Math.PI*2);ctx.fill();
+  // Soft cloud wisps
+  [0,340,680,1100,1500,1900].forEach((seed,i)=>{
+    const cx=((seed-camX*0.01)%(VW+500))-250;
+    const cy=48+i*12;
+    ctx.fillStyle=`rgba(165,195,215,${0.06+i%3*0.025})`;
+    ctx.beginPath();ctx.ellipse(cx,cy,145+i*18,22+i*4,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx-60,cy+11,95,17,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx+75,cy+7,85,15,0,0,Math.PI*2);ctx.fill();
+  });
+
+  // OLYMPIC MOUNTAINS (west, parallax 1.5%)
+  const olX=-camX*0.015;
+  [{dx:55,h:100},{dx:138,h:122},{dx:222,h:92},{dx:310,h:135},{dx:400,h:108},{dx:485,h:84},{dx:572,h:118},{dx:658,h:96},{dx:748,h:80}].forEach(({dx,h})=>{
+    const ox=olX+dx;
+    if(ox<-90||ox>VW+90) return;
+    ctx.fillStyle='#253848';
+    ctx.beginPath();ctx.moveTo(ox-70,GY+8);ctx.lineTo(ox,GY-h);ctx.lineTo(ox+70,GY+8);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#354858';
+    ctx.beginPath();ctx.moveTo(ox-42,GY+8);ctx.lineTo(ox,GY-h);ctx.lineTo(ox+45,GY+8);ctx.closePath();ctx.fill();
+    // Snow caps
+    ctx.fillStyle='#7a9aaa';
+    ctx.beginPath();ctx.moveTo(ox,GY-h);ctx.lineTo(ox-18,GY-h+28);ctx.lineTo(ox+15,GY-h+26);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#aabfca';
+    ctx.beginPath();ctx.moveTo(ox,GY-h);ctx.lineTo(ox-8,GY-h+14);ctx.lineTo(ox+7,GY-h+12);ctx.closePath();ctx.fill();
+  });
+
+  // MOUNT RAINIER (SE, parallax 2%) — dominant, iconic stratovolcano
+  const rX=VW*0.67-camX*0.02;
+  if(rX>-360&&rX<VW+360){
+    // Outer dark mass
+    ctx.fillStyle='#263648';
+    ctx.beginPath();
+    ctx.moveTo(rX-345,GY+10);
+    ctx.quadraticCurveTo(rX-220,GY-115, rX-55,GY-238);
+    ctx.quadraticCurveTo(rX,GY-265, rX+60,GY-232);
+    ctx.quadraticCurveTo(rX+218,GY-112, rX+360,GY+10);
+    ctx.closePath();ctx.fill();
+    // Mid-tone layer (atmosphere)
+    ctx.fillStyle='#344a5e';
+    ctx.beginPath();
+    ctx.moveTo(rX-238,GY+10);
+    ctx.quadraticCurveTo(rX-148,GY-108, rX-42,GY-238);
+    ctx.quadraticCurveTo(rX+2,GY-265, rX+55,GY-230);
+    ctx.quadraticCurveTo(rX+155,GY-104, rX+265,GY+10);
+    ctx.closePath();ctx.fill();
+    // Lit NW face
+    ctx.fillStyle='#3e566a';
+    ctx.beginPath();
+    ctx.moveTo(rX-130,GY+10);
+    ctx.quadraticCurveTo(rX-68,GY-105, rX-8,GY-258);
+    ctx.quadraticCurveTo(rX+10,GY-265, rX+52,GY-228);
+    ctx.quadraticCurveTo(rX+110,GY-100, rX+185,GY+10);
+    ctx.closePath();ctx.fill();
+
+    // SNOWFIELDS — covers upper 40% of mountain
+    ctx.fillStyle='#d8e8ee';
+    ctx.beginPath();
+    ctx.moveTo(rX,GY-265); // summit
+    ctx.lineTo(rX-14,GY-254);
+    ctx.quadraticCurveTo(rX-40,GY-228, rX-72,GY-200);
+    ctx.lineTo(rX-90,GY-185);
+    ctx.quadraticCurveTo(rX-48,GY-172, rX-8,GY-180);
+    ctx.quadraticCurveTo(rX+22,GY-178, rX+55,GY-184);
+    ctx.lineTo(rX+82,GY-196);
+    ctx.quadraticCurveTo(rX+58,GY-226, rX+22,GY-254);
+    ctx.closePath();ctx.fill();
+    // Emmons glacier (largest, right side)
+    ctx.fillStyle='#b2caD4';
+    ctx.beginPath();
+    ctx.moveTo(rX+45,GY-224);
+    ctx.quadraticCurveTo(rX+80,GY-195, rX+96,GY-160);
+    ctx.lineTo(rX+78,GY-155);
+    ctx.quadraticCurveTo(rX+62,GY-188, rX+30,GY-218);
+    ctx.closePath();ctx.fill();
+    // Nisqually glacier (south)
+    ctx.beginPath();
+    ctx.moveTo(rX-5,GY-180);
+    ctx.quadraticCurveTo(rX+2,GY-155, rX+4,GY-130);
+    ctx.lineTo(rX-12,GY-128);
+    ctx.quadraticCurveTo(rX-18,GY-152, rX-20,GY-176);
+    ctx.closePath();ctx.fill();
+    // Carbon glacier (left side)
+    ctx.beginPath();
+    ctx.moveTo(rX-60,GY-202);
+    ctx.quadraticCurveTo(rX-82,GY-178, rX-90,GY-155);
+    ctx.lineTo(rX-74,GY-150);
+    ctx.quadraticCurveTo(rX-64,GY-173, rX-44,GY-198);
+    ctx.closePath();ctx.fill();
+    // Summit bright highlight
+    ctx.fillStyle='#eef5f8';
+    ctx.beginPath();ctx.moveTo(rX,GY-265);ctx.lineTo(rX-9,GY-248);ctx.lineTo(rX+10,GY-245);ctx.closePath();ctx.fill();
   }
 
-  // Mount Rainier (parallax 2%)
-  const rx=720-camX*0.02;
-  if(rx>-150&&rx<VW+150){
-    // Mountain body
-    ctx.fillStyle='#3a4e60';
-    ctx.beginPath();ctx.moveTo(rx,GY+10);ctx.lineTo(rx-130,GY+10);ctx.lineTo(rx-20,GY-90);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(rx-20,GY-90);ctx.lineTo(rx+140,GY+10);ctx.closePath();
-    ctx.lineTo(rx,GY+10);ctx.fill();
-    // Snow cap
-    ctx.fillStyle='#c8d8e0';
-    ctx.beginPath();ctx.moveTo(rx-20,GY-90);ctx.lineTo(rx-38,GY-62);ctx.lineTo(rx+22,GY-62);ctx.closePath();ctx.fill();
-  }
+  // SEATTLE SKYLINE + SPACE NEEDLE (parallax 6%)
+  const snX=570-camX*0.06;
+  if(snX>-450&&snX<VW+450){
+    // Downtown buildings
+    ctx.fillStyle='#162030';
+    [[-265,82,40],[-218,106,36],[-174,138,44],[-120,122,38],[-68,92,40],[-18,96,42],[38,112,36],[84,80,40],[132,92,36]].forEach(([dx,bh,bw])=>{
+      const bx=snX+dx;
+      if(bx<-55||bx>VW+55) return;
+      ctx.fillRect(bx,GY-bh,bw,bh);
+      ctx.fillStyle='rgba(140,195,225,0.10)';
+      for(let wy=GY-bh+6;wy<GY-5;wy+=10) ctx.fillRect(bx+3,wy,bw-6,6);
+      ctx.fillStyle='#162030';
+    });
 
-  // Olympics (left, parallax 1.5%)
-  ctx.fillStyle='#2a3e52';
-  for(let i=0;i<6;i++){
-    const mx=(-200+i*120)-camX*0.015;
-    if(mx>-80&&mx<VW+80){
-      const mh=50+((i*7)%35);
-      ctx.beginPath();ctx.moveTo(mx,GY+10);ctx.lineTo(mx-70,GY+10);ctx.lineTo(mx-35,GY-mh);ctx.closePath();ctx.fill();
-      ctx.beginPath();ctx.moveTo(mx-35,GY-mh);ctx.lineTo(mx+65,GY+10);ctx.lineTo(mx,GY+10);ctx.closePath();ctx.fill();
+    // SPACE NEEDLE — proper iconic proportions
+    if(snX>-150&&snX<VW+150){
+      ctx.save();
+      ctx.translate(snX,GY-5);
+      const nc='#122038';
+      ctx.fillStyle=nc;
+
+      // Hourglass tripod legs — the signature curved shape
+      ctx.beginPath();
+      ctx.moveTo(-50,0);
+      ctx.bezierCurveTo(-56,-20,-50,-58,-15,-90);
+      ctx.lineTo(-7,-90);
+      ctx.bezierCurveTo(-42,-58,-48,-20,-42,0);
+      ctx.closePath();ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(50,0);
+      ctx.bezierCurveTo(56,-20,50,-58,15,-90);
+      ctx.lineTo(7,-90);
+      ctx.bezierCurveTo(42,-58,48,-20,42,0);
+      ctx.closePath();ctx.fill();
+
+      // Base ground ring
+      ctx.fillRect(-54,-5,108,6);
+
+      // Main shaft (narrows from legs to saucer)
+      ctx.fillRect(-8,-168,16,78);
+
+      // Saucer floor — wide overhang (the UFO part)
+      ctx.beginPath();ctx.ellipse(0,-168,60,13,0,0,Math.PI*2);ctx.fill();
+
+      // Restaurant body
+      ctx.fillRect(-54,-192,108,24);
+
+      // Restaurant top curve
+      ctx.beginPath();ctx.ellipse(0,-192,54,11,0,0,Math.PI*2);ctx.fill();
+
+      // Glass window ring (slightly lighter)
+      ctx.fillStyle='#1c3258';
+      ctx.fillRect(-50,-190,100,18);
+      ctx.fillStyle=nc;
+
+      // Halo ring / antenna base
+      ctx.beginPath();ctx.ellipse(0,-204,36,7,0,0,Math.PI*2);ctx.fill();
+
+      // Upper shaft
+      ctx.fillRect(-6,-224,12,20);
+
+      // Observation bubble
+      ctx.fillRect(-10,-232,20,10);
+
+      // SPIRE — thin, tall
+      ctx.beginPath();
+      ctx.moveTo(0,-285);
+      ctx.lineTo(-4,-232);
+      ctx.lineTo(4,-232);
+      ctx.closePath();ctx.fill();
+
+      // Red warning light at tip
+      ctx.fillStyle='#cc2233';
+      ctx.beginPath();ctx.arc(0,-285,3.5,0,Math.PI*2);ctx.fill();
+
+      ctx.restore();
+    }
+
+    // GREAT WHEEL (Pier 57, parallax 5%)
+    const gwX=VW*0.84-camX*0.05;
+    if(gwX>-130&&gwX<VW+130){
+      const gwr=76,gwCY=GY-gwr-10;
+      ctx.fillStyle='#162030';
+      // Ground base
+      ctx.fillRect(gwX-64,GY-22,128,22);
+      // Center column
+      ctx.fillRect(gwX-10,gwCY,20,gwr);
+      // Angled support struts
+      ctx.beginPath();ctx.moveTo(gwX-8,gwCY+gwr);ctx.lineTo(gwX-58,GY-18);ctx.lineTo(gwX-48,GY-18);ctx.lineTo(gwX,gwCY+gwr-10);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(gwX+8,gwCY+gwr);ctx.lineTo(gwX+58,GY-18);ctx.lineTo(gwX+48,GY-18);ctx.lineTo(gwX,gwCY+gwr-10);ctx.closePath();ctx.fill();
+      // Outer rim
+      ctx.strokeStyle='#162030';ctx.lineWidth=7;
+      ctx.beginPath();ctx.arc(gwX,gwCY,gwr,0,Math.PI*2);ctx.stroke();
+      // Inner ring
+      ctx.lineWidth=3;ctx.strokeStyle='#1e2e44';
+      ctx.beginPath();ctx.arc(gwX,gwCY,gwr*0.52,0,Math.PI*2);ctx.stroke();
+      // Spokes (16)
+      ctx.strokeStyle='#162030';ctx.lineWidth=2;
+      for(let a=0;a<16;a++){
+        const ang=a/16*Math.PI*2;
+        ctx.beginPath();ctx.moveTo(gwX,gwCY);
+        ctx.lineTo(gwX+Math.cos(ang)*gwr,gwCY+Math.sin(ang)*gwr);ctx.stroke();
+      }
+      // Gondolas
+      ctx.fillStyle='#1e2e44';
+      for(let a=0;a<16;a++){
+        const ang=a/16*Math.PI*2;
+        ctx.fillRect(gwX+Math.cos(ang)*(gwr-5)-5,gwCY+Math.sin(ang)*(gwr-5)-5,10,9);
+      }
     }
   }
 
-  // Seattle skyline silhouette (parallax 7%)
-  const sklX=300-camX*0.07;
-  ctx.fillStyle='#16253a';
-  // Space Needle
-  const snx=sklX+460;
-  if(snx>-60&&snx<VW+60){
-    ctx.fillRect(snx-4,GY-76,8,50);
-    ctx.beginPath();ctx.ellipse(snx,GY-76,26,9,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(snx,GY-68,22,6,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.moveTo(snx-22,GY-26);ctx.lineTo(snx-32,GY+10);ctx.lineTo(snx+32,GY+10);ctx.lineTo(snx+22,GY-26);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(snx,GY-110);ctx.lineTo(snx-3,GY-78);ctx.lineTo(snx+3,GY-78);ctx.closePath();ctx.fill();
-  }
-  // City buildings
-  const bldgs=[[sklX,60,45],[sklX+55,75,40],[sklX+105,52,38],[sklX+150,85,42],[sklX+200,68,35],[sklX+250,55,30],[sklX+290,80,44],[sklX+345,65,38],[sklX+395,90,50]];
-  bldgs.forEach(([bx,bh,bw])=>{
-    if(bx>-60&&bx<VW+60){ctx.fillRect(bx,GY-bh,bw,bh);}
+  // BALLARD BUILDINGS near background (parallax 20%)
+  const bgOff=-camX*0.20;
+  BLDG_LAYOUT.forEach(b=>{
+    const sx=b.x+bgOff;
+    if(sx+b.w+25<0||sx-25>VW) return;
+    if(b.type==='craftsman') drawCraftsman(sx,b.w,b.h);
+    else if(b.type==='townhome') drawTownhome(sx,b.w,b.h);
+    else drawApartment(sx,b.w,b.h);
   });
-  // Great Wheel (parallax 5%, far right)
-  const gwx=WORLD_W*0.9-camX*0.05;
-  if(gwx>-80&&gwx<VW+80){
-    ctx.strokeStyle='#16253a';ctx.lineWidth=5;
-    ctx.beginPath();ctx.arc(gwx,GY-60,55,0,Math.PI*2);ctx.stroke();
-    ctx.lineWidth=2;
-    for(let a=0;a<8;a++){
-      const ang=a/8*Math.PI*2;
-      ctx.beginPath();ctx.moveTo(gwx,GY-60);
-      ctx.lineTo(gwx+Math.cos(ang)*55,GY-60+Math.sin(ang)*55);ctx.stroke();
-    }
-    ctx.fillStyle='#16253a';ctx.fillRect(gwx-6,GY-5,12,5);ctx.fillRect(gwx-20,GY-62,10,57);ctx.fillRect(gwx+10,GY-62,10,57);
-  }
 
-  // Ballard houses parallax 18%
-  ctx.fillStyle='#1a2a3c';
-  HOUSE_WS.forEach(h=>{
-    const hsx=h.x-camX*0.18;
-    if(hsx+h.w+20<0||hsx-20>VW)return;
-    ctx.fillRect(hsx,GY-h.h,h.w,h.h);
-    ctx.beginPath();ctx.moveTo(hsx-8,GY-h.h);ctx.lineTo(hsx+h.w/2,GY-h.h-h.h*0.42);ctx.lineTo(hsx+h.w+8,GY-h.h);ctx.closePath();ctx.fill();
-    if(h.w>120)ctx.fillRect(hsx+h.w*0.65,GY-h.h-h.h*0.28,10,16);
-    // windows
-    ctx.fillStyle='#233a54';ctx.fillRect(hsx+10,GY-h.h+12,18,15);
-    if(h.w>120)ctx.fillRect(hsx+h.w-28,GY-h.h+12,18,15);
-    ctx.fillStyle='#1a2a3c';
-  });
+  // Low horizon fog (Seattle signature)
+  const fog=ctx.createLinearGradient(0,GY-90,0,GY);
+  fog.addColorStop(0,'rgba(80,122,148,0)');
+  fog.addColorStop(1,'rgba(80,122,148,0.22)');
+  ctx.fillStyle=fog;ctx.fillRect(0,GY-90,VW,90);
 }
 
 // ── WORLD DRAW ──
 function drawFence(p){
   const sx=p.x-camX;
   if(sx+p.w<-10||sx>VW+10)return;
-  // Main body
-  ctx.fillStyle='#7a4e2e';ctx.fillRect(sx,p.y,p.w,p.h);
-  // Planks
-  for(let px=sx+1;px<sx+p.w-4;px+=14){
-    ctx.fillStyle='#9a6038';ctx.fillRect(px,p.y+4,12,p.h-8);
-    ctx.fillStyle='#886030';ctx.fillRect(px+3,p.y+10,2,p.h-20);
-    ctx.fillRect(px+7,p.y+14,2,p.h-24);
+
+  // Shadow under fence
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.fillRect(sx+4,p.y+p.h-3,p.w,6);
+
+  // Posts first (behind boards)
+  for(let px=sx;px<=sx+p.w+2;px+=58){
+    // Post body — weathered cedar, slightly darker than boards
+    ctx.fillStyle='#4e3018';ctx.fillRect(px-6,p.y-14,12,p.h+14);
+    // Post grain
+    ctx.fillStyle='#3e2410';ctx.fillRect(px-4,p.y-8,3,p.h+6);
+    ctx.fillRect(px+1,p.y-4,2,p.h+2);
+    // Post cap (pointed)
+    ctx.fillStyle='#3e2410';
+    ctx.beginPath();ctx.moveTo(px,p.y-22);ctx.lineTo(px-6,p.y-14);ctx.lineTo(px+6,p.y-14);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#5e3820';
+    ctx.beginPath();ctx.moveTo(px,p.y-20);ctx.lineTo(px-4,p.y-14);ctx.lineTo(px+4,p.y-14);ctx.closePath();ctx.fill();
   }
-  // Top + bottom rails
-  ctx.fillStyle='#5a3820';ctx.fillRect(sx,p.y,p.w,5);ctx.fillRect(sx,p.y+p.h-5,p.w,5);
-  // Posts
-  for(let px=sx;px<=sx+p.w+1;px+=60){
-    ctx.fillStyle='#4a2c18';ctx.fillRect(px-5,p.y-10,10,p.h+10);
-    ctx.beginPath();ctx.moveTo(px,p.y-18);ctx.lineTo(px-5,p.y-10);ctx.lineTo(px+5,p.y-10);ctx.closePath();ctx.fill();
+
+  // Horizontal rails (behind boards)
+  ctx.fillStyle='#5a3820';ctx.fillRect(sx,p.y+4,p.w,8); // top rail
+  ctx.fillRect(sx,p.y+p.h-12,p.w,8); // bottom rail
+  ctx.fillStyle='#4a2e16';ctx.fillRect(sx,p.y+4,p.w,2); // rail shadow top
+  ctx.fillRect(sx,p.y+p.h-12,p.w,2);
+
+  // Vertical boards (cedar planks)
+  for(let bx=sx+2;bx<sx+p.w-4;bx+=14){
+    // Main board — weathered gray-brown cedar
+    ctx.fillStyle='#8a5e38';ctx.fillRect(bx,p.y+2,12,p.h-4);
+    // Board highlight (left edge catches light)
+    ctx.fillStyle='#9a6840';ctx.fillRect(bx,p.y+2,3,p.h-4);
+    // Board shadow (right edge)
+    ctx.fillStyle='#6a4828';ctx.fillRect(bx+10,p.y+2,2,p.h-4);
+    // Wood grain lines
+    ctx.fillStyle='#7a5230';
+    ctx.fillRect(bx+4,p.y+10,1,p.h-20);
+    ctx.fillRect(bx+8,p.y+16,1,p.h-30);
+    // Knot in wood (occasionally)
+    if(Math.floor((bx-sx)/14)%5===2){
+      ctx.fillStyle='#5a3a20';
+      ctx.beginPath();ctx.ellipse(bx+6,p.y+p.h*0.4,4,3,0,0,Math.PI*2);ctx.fill();
+    }
   }
 }
 
 function drawBranch(p){
   const sx=p.x-camX;
-  if(sx+p.w<-20||sx>VW+20)return;
+  if(sx+p.w<-30||sx>VW+30)return;
+  const cx=sx+p.w/2;
+  // Leaf canopy (drawn behind branch bark)
+  ctx.fillStyle='#1e4820';
+  ctx.beginPath();ctx.ellipse(cx,p.y-20,p.w/2+22,28,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#286a28';
+  ctx.beginPath();ctx.ellipse(cx-18,p.y-28,p.w/3+8,20,-0.25,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx+16,p.y-25,p.w/3+12,18,0.25,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#327830';
+  ctx.beginPath();ctx.ellipse(cx+2,p.y-32,p.w/3,15,0,0,Math.PI*2);ctx.fill();
+  // A few individual leaves
+  ctx.fillStyle='#3a8838';
+  [[-18,p.y-38],[10,p.y-40],[-6,p.y-22],[22,p.y-30],[-26,p.y-22]].forEach(([lx,ly])=>{
+    ctx.beginPath();ctx.ellipse(cx+lx,ly,8,5,-0.3+lx*0.02,0,Math.PI*2);ctx.fill();
+  });
+  // Branch bark
   ctx.fillStyle='#5a3818';ctx.fillRect(sx,p.y,p.w,p.h);
-  ctx.fillStyle='#4a2c10';ctx.fillRect(sx,p.y,p.w,3);
-  // Leaves on top
-  ctx.fillStyle='#2a5e28';
-  ctx.beginPath();ctx.ellipse(sx+p.w/2,p.y-14,p.w/2+12,18,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#3a7a34';
-  ctx.beginPath();ctx.ellipse(sx+p.w/2-10,p.y-20,p.w/3,14,-0.3,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(sx+p.w/2+8,p.y-18,p.w/3+5,13,0.3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#6a4820';ctx.fillRect(sx,p.y,p.w,3);
+  ctx.fillStyle='#4a2c10';ctx.fillRect(sx,p.y+p.h-2,p.w,2);
+  // Bark texture
+  ctx.fillStyle='#4a2c10';
+  for(let bx=sx+8;bx<sx+p.w-6;bx+=12) ctx.fillRect(bx,p.y+4,1,p.h-6);
 }
 
 function drawTree(wx){
   const sx=wx-camX;
-  if(sx<-90||sx>VW+90)return;
-  const h=200;
-  // Trunk
-  ctx.fillStyle='#5a3818';ctx.fillRect(sx-5,GY-h,10,h);
-  ctx.fillStyle='#4a2c10';ctx.fillRect(sx-3,GY-h,4,h);
-  // Foliage layers (fir-style)
-  const tiers=[[80,h*0.82],[64,h*0.6],[50,h*0.4],[36,h*0.22]];
-  tiers.forEach(([tw,ty])=>{
+  if(sx<-110||sx>VW+110)return;
+  const h=220;
+  // Trunk — Douglas fir, reddish-brown furry bark
+  ctx.fillStyle='#5a3018';ctx.fillRect(sx-7,GY-h,14,h);
+  ctx.fillStyle='#6a4020';ctx.fillRect(sx-5,GY-h,6,h);
+  ctx.fillStyle='#4a2610';ctx.fillRect(sx+2,GY-h,4,h);
+  // Root flare at base
+  ctx.fillStyle='#4a2810';
+  ctx.beginPath();ctx.moveTo(sx-7,GY);ctx.lineTo(sx-16,GY+4);ctx.lineTo(sx-12,GY-18);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(sx+7,GY);ctx.lineTo(sx+16,GY+4);ctx.lineTo(sx+12,GY-18);ctx.closePath();ctx.fill();
+
+  // Foliage — 6 tiers of drooping fir branches (Douglas fir style)
+  const tiers=[
+    [95,h*0.85,32],[80,h*0.72,28],[68,h*0.60,26],
+    [56,h*0.48,22],[44,h*0.37,18],[32,h*0.27,14]
+  ];
+  tiers.forEach(([tw,ty,drop])=>{
     const fy=GY-ty;
-    ctx.fillStyle='#1e4822';
-    ctx.beginPath();ctx.moveTo(sx,fy-28);ctx.lineTo(sx-tw/2,fy+16);ctx.lineTo(sx+tw/2,fy+16);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#2d6430';
-    ctx.beginPath();ctx.moveTo(sx,fy-22);ctx.lineTo(sx-tw/2+8,fy+16);ctx.lineTo(sx+tw/2-8,fy+16);ctx.closePath();ctx.fill();
+    // Outer dark layer
+    ctx.fillStyle='#1a3e1e';
+    ctx.beginPath();ctx.moveTo(sx,fy-drop);ctx.lineTo(sx-tw/2,fy+drop/2);ctx.lineTo(sx+tw/2,fy+drop/2);ctx.closePath();ctx.fill();
+    // Mid green
+    ctx.fillStyle='#265e28';
+    ctx.beginPath();ctx.moveTo(sx,fy-drop+6);ctx.lineTo(sx-tw/2+10,fy+drop/2);ctx.lineTo(sx+tw/2-10,fy+drop/2);ctx.closePath();ctx.fill();
+    // Light inner highlights
+    ctx.fillStyle='#2e7030';
+    ctx.beginPath();ctx.moveTo(sx,fy-drop+10);ctx.lineTo(sx-tw/4,fy+drop/4);ctx.lineTo(sx+tw/4,fy+drop/4);ctx.closePath();ctx.fill();
+    // Drooping branch tips
+    ctx.fillStyle='#1a3e1e';
+    ctx.beginPath();ctx.moveTo(sx-tw/2,fy);ctx.quadraticCurveTo(sx-tw/2-8,fy+12,sx-tw/2-4,fy+drop/2+8);ctx.lineTo(sx-tw/2,fy+drop/2);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(sx+tw/2,fy);ctx.quadraticCurveTo(sx+tw/2+8,fy+12,sx+tw/2+4,fy+drop/2+8);ctx.lineTo(sx+tw/2,fy+drop/2);ctx.closePath();ctx.fill();
   });
+  // Tip (very top)
+  ctx.fillStyle='#1a3e1e';
+  ctx.beginPath();ctx.moveTo(sx,GY-h-18);ctx.lineTo(sx-12,GY-h+10);ctx.lineTo(sx+12,GY-h+10);ctx.closePath();ctx.fill();
 }
 
 function drawTrashCan(can){
@@ -551,34 +842,45 @@ function drawFood(f){
 }
 
 function drawGround(){
+  // Grass strip (lush Seattle green)
+  const grassGrad=ctx.createLinearGradient(0,GY-8,0,GY+14);
+  grassGrad.addColorStop(0,'#388830');grassGrad.addColorStop(1,'#2a6820');
+  ctx.fillStyle=grassGrad;ctx.fillRect(0,GY-8,VW,22);
   // Sidewalk
-  ctx.fillStyle='#7a6a5a';ctx.fillRect(0,GY,VW,12);
-  // Soil
-  ctx.fillStyle='#3e2e20';ctx.fillRect(0,GY+12,VW,VH-GY-12);
-  // Grass tufts
-  ctx.fillStyle='#2e6028';
-  const off=(-camX)%28;
-  for(let gx=off;gx<VW;gx+=28){
-    const idx=Math.floor((gx+camX)/28);
-    if(idx%5===0||idx%7===2){
-      ctx.fillRect(gx,GY-4,2,4);ctx.fillRect(gx+5,GY-6,2,6);ctx.fillRect(gx+10,GY-3,2,3);
-    }
-  }
-  // Sidewalk joints
+  const swGrad=ctx.createLinearGradient(0,GY+14,0,GY+32);
+  swGrad.addColorStop(0,'#807060');swGrad.addColorStop(1,'#6a5a4c');
+  ctx.fillStyle=swGrad;ctx.fillRect(0,GY+14,VW,18);
+  // Sidewalk cracks
   ctx.fillStyle='#6a5a4a';
-  for(let gx=(-camX)%100;gx<VW;gx+=100) ctx.fillRect(gx,GY,1,12);
+  for(let gx=(-camX)%120;gx<VW;gx+=120) ctx.fillRect(gx,GY+14,1,18);
+  // Soil / road
+  ctx.fillStyle='#3a2e22';ctx.fillRect(0,GY+32,VW,VH-GY-32);
+  // Grass tufts + moss (Seattle)
+  ctx.fillStyle='#2a6825';
+  const off=(-camX)%32;
+  for(let gx=off;gx<VW;gx+=32){
+    const idx=Math.floor((gx+camX)/32);
+    if(idx%4===0){ctx.fillRect(gx,GY-10,3,10);ctx.fillRect(gx+6,GY-13,2,13);ctx.fillRect(gx+11,GY-8,3,8);}
+    else if(idx%4===2){ctx.fillRect(gx+2,GY-11,2,11);ctx.fillRect(gx+8,GY-7,3,7);}
+  }
+  // Moss patches on sidewalk
+  ctx.fillStyle='rgba(50,100,40,0.25)';
+  for(let gx=(-camX*0.5)%180;gx<VW;gx+=180)
+    ctx.fillRect(gx,GY+15,40,6);
 }
 
 function drawWorld(){
-  // Background trees (parallax 20%)
+  // Background trees (parallax 22%) — dark silhouettes behind buildings
   TREE_XS.forEach(wx=>{
-    const sx=wx-camX*0.20;
-    if(sx<-90||sx>VW+90)return;
-    ctx.fillStyle='#1a3a20';
-    const h=185;
-    [[78,h*0.8],[62,h*0.6],[46,h*0.4],[32,h*0.22]].forEach(([tw,ty])=>{
+    const sx=wx-camX*0.22;
+    if(sx<-100||sx>VW+100)return;
+    const h=195;
+    [[85,h*0.84,26],[70,h*0.64,22],[56,h*0.46,18],[40,h*0.28,14]].forEach(([tw,ty,drop])=>{
       const fy=GY-ty;
-      ctx.beginPath();ctx.moveTo(sx,fy-24);ctx.lineTo(sx-tw/2,fy+14);ctx.lineTo(sx+tw/2,fy+14);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#182e1a';
+      ctx.beginPath();ctx.moveTo(sx,fy-drop);ctx.lineTo(sx-tw/2,fy+drop/2);ctx.lineTo(sx+tw/2,fy+drop/2);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#1e3a20';
+      ctx.beginPath();ctx.moveTo(sx,fy-drop+8);ctx.lineTo(sx-tw/2+10,fy+drop/2);ctx.lineTo(sx+tw/2-10,fy+drop/2);ctx.closePath();ctx.fill();
     });
   });
 
