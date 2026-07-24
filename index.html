@@ -87,8 +87,8 @@ const ctx = C.getContext('2d');
 C.width = 460; C.height = 700;
 
 const VW=460,VH=700,WORLD_W=7400;
-const SC=3;
-const JIM_PW=20,JIM_PH=18,JIM_W=60,JIM_H=54;
+const SC=2;
+const JIM_PW=28,JIM_PH=24,JIM_W=56,JIM_H=48;
 const GRAVITY=0.46,JUMP_VY=-11.2,WALK_SPD=4.4;
 const GY=630; // ground Y (top surface)
 
@@ -99,90 +99,114 @@ const COL={
   'g':'#44bb44','o':'#ff8800','c':'#5a2a0c','f':'#88ddff','k':'#ffee44',
 };
 
-// Jimothy sprite 20×18 — ball body, no visible neck, arched spine
+// Jimothy sprite 28×24 — round ball body, raccoon mask, SC=2 → 56×48px on screen
 // walk frame 1
 const JW1=[
-  '....................',
-  '....BDDDDDDDB.......',  // back peak
-  '..BDGGGGGGGGGGDB....',
-  '.LBGGGGGGGGGGGDB....',  // tail ring 1
-  'LLBGGGGGGGGGGGGDB...',  // tail rings
-  'DLBGGGGGGGGGGGGGBDB.',  // ear top
-  'DLBGGGGGGGGGGGGGBWB.',  // EYE (BWB)
-  'DLBGGGGGGGGGGGGGVPB.',  // cheek+nose
-  '.LBGGGGGGGGGGGGGvvB.',  // lower cheek
-  '.LBGGGGGGGGGGGGGLvB.',  // belly start
-  '..BGGGGGGGGGGGGGLLv.',  // belly
-  '..BGGGGGGGGGGGLLv...',  // lower belly
-  '....BGGGGGGGGLv.....',  // bottom
-  '......BGGGGGB.......',  // bottom narrow
-  '.....BGB...BGB......',  // legs stride 1
-  '.....BGB...BGB......',
-  '.....BB....BB.......',  // paws
-  '....................',
+  '............................',  //  0
+  '......BDDDDDDDB.............',  //  1  back arch
+  '....BDGGGGGGGGGGGDB.........',  //  2
+  '.LLLBGGGGGGGGGGGGGGGDB......',  //  3  tail light ring
+  'LLLBGGGGGGGGGGGGGGGGGGDB....',  //  4
+  'LLLBGGGGGGGGGGGGGGGGGGGGBDB.',  //  5  ear stub (BDB)
+  'DLLBGGGGGGGGGGGGGGGGGGGGBPB.',  //  6  ear peak: pink inner ear
+  'DLLBGGGGGGGGGGGGGGGGGGGBDWDv',  //  7  eye: D=mask W=white D=pupil v=cheek
+  'DLLBGGGGGGGGGGGGGGGGGGGBDDvP',  //  8  lower mask + nose tip P
+  'DLLBGGGGGGGGGGGGGGGGGGGGBvvP',  //  9  muzzle cheeks + nose
+  '.LLBGGGGGGGGGGGGGGGGGGGGGvvB',  // 10  lower cheek, body closes
+  '.LLBGGGGGGGGGGGGGGGGGGGGGGvB',  // 11
+  '..LBGGGGGGGGGGGGGGGGGGGGGGvB',  // 12
+  '..LBGGGGGGGGGGGGGGGGGGGGGLvB',  // 13  belly starts (L=lighter fur)
+  '...BGGGGGGGGGGGGGGGGGGGGGLvB', // 14  belly peak
+  '...BGGGGGGGGGGGGGGGGGGGGGLvB', // 15
+  '....BGGGGGGGGGGGGGGGGGGGGLvB',  // 16  start tapering
+  '.....BGGGGGGGGGGGGGGGGGGLv..',  // 17
+  '......BGGGGGGGGGGGGGGGGLv...',  // 18
+  '.......BGGGGGGGGGGGGGGGB....',  // 19  body bottom
+  '..........BGGGGGGGB.........',  // 20  leg bases
+  '.........BGB....BGB.........',  // 21  legs stride 1
+  '.........BGB....BGB.........',  // 22
+  '.........BB.....BB..........',  // 23  paws
 ];
-// walk frame 2 — legs shifted
+// walk frame 2 — legs alternate
 const JW2=[
-  '....................',
-  '....BDDDDDDDB.......',
-  '..BDGGGGGGGGGGDB....',
-  '.LBGGGGGGGGGGGDB....',
-  'LLBGGGGGGGGGGGGDB...',
-  'DLBGGGGGGGGGGGGGBDB.',
-  'DLBGGGGGGGGGGGGGBWB.',
-  'DLBGGGGGGGGGGGGGVPB.',
-  '.LBGGGGGGGGGGGGGvvB.',
-  '.LBGGGGGGGGGGGGGLvB.',
-  '..BGGGGGGGGGGGGGLLv.',
-  '..BGGGGGGGGGGGLLv...',
-  '....BGGGGGGGGLv.....',
-  '......BGGGGGB.......',
-  '......BGB.BGB.......',  // legs stride 2
-  '......BGB.BGB.......',
-  '......BB..BB........',
-  '....................',
+  '............................',
+  '......BDDDDDDDB.............',
+  '....BDGGGGGGGGGGGDB.........',
+  '.LLLBGGGGGGGGGGGGGGGDB......',
+  'LLLBGGGGGGGGGGGGGGGGGGDB....',
+  'LLLBGGGGGGGGGGGGGGGGGGGGBDB.',
+  'DLLBGGGGGGGGGGGGGGGGGGGGBPB.',
+  'DLLBGGGGGGGGGGGGGGGGGGGBDWDv',
+  'DLLBGGGGGGGGGGGGGGGGGGGBDDvP',
+  'DLLBGGGGGGGGGGGGGGGGGGGGBvvP',
+  '.LLBGGGGGGGGGGGGGGGGGGGGGvvB',
+  '.LLBGGGGGGGGGGGGGGGGGGGGGGvB',
+  '..LBGGGGGGGGGGGGGGGGGGGGGGvB',
+  '..LBGGGGGGGGGGGGGGGGGGGGGLvB',
+  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
+  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
+  '....BGGGGGGGGGGGGGGGGGGGGLvB',
+  '.....BGGGGGGGGGGGGGGGGGGLv..',
+  '......BGGGGGGGGGGGGGGGGLv...',
+  '.......BGGGGGGGGGGGGGGGB....',
+  '..........BGGGGGGGB.........',
+  '..........BGB..BGB..........',  // legs stride 2
+  '..........BGB..BGB..........',
+  '..........BB...BB...........',
 ];
-// jump — legs spread
+// jump — legs spread wide
 const JJP=[
-  '....................',
-  '....BDDDDDDDB.......',
-  '..BDGGGGGGGGGGDB....',
-  '.LBGGGGGGGGGGGDB....',
-  'LLBGGGGGGGGGGGGDB...',
-  'DLBGGGGGGGGGGGGGBDB.',
-  'DLBGGGGGGGGGGGGGBWB.',
-  'DLBGGGGGGGGGGGGGVPB.',
-  '.LBGGGGGGGGGGGGGvvB.',
-  '.LBGGGGGGGGGGGGGLvB.',
-  '..BGGGGGGGGGGGGGLLv.',
-  '..BGGGGGGGGGGGLLv...',
-  '....BGGGGGGGGLv.....',
-  '......BGGGGGB.......',
-  '....BGB.....BGB.....',  // legs spread wide
-  '....BGB.....BGB.....',
-  '....BB......BB......',
-  '....................',
+  '............................',
+  '......BDDDDDDDB.............',
+  '....BDGGGGGGGGGGGDB.........',
+  '.LLLBGGGGGGGGGGGGGGGDB......',
+  'LLLBGGGGGGGGGGGGGGGGGGDB....',
+  'LLLBGGGGGGGGGGGGGGGGGGGGBDB.',
+  'DLLBGGGGGGGGGGGGGGGGGGGGBPB.',
+  'DLLBGGGGGGGGGGGGGGGGGGGBDWDv',
+  'DLLBGGGGGGGGGGGGGGGGGGGBDDvP',
+  'DLLBGGGGGGGGGGGGGGGGGGGGBvvP',
+  '.LLBGGGGGGGGGGGGGGGGGGGGGvvB',
+  '.LLBGGGGGGGGGGGGGGGGGGGGGGvB',
+  '..LBGGGGGGGGGGGGGGGGGGGGGGvB',
+  '..LBGGGGGGGGGGGGGGGGGGGGGLvB',
+  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
+  '...BGGGGGGGGGGGGGGGGGGGGGLvB',
+  '....BGGGGGGGGGGGGGGGGGGGGLvB',
+  '.....BGGGGGGGGGGGGGGGGGGLv..',
+  '......BGGGGGGGGGGGGGGGGLv...',
+  '.......BGGGGGGGGGGGGGGGB....',
+  '..........BGGGGGGGB.........',
+  '.......BGB......BGB.........',  // legs spread wide
+  '.......BGB......BGB.........',
+  '.......BB.......BB..........',
 ];
-// dig — Jimothy bent over trash can
+// dig — unused (rummage anim uses JW1/JW2), kept for completeness
 const JDG=[
-  '....................',
-  '....................',
-  '......BGGGGGB.......',
-  '....BGGGGGGGGLv.....',
-  '..BGGGGGGGGGGGLLv...',
-  '..BGGGGGGGGGGGGGLLv.',
-  '.LBGGGGGGGGGGGGGLvB.',
-  '.LBGGGGGGGGGGGGGvvB.',
-  'DLBGGGGGGGGGGGGGVPB.',
-  'DLBGGGGGGGGGGGGGBWB.',
-  'DLBGGGGGGGGGGGGGBDB.',
-  'LLBGGGGGGGGGGGGDB...',
-  '.LBGGGGGGGGGGGDB....',
-  '..BDGGGGGGGGGGDB....',
-  '....BDDDDDDDB.......',
-  '....BGGGGGGB........',  // tail pointing up!
-  '...BBGGGGGGBB.......',
-  '....................',
+  '............................',
+  '............................',
+  '..........BGGGGGGGB.........', // 28 chars
+  '........BGGGGGGGGGGGLv......',
+  '......BGGGGGGGGGGGGGGGLv....',
+  '....BGGGGGGGGGGGGGGGGGGGLLv.',
+  '...LBGGGGGGGGGGGGGGGGGGGLvB.',
+  '...LBGGGGGGGGGGGGGGGGGGGvvB.',
+  '..DLBGGGGGGGGGGGGGGGGGGGvPB.',
+  '..DLBGGGGGGGGGGGGGGGGGGGBWBv',
+  '..DLBGGGGGGGGGGGGGGGGGGGBDBv',
+  '..LLBGGGGGGGGGGGGGGGGGGDBv..',
+  '...LBGGGGGGGGGGGGGGGGGDBv...',
+  '....BDGGGGGGGGGGGGGGGDBv....',
+  '.......BDDDDDDDDDBv..........',
+  '.........BGGGGGGBv...........',
+  '........BBGGGGGGBBv..........',
+  '............................',
+  '............................',
+  '............................',
+  '............................',
+  '............................',
+  '............................',
+  '............................',
 ];
 
 // Platforms: {x,y,w,h,type}  y=top surface
@@ -534,31 +558,42 @@ function drawCraftsman(sx,w,h){
   ctx.fillRect(sx+pw+10,GY-h*0.70+8,20,15);
   if(w>130) ctx.fillRect(sx+pw+38,GY-h*0.70+8,20,15);
 }
+// Townhome palette — 6 Seattle-y accent colours cycling by x position
+const TH_PALETTES=[
+  {body:'#2E4A6A',trim:'#1A3050',cladding:'#243D58',garage:'#162030',window:'#3A6090'},
+  {body:'#5A3A2A',trim:'#3A2018',cladding:'#4A2E20',garage:'#2A1810',window:'#C07840'},
+  {body:'#2A4A38',trim:'#1A3228',cladding:'#22402E',garage:'#142018',window:'#4A9060'},
+  {body:'#4A3A60',trim:'#2E2440',cladding:'#3A2E50',garage:'#1E1828',window:'#7A58A0'},
+  {body:'#5A4A2A',trim:'#3A3018',cladding:'#4A3E20',garage:'#2A2010',window:'#B09040'},
+  {body:'#2A4A50',trim:'#1A3038',cladding:'#223E46',garage:'#142028',window:'#4A8898'},
+];
 function drawTownhome(sx,w,h){
-  // Modern Seattle townhome (narrow, tall, flat roof, big windows, garage)
-  ctx.fillStyle='#1c2c40';
+  const pal=TH_PALETTES[Math.abs(Math.floor(sx/60))%TH_PALETTES.length];
+  ctx.fillStyle=pal.body;
   ctx.fillRect(sx,GY-h,w,h);
-  // Parapet
-  ctx.fillStyle='#101a28';ctx.fillRect(sx-2,GY-h-8,w+4,9);
+  // Parapet with trim colour
+  ctx.fillStyle=pal.trim;ctx.fillRect(sx-2,GY-h-8,w+4,9);
   // Vertical cladding lines
-  ctx.fillStyle='#18243a';
+  ctx.fillStyle=pal.cladding;
   for(let lx=sx+9;lx<sx+w-3;lx+=10) ctx.fillRect(lx,GY-h,2,h-32);
-  // Garage door (ground floor)
-  ctx.fillStyle='#141e30';ctx.fillRect(sx+4,GY-33,w-8,31);
-  ctx.fillStyle='#0e1620';
+  // Garage door
+  ctx.fillStyle=pal.garage;ctx.fillRect(sx+4,GY-33,w-8,31);
+  ctx.fillStyle=pal.trim;
   for(let gy2=GY-31;gy2<GY-5;gy2+=7) ctx.fillRect(sx+5,gy2,w-10,1);
-  ctx.fillStyle='#304868';ctx.fillRect(sx+w/2-5,GY-17,10,3);
-  // 3 floors of large windows
-  ctx.fillStyle='#2a4468';
+  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(sx+w/2-5,GY-17,10,3);
+  // 3 floors of large windows (warm glow)
+  ctx.fillStyle=pal.window;
   const fh=Math.floor((h-40)/3);
   for(let f=0;f<3;f++){
     const wy=GY-h+8+f*fh;
     ctx.fillRect(sx+5,wy,w-10,fh-8);
-    ctx.fillStyle='#1c2c40';
+    ctx.fillStyle=pal.body;
     ctx.fillRect(sx+w/2-1,wy,2,fh-8);
     ctx.fillRect(sx+5,wy+(fh-8)/2,w-10,2);
-    ctx.fillStyle='#2a4468';
+    ctx.fillStyle=pal.window;
   }
+  // Accent stripe below parapet
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(sx,GY-h,w,3);
 }
 function drawApartment(sx,w,h){
   // Mid-century Ballard apartment
@@ -697,33 +732,91 @@ function drawBg(){
     const wx=((i*83+frame*0.5)%(VW+60))-30;
     ctx.fillStyle='rgba(160,210,240,0.12)';ctx.fillRect(wx,psY+4,36+i*6,2);
   }
-  // Washington State Ferry (white hull, green stripe, double-ended)
+  // Washington State Ferry — MV Tacoma class (double-ended, 4 car lanes, 2 passenger decks)
   const ferryX=VW*0.72-camX*0.012;
-  if(ferryX>-200&&ferryX<VW+200){
-    ctx.save();ctx.translate(ferryX,psY+22);
-    // Hull
-    ctx.fillStyle='#E8E4D8';ctx.fillRect(-62,-10,124,20);
-    // Green waterline stripe
-    ctx.fillStyle='#2A5830';ctx.fillRect(-62,-2,124,5);
-    // Upper car deck
-    ctx.fillStyle='#D8D4C8';ctx.fillRect(-50,-24,100,14);
-    ctx.fillStyle='#2A5830';ctx.fillRect(-50,-12,100,2);
-    // Passenger deck
-    ctx.fillStyle='#D0CCC0';ctx.fillRect(-42,-36,84,12);
-    // Wheelhouses (both ends — the ferry runs both directions)
-    ctx.fillStyle='#C8C4B8';ctx.fillRect(-52,-46,20,12);ctx.fillRect(32,-46,20,12);
-    // Wheelhouse windows
-    ctx.fillStyle='#88C8F0';
-    for(let e=0;e<2;e++){const ex=e===0?-50:34;for(let w=0;w<3;w++) ctx.fillRect(ex+w*5,-44,4,7);}
-    // Stack
-    ctx.fillStyle='#2A5830';ctx.fillRect(-5,-50,10,14);
-    ctx.fillStyle='#222';ctx.fillRect(-4,-52,8,4);
+  if(ferryX>-240&&ferryX<VW+240){
+    ctx.save();ctx.translate(ferryX,psY+18);
+    // ── HULL ── (white with green boot stripe)
+    // Hull tapers slightly at bow/stern (both ends symmetric)
+    ctx.fillStyle='#EDEAE2';
+    ctx.beginPath();
+    ctx.moveTo(-88,0);ctx.lineTo(-100,8);ctx.lineTo(100,8);ctx.lineTo(88,0);
+    ctx.lineTo(88,-14);ctx.lineTo(-88,-14);ctx.closePath();ctx.fill();
+    // Dark keel underline
+    ctx.fillStyle='#2A2820';ctx.fillRect(-100,7,200,3);
+    // Green waterline boot stripe (WSF signature)
+    ctx.fillStyle='#1A6B3C';ctx.fillRect(-88,-3,176,5);
+    // White hull panels (subtle)
+    ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(-85,-13,170,5);
+
+    // ── CAR DECK SUPERSTRUCTURE ──
+    ctx.fillStyle='#E4E0D8';ctx.fillRect(-80,-14,160,28); // outer walls
+    ctx.fillStyle='#1A6B3C';ctx.fillRect(-80,-14,160,3); // green cap rail
+    // Car deck side openings (dark slots — vehicles drive on)
+    ctx.fillStyle='#2A2820';
+    for(let i=0;i<5;i++) ctx.fillRect(-70+i*28,-10,18,18);
+
+    // ── PASSENGER DECK (main) ──
+    ctx.fillStyle='#DEDAD2';ctx.fillRect(-72,-42,144,28);
+    // Green stripe at passenger deck level
+    ctx.fillStyle='#1A6B3C';ctx.fillRect(-72,-42,144,3);
+    // Passenger windows — row of rectangular windows with orange trim
+    ctx.fillStyle='#D06820'; // WSF orange trim
+    for(let i=0;i<10;i++) ctx.fillRect(-66+i*14,-38,12,16);
+    ctx.fillStyle='#7CC0E8';
+    for(let i=0;i<10;i++) ctx.fillRect(-65+i*14,-37,10,12);
+    // White dividers between windows
+    ctx.fillStyle='#DEDAD2';
+    for(let i=1;i<10;i++) ctx.fillRect(-66+i*14,-38,2,16);
+
+    // ── UPPER PASSENGER DECK ──
+    ctx.fillStyle='#D8D4CC';ctx.fillRect(-60,-60,120,18);
+    ctx.fillStyle='#1A6B3C';ctx.fillRect(-60,-60,120,3);
+    // Upper windows
+    ctx.fillStyle='#D06820';
+    for(let i=0;i<7;i++) ctx.fillRect(-54+i*16,-57,14,12);
+    ctx.fillStyle='#7CC0E8';
+    for(let i=0;i<7;i++) ctx.fillRect(-53+i*16,-56,12,9);
+
+    // ── WHEELHOUSES (both ends — double-ended ferry) ──
+    // Port (left) wheelhouse
+    ctx.fillStyle='#CCC8C0';ctx.fillRect(-80,-76,28,16);
+    ctx.fillStyle='#1A6B3C';ctx.fillRect(-80,-76,28,3);
+    ctx.fillStyle='#88B8D8';
+    for(let i=0;i<4;i++) ctx.fillRect(-77+i*7,-73,5,10);
+    // Starboard (right) wheelhouse
+    ctx.fillStyle='#CCC8C0';ctx.fillRect(52,-76,28,16);
+    ctx.fillStyle='#1A6B3C';ctx.fillRect(52,-76,28,3);
+    ctx.fillStyle='#88B8D8';
+    for(let i=0;i<4;i++) ctx.fillRect(55+i*7,-73,5,10);
+
+    // ── FUNNEL / STACK (center, WSF green) ──
+    ctx.fillStyle='#1A6B3C';ctx.fillRect(-8,-78,16,18);
+    ctx.fillStyle='#0A4A28';ctx.fillRect(-8,-78,16,4);
+    // Stack exhaust cap
+    ctx.fillStyle='#1A1A1A';ctx.fillRect(-9,-80,18,4);
+    // Faint smoke
+    ctx.save();ctx.globalAlpha=0.18;
+    ctx.fillStyle='#888';ctx.beginPath();ctx.ellipse(0,-90,8,12,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(4,-104,5,8,0.3,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+
+    // ── MAST / NAVIGATION LIGHT POLE ──
+    ctx.strokeStyle='#B0ACA4';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,-80);ctx.lineTo(0,-95);ctx.stroke();
     // Navigation lights
-    ctx.fillStyle='rgba(255,220,80,0.9)';ctx.beginPath();ctx.arc(-60,-6,3,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(60,-6,3,0,Math.PI*2);ctx.fill();
-    // Wake
-    ctx.strokeStyle='rgba(180,220,240,0.25)';ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(-65,8);ctx.lineTo(-130,18);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(65,8);ctx.lineTo(130,18);ctx.stroke();
+    ctx.fillStyle='rgba(255,80,80,0.95)';ctx.beginPath();ctx.arc(-92,0,3,0,Math.PI*2);ctx.fill();  // port red
+    ctx.fillStyle='rgba(100,220,100,0.95)';ctx.beginPath();ctx.arc(92,0,3,0,Math.PI*2);ctx.fill(); // starboard green
+    ctx.fillStyle='rgba(255,255,200,0.95)';ctx.beginPath();ctx.arc(0,-93,2.5,0,Math.PI*2);ctx.fill(); // masthead white
+
+    // ── WAKE ──
+    ctx.strokeStyle='rgba(200,230,245,0.22)';ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(-98,6);ctx.lineTo(-160,18);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(98,6);ctx.lineTo(160,18);ctx.stroke();
+    ctx.strokeStyle='rgba(200,230,245,0.12)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-98,2);ctx.lineTo(-150,10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(98,2);ctx.lineTo(150,10);ctx.stroke();
+
     ctx.restore();
   }
 
@@ -881,7 +974,7 @@ function drawBg(){
     ctx.restore();
   }
 
-  // FREMONT TROLL — appears from the right in the second half of the game
+  if(false){ // Fremont Troll removed
   const ftX=570-camX*0.06;
   if(ftX>-260&&ftX<VW+210){
     ctx.save();ctx.translate(ftX,GY);
@@ -949,7 +1042,7 @@ function drawBg(){
     ctx.fillStyle='#888';ctx.beginPath();ctx.arc(-15,10,3,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(14,10,3,0,Math.PI*2);ctx.fill();
     ctx.restore();
     ctx.restore();
-  }
+  }} // end removed troll block
 
   // BALLARD BUILDINGS near background (parallax 20%)
   const bgOff=-camX*0.20;
