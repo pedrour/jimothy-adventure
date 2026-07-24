@@ -356,92 +356,81 @@ function bgMusicLoop(){
   const LOOP=16.0;
 
   const mg=audio.createGain();
-  mg.gain.setValueAtTime(0.038,now);
+  mg.gain.setValueAtTime(0.036,now);
   mg.connect(audio.destination);
 
-  // note(freq, startSec, durSec, wave, vol, vibDepth)
-  function nb(freq,t,dur,wave,vol,vd){
+  function nb(freq,t,dur,wave,vol){
     const o=audio.createOscillator(),g=audio.createGain();
     o.type=wave;o.frequency.setValueAtTime(freq,now+t);
-    if(vd&&dur>0.5){                          // delayed vibrato on longer notes
-      const lfo=audio.createOscillator(),lg=audio.createGain();
-      lfo.frequency.setValueAtTime(4.5,now+t);
-      lg.gain.setValueAtTime(0,now+t);
-      lg.gain.linearRampToValueAtTime(vd,now+t+dur*0.45);
-      lfo.connect(lg);lg.connect(o.frequency);
-      lfo.start(now+t);lfo.stop(now+t+dur+0.1);
-    }
     g.gain.setValueAtTime(0,now+t);
-    g.gain.linearRampToValueAtTime(vol,now+t+0.09);  // slow bloom
-    g.gain.setValueAtTime(vol,now+t+dur*0.80);
-    g.gain.exponentialRampToValueAtTime(0.0001,now+t+dur+0.12);
-    o.connect(g);g.connect(mg);o.start(now+t);o.stop(now+t+dur+0.18);
+    g.gain.linearRampToValueAtTime(vol,now+t+0.018);
+    g.gain.setValueAtTime(vol,now+t+dur*0.60);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+t+dur+0.05);
+    o.connect(g);g.connect(mg);o.start(now+t);o.stop(now+t+dur+0.09);
   }
 
-  // D Dorian, 90 BPM, 3/4 waltz — 8 bars = 16s loop
-  // Chord prog: Dm | G | Am | G | Dm | Am | G | Dm
-  // (The G-major chord = raised 6th = signature Dorian sound, very Pacific NW)
-  const Q=60/90, H=Q*2, B=Q*3; // B = full bar (dotted half)
+  // G major, 120 BPM, 4/4 — 8 bars × 2s = 16s loop
+  // Chords: G | Em | C | D (classic island-sunshine progression, ×2)
+  // Short melody notes = steel-drum / marimba texture; sine bass = warm & smooth
+  const Q=0.5, E=0.25, S=0.125, H=1.0;
+  // G3=196 A3=220 B3=247 C3=131 D3=147 E3=165 F#3=185
+  // G4=392 A4=440 B4=494 C5=523 D5=587 E5=659 F#5=740 G5=784 A5=880
 
-  // ── Melody (triangle — lyrical, not buzzy) ──
+  // ── Melody (triangle, short notes → steel-drum / marimba feel) ──
   [
-    // Bar 1 (0–2s) Dm: descend from the 5th, like mist coming in
-    [440, 0,    Q,   5],       // A4
-    [392, Q,    Q      ],      // G4
-    [349, H,    Q      ],      // F4
-    // Bar 2 (2–4s) G: breathe and settle
-    [330, B,    Q      ],      // E4
-    [294, B+Q,  H,   4],      // D4 held (vib)
-    // Bar 3 (4–6s) Am: rise up through the chord
-    [349, B*2,  Q      ],     // F4 (passing)
-    [440, B*2+Q,Q      ],     // A4
-    [523, B*2+H,Q,   5],     // C5 (vib)
-    // Bar 4 (6–8s) G: B-natural — the Dorian brightness
-    [494, B*3,  H,   5],     // B4 held (maj6 of D, maj3 of G) (vib)
-    [440, B*3+H,Q      ],    // A4
-    // Bar 5 (8–10s) Dm: build toward peak
-    [440, B*4,  Q      ],    // A4
-    [523, B*4+Q,Q      ],    // C5
-    [587, B*4+H,Q,   4],    // D5 (vib)
-    // Bar 6 (10–12s) Am: melodic peak, start of descent
-    [659, B*5,  Q,   5],    // E5 (vib)
-    [587, B*5+Q,Q      ],   // D5
-    [523, B*5+H,Q      ],   // C5
-    // Bar 7 (12–14s) G: glide home
-    [494, B*6,  Q      ],   // B4
-    [440, B*6+Q,Q      ],   // A4
-    [392, B*6+H,Q      ],   // G4
-    // Bar 8 (14–16s) Dm: rest on the 5th, D4 pickup into loop
-    [440, B*7,  H,   4],   // A4 held (vib)
-    [294, B*7+H,Q      ],  // D4 — pickup straight into bar 1 A4
-  ].forEach(([f,t,d,vd])=>nb(f,t,d,'triangle',0.60,vd));
+    // Bar 1 (G, 0–2s): rise from 3rd to 5th, bright opening
+    [494,0.00,E],[587,0.25,E],[784,0.50,Q], // B4 D5 G5
+    [740,1.00,E],[659,1.25,E],[587,1.50,Q], // F#5 E5 D5
+    // Bar 2 (Em, 2–4s): Em bounce
+    [659,2.00,Q],                            // E5
+    [494,2.50,E],[523,2.75,E],              // B4 C5
+    [587,3.00,Q],[494,3.50,Q],              // D5 B4
+    // Bar 3 (C, 4–6s): rise and cascade
+    [523,4.00,E],[587,4.25,E],[659,4.50,Q],// C5 D5 E5
+    [784,5.00,E],[659,5.25,E],[523,5.50,Q],// G5 E5 C5
+    // Bar 4 (D, 6–8s): D arpeggio → bright A5 peak → glide down
+    [587,6.00,Q],                            // D5
+    [740,6.50,E],[880,6.75,E],              // F#5 A5 ← sunny high note
+    [784,7.00,E],[740,7.25,E],[587,7.50,Q],// G5 F#5 D5
+    // Bar 5 (G, 8–10s): variation — descends from G5 all the way to G4
+    [784,8.00,E],[880,8.25,E],[784,8.50,E],[659,8.75,E],// G5 A5 G5 E5
+    [587,9.00,E],[494,9.25,E],[392,9.50,Q],             // D5 B4 G4
+    // Bar 6 (Em, 10–12s): climb back up through Em
+    [392,10.00,E],[440,10.25,E],[494,10.50,Q], // G4 A4 B4
+    [659,11.00,E],[784,11.25,E],[659,11.50,Q], // E5 G5 E5
+    // Bar 7 (C, 12–14s): C major run down then bounce back
+    [523,12.00,E],[494,12.25,E],[440,12.50,E],[392,12.75,E],// C5 B4 A4 G4
+    [440,13.00,E],[494,13.25,E],[523,13.50,Q],              // A4 B4 C5
+    // Bar 8 (D→G, 14–16s): land home — B4 pickup loops seamlessly into bar 1
+    [587,14.00,Q],                              // D5
+    [740,14.50,E],[784,14.75,E],               // F#5 G5
+    [880,15.00,Q],                              // A5
+    [494,15.50,E],                              // B4 ← same as bar 1 start
+  ].forEach(([f,t,d])=>nb(f,t,d,'triangle',0.55));
 
-  // ── Bass (triangle — one root per bar, long and warm) ──
+  // ── Bass (sine — smooth walking root-fifth, one note per half-bar) ──
   [
-    [147, 0,    B*0.93],    // D3  Dm
-    [196, B,    B*0.93],    // G3  G  (the IV in Dorian)
-    [220, B*2,  B*0.93],    // A3  Am
-    [196, B*3,  B*0.93],    // G3  G
-    [147, B*4,  H*0.93],    // D3  Dm
-    [220, B*4+H,Q*0.88],    // A3  (walking)
-    [220, B*5,  B*0.93],    // A3  Am
-    [196, B*6,  H*0.93],    // G3  G
-    [147, B*6+H,Q*0.88],    // D3
-    [147, B*7,  B*0.93],    // D3  Dm (final bar)
-  ].forEach(([f,t,d])=>nb(f,t,d,'triangle',0.58));
+    [196,0.00,0.46],[294,0.50,0.46],[196,1.00,0.46],[247,1.50,0.46], // G D G B
+    [165,2.00,0.46],[247,2.50,0.46],[165,3.00,0.46],[196,3.50,0.46], // E B E G
+    [131,4.00,0.46],[196,4.50,0.46],[131,5.00,0.46],[220,5.50,0.46], // C G C A
+    [147,6.00,0.46],[220,6.50,0.46],[147,7.00,0.46],[185,7.50,0.46], // D A D F#
+    [196,8.00,0.46],[294,8.50,0.46],[196,9.00,0.46],[247,9.50,0.46],
+    [165,10.00,0.46],[247,10.50,0.46],[165,11.00,0.46],[196,11.50,0.46],
+    [131,12.00,0.46],[196,12.50,0.46],[131,13.00,0.46],[220,13.50,0.46],
+    [147,14.00,0.46],[220,14.50,0.46],[196,15.00,H],                  // D A G (home)
+  ].forEach(([f,t,d])=>nb(f,t,d,'sine',0.60));
 
-  // ── Pad / chord tones (sine — whole-bar sustained, barely audible) ──
-  // Each note is the 3rd of the current chord, creating a soft harmonic wash
+  // ── Island strum (sine, very soft — chord root+5th on beats 1 & 3) ──
   [
-    [349, 0,    B*0.88],    // F4  (3rd of Dm)
-    [247, B,    B*0.88],    // B3  (maj3 of G — the Dorian fingerprint!)
-    [523, B*2,  B*0.88],    // C5  (minor 7th over Am)
-    [494, B*3,  B*0.88],    // B4  (maj3 of G — brightness again)
-    [349, B*4,  B*0.88],    // F4  (3rd of Dm)
-    [330, B*5,  B*0.88],    // E4  (5th of Am)
-    [392, B*6,  B*0.88],    // G4  (root of G as colour)
-    [349, B*7,  B*0.88],    // F4  (3rd of Dm, home)
-  ].forEach(([f,t,d])=>nb(f,t,d,'sine',0.20));
+    [392,0.00,0.30],[587,0.00,0.30],[392,1.00,0.30],[587,1.00,0.30], // G4+D5
+    [330,2.00,0.30],[494,2.00,0.30],[330,3.00,0.30],[494,3.00,0.30], // E4+B4
+    [262,4.00,0.30],[392,4.00,0.30],[262,5.00,0.30],[392,5.00,0.30], // C4+G4
+    [294,6.00,0.30],[440,6.00,0.30],[294,7.00,0.30],[440,7.00,0.30], // D4+A4
+    [392,8.00,0.30],[587,8.00,0.30],[392,9.00,0.30],[587,9.00,0.30],
+    [330,10.00,0.30],[494,10.00,0.30],[330,11.00,0.30],[494,11.00,0.30],
+    [262,12.00,0.30],[392,12.00,0.30],[262,13.00,0.30],[392,13.00,0.30],
+    [294,14.00,0.30],[440,14.00,0.30],[294,15.00,0.30],[440,15.00,0.30],
+  ].forEach(([f,t,d])=>nb(f,t,d,'sine',0.18));
 
   bgMusicTimeout=setTimeout(bgMusicLoop,(LOOP-0.08)*1000);
 }
@@ -1365,37 +1354,37 @@ function drawWinSpaceNeedle(nX,nBase){
   const antY=topY-90;                     // 605ft – antenna tip
 
   // Concrete foundation ring
-  ctx.fillStyle='#4a5860';
+  ctx.fillStyle='#787872';
   ctx.beginPath();ctx.ellipse(nX,nBase+10,122,17,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#8a9aaa';
+  ctx.fillStyle='#A8A8A0';
   ctx.beginPath();ctx.ellipse(nX,nBase,122,17,0,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='rgba(180,210,230,0.5)';ctx.lineWidth=2;
+  ctx.strokeStyle='rgba(220,218,210,0.5)';ctx.lineWidth=2;
   ctx.beginPath();ctx.ellipse(nX,nBase,124,18,0,0,Math.PI*2);ctx.stroke();
 
-  // A-frame left leg (curved, realistic shape)
-  ctx.fillStyle='#4a6070';
+  // A-frame left leg — Astronaut White (real Space Needle colour)
+  ctx.fillStyle='#D8D4C8';
   ctx.beginPath();
   ctx.moveTo(nX-110,nBase-3);
   ctx.bezierCurveTo(nX-95,nBase-72,nX-42,legJY+44,nX-8,legJY);
   ctx.lineTo(nX-3,legJY+16);
   ctx.bezierCurveTo(nX-38,legJY+60,nX-82,nBase-60,nX-96,nBase+7);
   ctx.closePath();ctx.fill();
-  // Left leg cross detail
-  ctx.strokeStyle='#5a7888';ctx.lineWidth=3;
+  ctx.strokeStyle='#EAE6DC';ctx.lineWidth=3;
   ctx.beginPath();ctx.moveTo(nX-78,nBase-50);ctx.lineTo(nX-30,legJY+28);ctx.stroke();
 
   // A-frame right leg (mirror)
-  ctx.fillStyle='#4a6070';
+  ctx.fillStyle='#D8D4C8';
   ctx.beginPath();
   ctx.moveTo(nX+110,nBase-3);
   ctx.bezierCurveTo(nX+95,nBase-72,nX+42,legJY+44,nX+8,legJY);
   ctx.lineTo(nX+3,legJY+16);
   ctx.bezierCurveTo(nX+38,legJY+60,nX+82,nBase-60,nX+96,nBase+7);
   ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#EAE6DC';ctx.lineWidth=3;
   ctx.beginPath();ctx.moveTo(nX+78,nBase-50);ctx.lineTo(nX+30,legJY+28);ctx.stroke();
 
-  // Rear leg (darker, partially visible)
-  ctx.fillStyle='#303e4a';
+  // Rear leg (slightly shadowed white)
+  ctx.fillStyle='#C0BCB0';
   ctx.beginPath();
   ctx.moveTo(nX-9,nBase+3);
   ctx.bezierCurveTo(nX-13,nBase-44,nX-6,legJY+18,nX-5,legJY+3);
@@ -1403,43 +1392,43 @@ function drawWinSpaceNeedle(nX,nBase){
   ctx.bezierCurveTo(nX+6,legJY+18,nX+13,nBase-44,nX+9,nBase+3);
   ctx.closePath();ctx.fill();
 
-  // Main column (very thin – only 10px wide)
+  // Main column — bright white shaft
   const cg=ctx.createLinearGradient(nX-6,0,nX+6,0);
-  cg.addColorStop(0,'#2e4050');cg.addColorStop(0.4,'#9ec0d0');cg.addColorStop(1,'#2e4050');
+  cg.addColorStop(0,'#C8C4B8');cg.addColorStop(0.4,'#F4F2EC');cg.addColorStop(1,'#C8C4B8');
   ctx.fillStyle=cg;ctx.fillRect(nX-5,deckY+30,10,legJY-deckY-30);
 
-  // Lower skirt ring
-  ctx.fillStyle='#283848';
+  // Lower skirt ring — charcoal (real Space Needle halo colour)
+  ctx.fillStyle='#6A7A88';
   ctx.beginPath();ctx.ellipse(nX,deckY+28,84,18,0,0,Math.PI*2);ctx.fill();
 
-  // Restaurant level
+  // Restaurant level — steel-blue glass curtain wall
   const rg=ctx.createLinearGradient(nX-62,0,nX+62,0);
-  rg.addColorStop(0,'#324252');rg.addColorStop(0.5,'#6a8898');rg.addColorStop(1,'#324252');
+  rg.addColorStop(0,'#7A8A9A');rg.addColorStop(0.5,'#B0BCC8');rg.addColorStop(1,'#7A8A9A');
   ctx.fillStyle=rg;ctx.fillRect(nX-62,deckY+2,124,26);
-  ctx.fillStyle='#4a6878';
+  ctx.fillStyle='#8898A8';
   ctx.beginPath();ctx.ellipse(nX,deckY+2,62,13,0,0,Math.PI*2);ctx.fill();
-  // Restaurant windows (cycling)
+  // Restaurant windows — warm yellow dinner lights
   for(let i=0;i<8;i++){
     const rlit=(Math.floor(winFrame/10)+i)%3;
-    ctx.fillStyle=rlit?'#ffe880':['#ff8844','#44ffaa'][i%2];
+    ctx.fillStyle=rlit?'#FFE840':['#FFC040','#80E8FF'][i%2];
     ctx.fillRect(nX-54+i*14,deckY+7,10,14);
   }
 
-  // Observation deck saucer – bottom shadow
-  ctx.fillStyle='#1e2e3a';
+  // Observation deck saucer — bottom shadow
+  ctx.fillStyle='#2E3E4E';
   ctx.beginPath();ctx.ellipse(nX,deckY-13,96,22,0,0,Math.PI*2);ctx.fill();
-  // Saucer main body with lateral gradient
+  // Saucer body — steel charcoal (the iconic Space Needle halo)
   const sg3=ctx.createLinearGradient(nX-96,0,nX+96,0);
-  sg3.addColorStop(0,'#384858');sg3.addColorStop(0.12,'#7aaabf');
-  sg3.addColorStop(0.5,'#cce8f8');sg3.addColorStop(0.88,'#7aaabf');sg3.addColorStop(1,'#384858');
+  sg3.addColorStop(0,'#3A4A58');sg3.addColorStop(0.12,'#7A9AB0');
+  sg3.addColorStop(0.5,'#C4CED8');sg3.addColorStop(0.88,'#7A9AB0');sg3.addColorStop(1,'#3A4A58');
   ctx.fillStyle=sg3;
   ctx.beginPath();ctx.ellipse(nX,deckY-20,96,22,0,0,Math.PI*2);ctx.fill();
-  // Outer rim glow (rainbow!)
+  // Outer rim rainbow glow (psychedelic win scene)
   const rimHue=(winFrame*3)%360;
   ctx.strokeStyle=`hsla(${rimHue},100%,70%,0.6)`;ctx.lineWidth=2;
   ctx.beginPath();ctx.ellipse(nX,deckY-22,98,23,0,0,Math.PI*2);ctx.stroke();
   // Observation walkway
-  ctx.fillStyle='#687888';
+  ctx.fillStyle='#4A5A68';
   ctx.beginPath();ctx.ellipse(nX,deckY-28,84,13,0,0,Math.PI*2);ctx.fill();
   // 22 rainbow-cycling windows
   for(let i=0;i<22;i++){
@@ -1447,12 +1436,12 @@ function drawWinSpaceNeedle(nX,nBase){
     const wx=nX+Math.cos(wa)*82;const wy=deckY-20+Math.sin(wa)*14;
     const hue=(winFrame*5+i*16)%360;
     const lit=(Math.floor(winFrame/4)+i)%4!==0;
-    ctx.fillStyle=lit?`hsl(${hue},100%,68%)`:'#111e28';
+    ctx.fillStyle=lit?`hsl(${hue},100%,68%)`:'#101820';
     ctx.beginPath();ctx.arc(wx,wy,3.5,0,Math.PI*2);ctx.fill();
   }
-  // Upper dome
+  // Upper dome — lighter steel blue
   const dg3=ctx.createRadialGradient(nX-14,deckY-55,0,nX,deckY-42,64);
-  dg3.addColorStop(0,'#ddf0ff');dg3.addColorStop(0.5,'#78a8c8');dg3.addColorStop(1,'#2e4e6a');
+  dg3.addColorStop(0,'#E0ECF8');dg3.addColorStop(0.5,'#88A8C8');dg3.addColorStop(1,'#4A6888');
   ctx.fillStyle=dg3;
   ctx.beginPath();ctx.ellipse(nX,deckY-42,64,28,0,Math.PI,0);ctx.fill();
   // Dome windows (5 rainbow slots)
@@ -1462,18 +1451,18 @@ function drawWinSpaceNeedle(nX,nBase){
     ctx.fillRect(nX-38+i*19,deckY-62,14,16);
   }
 
-  // Thin shaft above deck
-  ctx.fillStyle='#6890a8';ctx.fillRect(nX-4,topY,8,deckY-76-topY);
+  // Thin shaft above deck — white
+  ctx.fillStyle='#D8D4CC';ctx.fillRect(nX-4,topY,8,deckY-76-topY);
 
-  // Antenna – 3 sections decreasing width
-  ctx.strokeStyle='#8aa8b8';ctx.lineWidth=5;
+  // Antenna — silver white, 3 sections
+  ctx.strokeStyle='#D0CCC4';ctx.lineWidth=5;
   ctx.beginPath();ctx.moveTo(nX,deckY-76);ctx.lineTo(nX,topY);ctx.stroke();
   ctx.lineWidth=3;
   ctx.beginPath();ctx.moveTo(nX,topY);ctx.lineTo(nX,topY-48);ctx.stroke();
-  ctx.lineWidth=1.5;ctx.strokeStyle='#b0c8d8';
+  ctx.lineWidth=1.5;ctx.strokeStyle='#E0DCD4';
   ctx.beginPath();ctx.moveTo(nX,topY-48);ctx.lineTo(nX,antY);ctx.stroke();
   // Tip ball
-  ctx.fillStyle='#ddf0ff';ctx.beginPath();ctx.arc(nX,antY+3,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#F8F6F0';ctx.beginPath();ctx.arc(nX,antY+3,5,0,Math.PI*2);ctx.fill();
   // Pulsing red beacon
   ctx.fillStyle='#ff2222';ctx.beginPath();ctx.arc(nX,antY,7,0,Math.PI*2);ctx.fill();
   const pulse=0.2+0.8*Math.sin(winFrame*0.20);
@@ -1551,6 +1540,249 @@ function drawOrca(cx,cy,flip,t){
   ctx.restore();
 }
 
+// ── SMOOTH CANVAS-DRAWN JIMOTHY (win scene only — no pixelation) ──
+function drawWinJimothy(cx,cy,frame){
+  ctx.save();
+  const bob=Math.sin(frame*0.15)*10;
+  const danceFlip=Math.floor(frame/40)%2;
+  ctx.translate(cx,cy+bob);
+  if(danceFlip)ctx.scale(-1,1);
+  // Coordinates: (0,0) = foot level centre. Negative Y = up.
+
+  const legA=Math.sin(frame*0.18)*8;
+
+  // ── Body (the iconic Jimothy hump silhouette) ──
+  const bg=ctx.createRadialGradient(-12,-62,8,0,-52,68);
+  bg.addColorStop(0,'#7E7E7E');bg.addColorStop(0.42,'#565656');bg.addColorStop(1,'#1C1C1C');
+  ctx.fillStyle=bg;
+  ctx.beginPath();
+  ctx.moveTo(-44,-14);
+  ctx.bezierCurveTo(-52,-38,-36,-96,-2,-108);   // back arch up
+  ctx.bezierCurveTo(22,-116,46,-84,58,-58);       // back peak → neck
+  ctx.bezierCurveTo(66,-38,62,-10,54,4);          // chest front
+  ctx.bezierCurveTo(38,18,14,26,-4,24);           // belly
+  ctx.bezierCurveTo(-24,22,-42,8,-44,-14);        // back to tail
+  ctx.closePath();ctx.fill();
+
+  // Belly lighter fur
+  const bel=ctx.createRadialGradient(16,6,0,16,6,38);
+  bel.addColorStop(0,'#BCB4A4');bel.addColorStop(0.55,'rgba(148,138,120,0.3)');bel.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=bel;
+  ctx.beginPath();ctx.ellipse(16,4,36,18,0.1,0,Math.PI*2);ctx.fill();
+
+  // ── Tail ──
+  ctx.fillStyle='#4A4A4A';
+  ctx.beginPath();
+  ctx.moveTo(-40,-12);
+  ctx.bezierCurveTo(-60,-22,-68,4,-55,20);
+  ctx.bezierCurveTo(-46,30,-36,18,-38,4);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(185,172,150,0.55)';
+  ctx.beginPath();ctx.ellipse(-54,5,10,5,0.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(40,32,24,0.45)';
+  ctx.beginPath();ctx.ellipse(-54,12,10,4,0.5,0,Math.PI*2);ctx.fill();
+
+  // ── Hind legs ──
+  ctx.fillStyle='#383838';
+  // back-left
+  ctx.beginPath();ctx.moveTo(-20,20);
+  ctx.bezierCurveTo(-28,28,-30,42,-24,52);ctx.bezierCurveTo(-20,58,-10,56,-8,48);
+  ctx.bezierCurveTo(-6,38,-10,24,-6,18);ctx.closePath();ctx.fill();
+  // front-left
+  ctx.fillStyle='#424242';
+  ctx.beginPath();ctx.moveTo(14,22);
+  ctx.bezierCurveTo(8,30,6,44,10,54);ctx.bezierCurveTo(14,60,24,58,26,50);
+  ctx.bezierCurveTo(28,40,24,28,26,20);ctx.closePath();ctx.fill();
+  // paws
+  ctx.fillStyle='#222';
+  ctx.beginPath();ctx.ellipse(-16,54,11,5,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(18,56,11,5,0,0,Math.PI*2);ctx.fill();
+
+  // ── Front legs (animated for dancing) ──
+  ctx.fillStyle='#3A3A3A';
+  // front-right (raised when legA>0)
+  ctx.beginPath();ctx.moveTo(40,10+legA);
+  ctx.bezierCurveTo(38,22,40,38,46,46);ctx.bezierCurveTo(50,52,60,50,62,42);
+  ctx.bezierCurveTo(64,32,60,20,60,12);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#303030';
+  // back-right
+  ctx.beginPath();ctx.moveTo(-2,22-legA);
+  ctx.bezierCurveTo(-6,32,-6,46,0,54);ctx.bezierCurveTo(4,60,14,58,16,50);
+  ctx.bezierCurveTo(18,40,12,28,14,20);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#1C1C1C';
+  ctx.beginPath();ctx.ellipse(50,48+legA,11,5,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(8,56-legA,11,5,0,0,Math.PI*2);ctx.fill();
+
+  // ── Head (small vs body — Jimothy's short-spine look) ──
+  const hx=56,hy=-56;
+  ctx.fillStyle='#5A5A5A';
+  ctx.beginPath();ctx.ellipse(hx,hy,23,20,0.12,0,Math.PI*2);ctx.fill();
+  // ears
+  ctx.fillStyle='#3E3E3E';
+  ctx.beginPath();ctx.ellipse(hx-9,hy-20,9,7,-0.35,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#363636';
+  ctx.beginPath();ctx.ellipse(hx+7,hy-18,7,6,0.2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#6A3848';
+  ctx.beginPath();ctx.ellipse(hx-9,hy-20,5,3,-0.35,0,Math.PI*2);ctx.fill();
+  // white lower face / muzzle
+  ctx.fillStyle='#D8D0C0';
+  ctx.beginPath();ctx.ellipse(hx+8,hy+6,15,11,0.1,0,Math.PI*2);ctx.fill();
+  // BLACK raccoon eye mask
+  ctx.fillStyle='#181818';
+  ctx.beginPath();ctx.ellipse(hx+2,hy-5,18,10,0.15,0,Math.PI*2);ctx.fill();
+  // eye white
+  ctx.fillStyle='#EBEBEB';
+  ctx.beginPath();ctx.ellipse(hx+12,hy-6,6,5.5,0,0,Math.PI*2);ctx.fill();
+  // pupil
+  ctx.fillStyle='#0A0A0A';
+  ctx.beginPath();ctx.arc(hx+13,hy-6,3.5,0,Math.PI*2);ctx.fill();
+  // shine
+  ctx.fillStyle='#FFF';
+  ctx.beginPath();ctx.arc(hx+15,hy-8,1.4,0,Math.PI*2);ctx.fill();
+  // nose
+  ctx.fillStyle='#181818';
+  ctx.beginPath();ctx.ellipse(hx+22,hy+2,5.5,4,0.1,0,Math.PI*2);ctx.fill();
+  // whisker dots
+  ctx.fillStyle='#181818';
+  [[4,5],[8,7],[4,9]].forEach(([ox,oy])=>{ctx.beginPath();ctx.arc(hx+ox,hy+oy,1.3,0,Math.PI*2);ctx.fill();});
+
+  ctx.restore();
+}
+
+// ── SEATTLE GREAT WHEEL ──
+function drawGreatWheel(cx,base,frame){
+  const r=56;
+  const axleY=base-r-28;
+
+  // Support A-frame
+  ctx.fillStyle='#D0CCCA';
+  ctx.beginPath();ctx.moveTo(cx-r*0.68,base);ctx.lineTo(cx-4,axleY);ctx.lineTo(cx+4,axleY);ctx.lineTo(cx-r*0.68+12,base);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(cx+r*0.68,base);ctx.lineTo(cx-4,axleY);ctx.lineTo(cx+4,axleY);ctx.lineTo(cx+r*0.68-12,base);ctx.closePath();ctx.fill();
+  // Cross brace
+  ctx.strokeStyle='#C8C4BC';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(cx-r*0.5,base-26);ctx.lineTo(cx+r*0.5,base-26);ctx.stroke();
+
+  // Pier base
+  ctx.fillStyle='#8A9090';ctx.fillRect(cx-r*0.72,base-8,r*1.44,10);
+
+  // Spokes (16)
+  const rot=frame*0.010;
+  ctx.strokeStyle='#C4C0B8';ctx.lineWidth=1.8;
+  for(let i=0;i<16;i++){
+    const a=rot+(i/16)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,axleY);ctx.lineTo(cx+Math.cos(a)*r,axleY+Math.sin(a)*r);ctx.stroke();
+  }
+  // Outer rim
+  ctx.strokeStyle='#D0CCC4';ctx.lineWidth=5;
+  ctx.beginPath();ctx.arc(cx,axleY,r,0,Math.PI*2);ctx.stroke();
+  // Inner ring
+  ctx.strokeStyle='#C0BCB4';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(cx,axleY,r*0.62,0,Math.PI*2);ctx.stroke();
+
+  // LED glow
+  const lh=(frame*3)%360;
+  ctx.save();ctx.shadowColor=`hsl(${lh},100%,65%)`;ctx.shadowBlur=14;
+  ctx.strokeStyle=`hsla(${lh},100%,72%,0.9)`;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,axleY,r+3,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+
+  // Gondolas (20, colourful, rotating)
+  for(let i=0;i<20;i++){
+    const a=rot+(i/20)*Math.PI*2;
+    const gx=cx+Math.cos(a)*r;const gy=axleY+Math.sin(a)*r;
+    const gh=(i*18+frame*2)%360;
+    ctx.fillStyle=`hsl(${gh},72%,68%)`;
+    ctx.beginPath();ctx.roundRect(gx-5,gy,10,8,2);ctx.fill();
+    ctx.strokeStyle='#B8B4AC';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx,gy-4);ctx.stroke();
+  }
+  // Hub
+  ctx.fillStyle='#B4B0A8';ctx.beginPath();ctx.arc(cx,axleY,9,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#D8D4CC';ctx.beginPath();ctx.arc(cx,axleY,4,0,Math.PI*2);ctx.fill();
+}
+
+// ── PIKE PLACE MARKET ──
+function drawPikePlace(cx,base,frame){
+  // Building
+  ctx.fillStyle='#7A6040';
+  ctx.fillRect(cx-52,base-100,104,100);
+  // Brick texture rows
+  ctx.fillStyle='rgba(0,0,0,0.1)';
+  for(let r=0;r<8;r++) ctx.fillRect(cx-52,base-100+r*13,104,2);
+
+  // Windows (2 rows × 3)
+  for(let row=0;row<2;row++){
+    for(let col=0;col<3;col++){
+      const wx=cx-36+col*28,wy=base-92+row*42;
+      ctx.fillStyle='#FFE880';ctx.fillRect(wx,wy,20,26);
+      ctx.fillStyle='rgba(100,70,20,0.5)';
+      ctx.fillRect(wx+9,wy,2,26);ctx.fillRect(wx,wy+12,20,2);
+    }
+  }
+
+  // ── THE FAMOUS NEON SIGN ──
+  const sX=cx-52,sY=base-188,sW=104,sH=80;
+  // Wooden sign backing
+  ctx.fillStyle='#3A2010';ctx.fillRect(sX-5,sY-5,sW+10,sH+10);
+  // Red sign face
+  ctx.fillStyle='#780000';ctx.fillRect(sX,sY,sW,sH);
+  // Neon red border glow
+  ctx.save();
+  ctx.shadowColor='#FF2020';ctx.shadowBlur=18;
+  ctx.strokeStyle='#FF3030';ctx.lineWidth=2.5;
+  ctx.strokeRect(sX+4,sY+4,sW-8,sH-8);
+  ctx.restore();
+  // Sign text — glowing red neon
+  ctx.save();
+  ctx.shadowColor='#FF9090';ctx.shadowBlur=12;
+  ctx.fillStyle='#FFBBBB';ctx.textAlign='center';
+  ctx.font='bold 14px Courier New';
+  ctx.fillText('PUBLIC',cx,sY+22);
+  ctx.fillText('MARKET',cx,sY+40);
+  ctx.font='bold 11px Courier New';
+  ctx.fillStyle='#FF9999';ctx.shadowColor='#FF5050';
+  ctx.fillText('CENTER',cx,sY+57);
+  ctx.restore();
+  // Clock on sign (bottom-right corner)
+  const clkX=sX+sW-18,clkY=sY+sH-18;
+  ctx.save();
+  ctx.shadowColor='#FF3030';ctx.shadowBlur=10;
+  ctx.fillStyle='#AA0000';ctx.beginPath();ctx.arc(clkX,clkY,13,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#FF4040';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(clkX,clkY,13,0,Math.PI*2);ctx.stroke();
+  // Animated hands
+  const mA=frame*0.04,hA=frame*0.003;
+  ctx.strokeStyle='#FFCCCC';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(clkX,clkY);ctx.lineTo(clkX+Math.cos(mA-Math.PI/2)*9,clkY+Math.sin(mA-Math.PI/2)*9);ctx.stroke();
+  ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(clkX,clkY);ctx.lineTo(clkX+Math.cos(hA-Math.PI/2)*6,clkY+Math.sin(hA-Math.PI/2)*6);ctx.stroke();
+  ctx.restore();
+
+  // Red & white striped awning
+  ctx.save();
+  ctx.beginPath();ctx.rect(cx-56,base-30,112,22);ctx.clip();
+  for(let i=0;i<12;i++){
+    ctx.fillStyle=i%2===0?'#CC1010':'#F0EEEE';
+    ctx.fillRect(cx-56+i*10,base-30,10,22);
+  }
+  ctx.restore();
+  // Awning scallop edge
+  for(let i=0;i<11;i++){
+    ctx.fillStyle='#AA0808';
+    ctx.beginPath();ctx.arc(cx-50+i*10,base-8,5,0,Math.PI);ctx.fill();
+  }
+
+  // Entrance door
+  ctx.fillStyle='#2A1408';ctx.fillRect(cx-16,base-28,32,28);
+  ctx.fillStyle='#130608';ctx.fillRect(cx-14,base-26,28,26);
+
+  // Sign bracket arms
+  ctx.strokeStyle='#8A6030';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(sX,sY+sH/2);ctx.lineTo(cx-52,sY+sH/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sX+sW,sY+sH/2);ctx.lineTo(cx+52,sY+sH/2);ctx.stroke();
+
+  ctx.textAlign='left';
+}
+
 function drawWinScene(){
   const nBase=625;
 
@@ -1585,8 +1817,12 @@ function drawWinScene(){
   cg.addColorStop(0,'rgba(40,80,180,0)');cg.addColorStop(0.5,'rgba(60,100,220,0.2)');cg.addColorStop(1,'rgba(20,60,140,0)');
   ctx.fillStyle=cg;ctx.fillRect(0,VH*0.58,VW,VH*0.22);
 
-  // Space Needle
+  // Pike Place Market (left)
+  drawPikePlace(88,nBase,winFrame);
+  // Space Needle (centre)
   drawWinSpaceNeedle(VW/2,nBase);
+  // Seattle Great Wheel (right)
+  drawGreatWheel(390,nBase,winFrame);
 
   // Fireworks
   if(winFrame%32===0&&fireworks.length<16){
@@ -1622,7 +1858,7 @@ function drawWinScene(){
 
   // Water splash at base for each orca
   for(let s=0;s<2;s++){
-    const ox=s===0?82:VW-82;
+    const ox=s===0?52:VW-52;
     const splash=s===0?ljump:rjump;
     if(splash<0.15){
       for(let d=0;d<6;d++){
@@ -1634,20 +1870,15 @@ function drawWinScene(){
     }
   }
 
-  ctx.save();ctx.translate(82,lorcaY);ctx.rotate(lorcaTilt-0.3);ctx.translate(-82,-lorcaY);
-  drawOrca(82,lorcaY,false,winFrame);
+  ctx.save();ctx.translate(52,lorcaY);ctx.rotate(lorcaTilt-0.3);ctx.translate(-52,-lorcaY);
+  drawOrca(52,lorcaY,false,winFrame);
   ctx.restore();
-  ctx.save();ctx.translate(VW-82,rorcaY);ctx.rotate(rorcaTilt+0.3);ctx.translate(-(VW-82),-rorcaY);
-  drawOrca(VW-82,rorcaY,true,winFrame+40);
+  ctx.save();ctx.translate(VW-52,rorcaY);ctx.rotate(rorcaTilt+0.3);ctx.translate(-(VW-52),-rorcaY);
+  drawOrca(VW-52,rorcaY,true,winFrame+40);
   ctx.restore();
 
-  // ── Large Jimothy dancing (SC=6 → 120×108px) ──
-  const SC6=6;const jW=JIM_PW*SC6;const jH=JIM_PH*SC6;
-  const danceBob=Math.sin(winFrame*0.16)*14;
-  const danceFlip=Math.floor(winFrame/40)%2;
-  ctx.save();ctx.translate(VW/2,0);ctx.scale(danceFlip?-1:1,1);
-  px(Math.floor(winFrame/13)%2===0?JW1:JW2,-jW/2,nBase-jH-8+danceBob,SC6);
-  ctx.restore();
+  // ── Large Jimothy dancing (smooth Canvas API — no pixelation) ──
+  drawWinJimothy(VW/2,nBase,winFrame);
 
   // ── Confetti rain ──
   for(let i=0;i<30;i++){
