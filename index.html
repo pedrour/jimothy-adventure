@@ -12,45 +12,41 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{
   background:#0d1825;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100dvh;color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  height:100dvh;color:#fff;
   font-family:'Courier New',monospace;
   user-select:none;-webkit-user-select:none;overflow:hidden;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-#titlebar{
-  font-size:clamp(16px,3vw,26px);color:#ffcc44;letter-spacing:2px;
-  text-shadow:2px 2px 0 #2a4a8a;text-align:center;padding:3px 8px 2px;
-}
+#titlebar{display:none}
 canvas{
   display:block;image-rendering:pixelated;image-rendering:crisp-edges;
-  border:3px solid #2a4878;
-  box-shadow:0 0 0 1px #4a78c8,0 0 28px rgba(42,72,120,.85);
+  border:2px solid #2a4878;
   touch-action:none;cursor:default;
-  max-width:min(1600px,100vw - 6px);
-  max-height:min(800px,56vh);
+  /* Portrait — fills iPhone screen, aspect-ratio 460:700 */
+  width:min(100vw, calc((100dvh - 84px) * 460 / 700));
+  height:min(calc(100dvh - 84px), calc(100vw * 700 / 460));
+  flex-shrink:0;
 }
-#btmbar{
-  display:flex;justify-content:space-between;align-items:center;
-  width:100%;max-width:1606px;padding:2px 6px;
-  font-size:clamp(13px,2vw,18px);color:#3a5880;
-}
+#btmbar{display:none}
 #mob{
-  display:none;position:fixed;bottom:0;left:0;right:0;
-  padding:8px 16px 12px;
-  display:none;justify-content:space-between;align-items:flex-end;
-  pointer-events:none;
+  display:flex;
+  width:100%;max-width:460px;
+  height:84px;
+  padding:6px 12px 10px;
+  justify-content:space-between;align-items:flex-end;
+  background:rgba(8,16,32,0.96);
+  flex-shrink:0;
 }
 #mob button{
-  background:rgba(30,60,100,.85);color:#88bbff;
-  border:2px solid #3a6aae;padding:12px 18px;
-  font-family:'Courier New',monospace;font-size:clamp(13px,4vw,18px);
-  cursor:pointer;border-radius:6px;touch-action:none;pointer-events:all;
-  user-select:none;-webkit-user-select:none;min-width:52px;
+  background:rgba(30,60,100,.9);color:#88bbff;
+  border:2px solid #3a6aae;padding:10px 16px;
+  font-family:'Courier New',monospace;font-size:20px;
+  cursor:pointer;border-radius:8px;touch-action:none;pointer-events:all;
+  user-select:none;-webkit-user-select:none;min-width:54px;
 }
 #mob button:active{background:rgba(60,100,160,.95)}
 #mob-left{display:flex;gap:8px}
-#mob-right{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+#mob-right{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
 </style>
 </head>
 <body>
@@ -76,13 +72,13 @@ canvas{
 
 const C = document.getElementById('c');
 const ctx = C.getContext('2d');
-C.width = 1600; C.height = 800;
+C.width = 460; C.height = 700;
 
-const VW=1600,VH=800,WORLD_W=7400;
+const VW=460,VH=700,WORLD_W=7400;
 const SC=3;
 const JIM_PW=20,JIM_PH=18,JIM_W=60,JIM_H=54;
 const GRAVITY=0.46,JUMP_VY=-11.2,WALK_SPD=4.4;
-const GY=720; // ground Y (top surface)
+const GY=630; // ground Y (top surface)
 
 const COL={
   '.':null,'B':'#111111','G':'#585858','D':'#303030','L':'#909090',
@@ -225,48 +221,49 @@ const PLATFORMS=[
 ];
 
 // Food items: {x,y,type,pts,taken}
+// y = platform_top - 16 so items float clearly above surface, never inside
 const FOOD_DEFS=[
-  {x:320,  y:GY-100,type:'fish',  pts:15},
-  {x:600,  y:GY-118,type:'apple', pts:10},
-  {x:480,  y:GY-202,type:'pizza', pts:20},
+  {x:340,  y:GY-116,type:'fish',  pts:15},  // fence GY-100
+  {x:620,  y:GY-134,type:'apple', pts:10},  // fence GY-118
+  {x:510,  y:GY-218,type:'pizza', pts:20},  // branch GY-202
   {x:800,  y:GY-8,  type:'coffee',pts:8},
-  {x:960,  y:GY-108,type:'fish',  pts:15},
-  {x:840,  y:GY-218,type:'apple', pts:10},
-  {x:1260, y:GY-120,type:'burger',pts:25},
-  {x:1600, y:GY-104,type:'fish',  pts:15},
-  {x:1700, y:GY-222,type:'pizza', pts:20},
-  {x:1380, y:GY-210,type:'apple', pts:10},
+  {x:980,  y:GY-124,type:'fish',  pts:15},  // fence GY-108
+  {x:860,  y:GY-234,type:'apple', pts:10},  // branch GY-218
+  {x:1290, y:GY-136,type:'burger',pts:25},  // fence GY-120
+  {x:1620, y:GY-120,type:'fish',  pts:15},  // fence GY-104
+  {x:1730, y:GY-238,type:'pizza', pts:20},  // branch GY-222
+  {x:1400, y:GY-226,type:'apple', pts:10},  // branch GY-210
   {x:2000, y:GY-8,  type:'coffee',pts:8},
-  {x:2220, y:GY-110,type:'fish',  pts:15},
-  {x:2060, y:GY-208,type:'burger',pts:25},
+  {x:2240, y:GY-126,type:'fish',  pts:15},  // fence GY-110
+  {x:2090, y:GY-224,type:'burger',pts:25},  // branch GY-208
   {x:2400, y:GY-8,  type:'apple', pts:10},
-  {x:2560, y:GY-122,type:'fish',  pts:15},
-  {x:2640, y:GY-220,type:'pizza', pts:20},
-  {x:2900, y:GY-106,type:'coffee',pts:8},
-  {x:3000, y:GY-206,type:'apple', pts:10},
-  {x:3240, y:GY-118,type:'fish',  pts:15},
-  {x:3380, y:GY-216,type:'burger',pts:25},
+  {x:2580, y:GY-138,type:'fish',  pts:15},  // fence GY-122
+  {x:2670, y:GY-236,type:'pizza', pts:20},  // branch GY-220
+  {x:2920, y:GY-122,type:'coffee',pts:8},   // fence GY-106
+  {x:3020, y:GY-222,type:'apple', pts:10},  // branch GY-206
+  {x:3260, y:GY-134,type:'fish',  pts:15},  // fence GY-118
+  {x:3410, y:GY-232,type:'burger',pts:25},  // branch GY-216
   {x:3600, y:GY-8,  type:'coffee',pts:8},
-  {x:3940, y:GY-120,type:'fish',  pts:15},
-  {x:4080, y:GY-222,type:'pizza', pts:20},
-  {x:4300, y:GY-104,type:'apple', pts:10},
-  {x:4640, y:GY-116,type:'fish',  pts:15},
-  {x:4820, y:GY-218,type:'burger',pts:25},
+  {x:3960, y:GY-136,type:'fish',  pts:15},  // fence GY-120
+  {x:4110, y:GY-238,type:'pizza', pts:20},  // branch GY-222
+  {x:4320, y:GY-120,type:'apple', pts:10},  // fence GY-104
+  {x:4660, y:GY-132,type:'fish',  pts:15},  // fence GY-116
+  {x:4850, y:GY-234,type:'burger',pts:25},  // branch GY-218
   {x:5000, y:GY-8,  type:'coffee',pts:8},
   {x:5200, y:GY-8,  type:'fish',  pts:15},
-  {x:5340, y:GY-120,type:'pizza', pts:20},
-  {x:5500, y:GY-216,type:'apple', pts:10},
-  {x:5700, y:GY-108,type:'fish',  pts:15},
-  {x:5840, y:GY-208,type:'burger',pts:25},
+  {x:5360, y:GY-136,type:'pizza', pts:20},  // fence GY-120
+  {x:5530, y:GY-232,type:'apple', pts:10},  // branch GY-216
+  {x:5720, y:GY-124,type:'fish',  pts:15},  // fence GY-108
+  {x:5870, y:GY-224,type:'burger',pts:25},  // branch GY-208
   {x:6000, y:GY-8,  type:'coffee',pts:8},
-  {x:6180, y:GY-220,type:'pizza', pts:20},
-  {x:6340, y:GY-120,type:'fish',  pts:15},
-  {x:6540, y:GY-212,type:'apple', pts:10},
-  {x:6700, y:GY-104,type:'burger',pts:25},
-  {x:6880, y:GY-206,type:'coffee',pts:8},
-  {x:7020, y:GY-114,type:'fish',  pts:15},
+  {x:6210, y:GY-236,type:'pizza', pts:20},  // branch GY-220
+  {x:6370, y:GY-136,type:'fish',  pts:15},  // fence GY-120
+  {x:6570, y:GY-228,type:'apple', pts:10},  // branch GY-212
+  {x:6730, y:GY-120,type:'burger',pts:25},  // fence GY-104
+  {x:6910, y:GY-222,type:'coffee',pts:8},   // branch GY-206
+  {x:7050, y:GY-130,type:'fish',  pts:15},  // fence GY-114
   {x:7200, y:GY-8,  type:'apple', pts:10},
-  {x:7300, y:GY-8,  type:'pizza', pts:20},
+  {x:7310, y:GY-8,  type:'pizza', pts:20},
 ];
 let food;
 
@@ -467,17 +464,28 @@ function drawApartment(sx,w,h){
 function drawBg(){
   // Sky — Seattle blue-gray
   const sg=ctx.createLinearGradient(0,0,0,VH);
-  sg.addColorStop(0,'#2860b8');sg.addColorStop(0.35,'#4488cc');sg.addColorStop(0.72,'#68aad8');sg.addColorStop(1,'#98c8e8');
+  sg.addColorStop(0,'#1a50a8');sg.addColorStop(0.35,'#3878c0');sg.addColorStop(0.72,'#60a0d4');sg.addColorStop(1,'#88bce4');
   ctx.fillStyle=sg;ctx.fillRect(0,0,VW,VH);
 
-  // Soft cloud wisps — bright daytime
-  [0,340,680,1100,1500,1900,2400,2900].forEach((seed,i)=>{
-    const cx=((seed-camX*0.01)%(VW+600))-300;
-    const cy=55+i*14;
-    ctx.fillStyle=`rgba(255,255,255,${0.18+i%3*0.06})`;
-    ctx.beginPath();ctx.ellipse(cx,cy,155+i*16,26+i*3,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(cx-65,cy+12,100,19,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(cx+80,cy+8,90,16,0,0,Math.PI*2);ctx.fill();
+  // Sun — upper right, parallax 0%
+  const sunX=VW*0.82,sunY=70;
+  const sunG=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,70);
+  sunG.addColorStop(0,'rgba(255,248,180,1)');sunG.addColorStop(0.45,'rgba(255,220,80,0.9)');
+  sunG.addColorStop(0.75,'rgba(255,180,40,0.3)');sunG.addColorStop(1,'rgba(255,160,0,0)');
+  ctx.fillStyle=sunG;ctx.beginPath();ctx.arc(sunX,sunY,70,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,200,0.95)';ctx.beginPath();ctx.arc(sunX,sunY,28,0,Math.PI*2);ctx.fill();
+
+  // Clouds — bright puffy daytime
+  [0,260,520,820,1120,1480].forEach((seed,i)=>{
+    const cx=((seed-camX*0.008)%(VW+400))-200;
+    const cy=38+i*18;
+    const op=0.82+i%3*0.06;
+    ctx.fillStyle=`rgba(255,255,255,${op})`;
+    ctx.beginPath();ctx.ellipse(cx,cy,80+i*12,22+i*2,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx-38,cy+8,52,16,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx+45,cy+6,48,15,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx+10,cy-14,42,16,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx-20,cy-10,36,14,0,0,Math.PI*2);ctx.fill();
   });
 
   // OLYMPIC MOUNTAINS (west, parallax 1.5%)
@@ -564,7 +572,7 @@ function drawBg(){
   }
 
   // SEATTLE SKYLINE + SPACE NEEDLE (parallax 6%)
-  const snX=570-camX*0.06;
+  const snX=VW*0.5-camX*0.06;
   if(snX>-450&&snX<VW+450){
     // Downtown buildings
     ctx.fillStyle='#3a5068';
@@ -1047,18 +1055,21 @@ function drawHUD(){
   // Win message
   if(won){
     ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(VW/2-220,VH/2-50,440,100);
-    ctx.fillStyle='#ffcc44';ctx.font='bold 40px Courier New';ctx.textAlign='center';
-    ctx.fillText('🦝 Jimothy is FULL! Great scavenge! 🦝',VW/2,VH/2-18);
-    ctx.fillStyle='#88bbff';ctx.font='22px Courier New';
-    ctx.fillText(`Total: ${score} bites  |  Press SPACE to play again`,VW/2,VH/2+28);
+    ctx.fillStyle='#ffcc44';ctx.font='bold 28px Courier New';ctx.textAlign='center';
+    ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH/2-22);
+    ctx.fillStyle='#88ddff';ctx.font='18px Courier New';
+    ctx.fillText('Great scavenge!',VW/2,VH/2+10);
+    ctx.fillStyle='#aabbdd';ctx.font='15px Courier New';
+    ctx.fillText(`${score} bites  —  tap to play again`,VW/2,VH/2+36);
     ctx.textAlign='left';
   }
 
   // Controls reminder (fades after 8s)
   if(frame<480){
     const a=Math.max(0,(480-frame)/180);
-    ctx.fillStyle=`rgba(120,180,255,${a*0.9})`;ctx.font='19px Courier New';ctx.textAlign='center';
-    ctx.fillText('← → to move  |  SPACE to jump  |  S near trash to rummage',VW/2,VH-18);
+    ctx.fillStyle=`rgba(120,180,255,${a*0.9})`;ctx.font='16px Courier New';ctx.textAlign='center';
+    ctx.fillText('← → MOVE  |  SPACE JUMP',VW/2,VH-34);
+    ctx.fillText('S to rummage trash',VW/2,VH-14);
     ctx.textAlign='left';
   }
 }
@@ -1196,16 +1207,16 @@ function init(){
 
 // ── MOBILE ──
 function setupMobile(){
-  if(!('ontouchstart' in window||navigator.maxTouchPoints>0))return;
-  document.getElementById('mob').style.display='flex';
-  document.getElementById('hint').style.display='none';
-
+  // Always show on-screen buttons (touch or keyboard both work)
   function hold(id,prop){
     const el=document.getElementById(id);
     el.addEventListener('touchstart',e=>{e.preventDefault();mob[prop]=true;
       if(audio&&audio.state==='suspended')audio.resume();},{passive:false});
     el.addEventListener('touchend',e=>{e.preventDefault();mob[prop]=false;},{passive:false});
     el.addEventListener('touchcancel',()=>{mob[prop]=false;});
+    // Mouse fallback for desktop testing
+    el.addEventListener('mousedown',e=>{mob[prop]=true;});
+    el.addEventListener('mouseup',()=>{mob[prop]=false;});
   }
   hold('btn-l','l');hold('btn-r','r');hold('btn-j','j');hold('btn-d','d');
 }
