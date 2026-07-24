@@ -27,12 +27,12 @@ canvas{
   border:3px solid #2a4878;
   box-shadow:0 0 0 1px #4a78c8,0 0 28px rgba(42,72,120,.85);
   touch-action:none;cursor:default;
-  max-width:min(1200px,100vw - 6px);
-  max-height:min(640px,52vh);
+  max-width:min(1600px,100vw - 6px);
+  max-height:min(800px,56vh);
 }
 #btmbar{
   display:flex;justify-content:space-between;align-items:center;
-  width:100%;max-width:1206px;padding:2px 6px;
+  width:100%;max-width:1606px;padding:2px 6px;
   font-size:clamp(13px,2vw,18px);color:#3a5880;
 }
 #mob{
@@ -76,13 +76,13 @@ canvas{
 
 const C = document.getElementById('c');
 const ctx = C.getContext('2d');
-C.width = 1200; C.height = 640;
+C.width = 1600; C.height = 800;
 
-const VW=1200,VH=640,WORLD_W=5800;
+const VW=1600,VH=800,WORLD_W=7400;
 const SC=3;
 const JIM_PW=20,JIM_PH=18,JIM_W=60,JIM_H=54;
 const GRAVITY=0.46,JUMP_VY=-11.2,WALK_SPD=4.4;
-const GY=570; // ground Y (top surface)
+const GY=720; // ground Y (top surface)
 
 const COL={
   '.':null,'B':'#111111','G':'#585858','D':'#303030','L':'#909090',
@@ -197,6 +197,11 @@ const PLATFORMS=[
   {x:4600,  y:GY-116,w:200,h:116,type:'fence'},
   {x:4960,  y:GY-110,w:190,h:110,type:'fence'},
   {x:5300,  y:GY-120,w:210,h:120,type:'fence'},
+  {x:5660,  y:GY-108,w:190,h:108,type:'fence'},
+  {x:6000,  y:GY-116,w:200,h:116,type:'fence'},
+  {x:6340,  y:GY-120,w:210,h:120,type:'fence'},
+  {x:6700,  y:GY-104,w:180,h:104,type:'fence'},
+  {x:7020,  y:GY-114,w:200,h:114,type:'fence'},
   // Tree branches (reach via fence→branch chain jump)
   {x:480,   y:GY-202,w:88,h:12,type:'branch'},
   {x:840,   y:GY-218,w:80,h:12,type:'branch'},
@@ -211,56 +216,85 @@ const PLATFORMS=[
   {x:4460,  y:GY-208,w:88,h:12,type:'branch'},
   {x:4820,  y:GY-218,w:84,h:12,type:'branch'},
   {x:5160,  y:GY-212,w:90,h:12,type:'branch'},
+  {x:5500,  y:GY-216,w:86,h:12,type:'branch'},
+  {x:5840,  y:GY-208,w:82,h:12,type:'branch'},
+  {x:6180,  y:GY-220,w:88,h:12,type:'branch'},
+  {x:6540,  y:GY-212,w:84,h:12,type:'branch'},
+  {x:6880,  y:GY-206,w:90,h:12,type:'branch'},
+  {x:7220,  y:GY-218,w:82,h:12,type:'branch'},
 ];
 
 // Food items: {x,y,type,pts,taken}
 const FOOD_DEFS=[
-  {x:320,  y:GY-120,type:'fish',  pts:15},
-  {x:600,  y:GY-138,type:'apple', pts:10},
-  {x:480,  y:GY-218,type:'pizza', pts:20}, // on branch
+  {x:320,  y:GY-100,type:'fish',  pts:15},
+  {x:600,  y:GY-118,type:'apple', pts:10},
+  {x:480,  y:GY-202,type:'pizza', pts:20},
   {x:800,  y:GY-8,  type:'coffee',pts:8},
-  {x:960,  y:GY-128,type:'fish',  pts:15},
-  {x:840,  y:GY-234,type:'apple', pts:10}, // on branch
-  {x:1260, y:GY-140,type:'burger',pts:25},
-  {x:1600, y:GY-124,type:'fish',  pts:15},
-  {x:1700, y:GY-238,type:'pizza', pts:20}, // on branch
-  {x:1380, y:GY-226,type:'apple', pts:10},
+  {x:960,  y:GY-108,type:'fish',  pts:15},
+  {x:840,  y:GY-218,type:'apple', pts:10},
+  {x:1260, y:GY-120,type:'burger',pts:25},
+  {x:1600, y:GY-104,type:'fish',  pts:15},
+  {x:1700, y:GY-222,type:'pizza', pts:20},
+  {x:1380, y:GY-210,type:'apple', pts:10},
   {x:2000, y:GY-8,  type:'coffee',pts:8},
-  {x:2220, y:GY-130,type:'fish',  pts:15},
-  {x:2060, y:GY-224,type:'burger',pts:25},
+  {x:2220, y:GY-110,type:'fish',  pts:15},
+  {x:2060, y:GY-208,type:'burger',pts:25},
   {x:2400, y:GY-8,  type:'apple', pts:10},
-  {x:2560, y:GY-142,type:'fish',  pts:15},
-  {x:2640, y:GY-236,type:'pizza', pts:20},
-  {x:2900, y:GY-126,type:'coffee',pts:8},
-  {x:3000, y:GY-222,type:'apple', pts:10},
-  {x:3240, y:GY-138,type:'fish',  pts:15},
-  {x:3380, y:GY-232,type:'burger',pts:25},
+  {x:2560, y:GY-122,type:'fish',  pts:15},
+  {x:2640, y:GY-220,type:'pizza', pts:20},
+  {x:2900, y:GY-106,type:'coffee',pts:8},
+  {x:3000, y:GY-206,type:'apple', pts:10},
+  {x:3240, y:GY-118,type:'fish',  pts:15},
+  {x:3380, y:GY-216,type:'burger',pts:25},
   {x:3600, y:GY-8,  type:'coffee',pts:8},
-  {x:3940, y:GY-140,type:'fish',  pts:15},
-  {x:4080, y:GY-238,type:'pizza', pts:20},
-  {x:4300, y:GY-124,type:'apple', pts:10},
-  {x:4640, y:GY-136,type:'fish',  pts:15},
-  {x:4820, y:GY-234,type:'burger',pts:25},
+  {x:3940, y:GY-120,type:'fish',  pts:15},
+  {x:4080, y:GY-222,type:'pizza', pts:20},
+  {x:4300, y:GY-104,type:'apple', pts:10},
+  {x:4640, y:GY-116,type:'fish',  pts:15},
+  {x:4820, y:GY-218,type:'burger',pts:25},
   {x:5000, y:GY-8,  type:'coffee',pts:8},
   {x:5200, y:GY-8,  type:'fish',  pts:15},
-  {x:5340, y:GY-140,type:'pizza', pts:20},
-  {x:5500, y:GY-8,  type:'apple', pts:10},
+  {x:5340, y:GY-120,type:'pizza', pts:20},
+  {x:5500, y:GY-216,type:'apple', pts:10},
+  {x:5700, y:GY-108,type:'fish',  pts:15},
+  {x:5840, y:GY-208,type:'burger',pts:25},
+  {x:6000, y:GY-8,  type:'coffee',pts:8},
+  {x:6180, y:GY-220,type:'pizza', pts:20},
+  {x:6340, y:GY-120,type:'fish',  pts:15},
+  {x:6540, y:GY-212,type:'apple', pts:10},
+  {x:6700, y:GY-104,type:'burger',pts:25},
+  {x:6880, y:GY-206,type:'coffee',pts:8},
+  {x:7020, y:GY-114,type:'fish',  pts:15},
+  {x:7200, y:GY-8,  type:'apple', pts:10},
+  {x:7300, y:GY-8,  type:'pizza', pts:20},
 ];
 let food;
 
 // Trash cans: {x,y,w,h,searched}
 const CAN_DEFS=[
-  {x:460, y:GY-54,w:48,h:54},{x:870, y:GY-54,w:48,h:54},
-  {x:1480,y:GY-54,w:48,h:54},{x:2100,y:GY-54,w:48,h:54},
-  {x:2780,y:GY-54,w:48,h:54},{x:3520,y:GY-54,w:48,h:54},
-  {x:4020,y:GY-54,w:48,h:54},{x:4680,y:GY-54,w:48,h:54},
-  {x:5420,y:GY-54,w:48,h:54},
+  {x:460, y:GY-54, w:48,h:54},
+  {x:870, y:GY-54, w:48,h:54},
+  {x:1200,y:GY-78, w:70,h:78, big:true},
+  {x:1480,y:GY-54, w:48,h:54},
+  {x:2100,y:GY-54, w:48,h:54},
+  {x:2780,y:GY-54, w:48,h:54},
+  {x:3100,y:GY-78, w:70,h:78, big:true},
+  {x:3520,y:GY-54, w:48,h:54},
+  {x:4020,y:GY-54, w:48,h:54},
+  {x:4680,y:GY-54, w:48,h:54},
+  {x:4900,y:GY-78, w:70,h:78, big:true},
+  {x:5420,y:GY-54, w:48,h:54},
+  {x:5900,y:GY-54, w:48,h:54},
+  {x:6300,y:GY-78, w:70,h:78, big:true},
+  {x:6800,y:GY-54, w:48,h:54},
+  {x:7150,y:GY-54, w:48,h:54},
 ];
 let cans;
 
 // Tree trunk positions (world x, branches attached to them visually)
 const TREE_XS=[
-  524,880,1386,1742,2100,2682,3024,3422,3766,4122,4504,4862,5206
+  524,880,1386,1742,2100,2682,3024,3422,3766,4122,4504,4862,5206,
+  5580,5940,6300,6660,7020,7360
 ];
 
 // Background building layout (parallax-space x, 0-2100 covers full camera range at 0.20x)
@@ -278,6 +312,10 @@ const BLDG_LAYOUT=[
   {x:1640,type:'townhome', w:54,h:158},{x:1702,type:'townhome',w:54,h:148},{x:1764,type:'townhome',w:54,h:165},
   {x:1848,type:'craftsman',w:142,h:90},
   {x:2025,type:'apartment',w:160,h:118},
+  {x:2218,type:'townhome', w:54,h:155},{x:2280,type:'townhome',w:54,h:165},{x:2342,type:'townhome',w:54,h:148},
+  {x:2428,type:'craftsman',w:144,h:92},
+  {x:2600,type:'apartment',w:162,h:122},
+  {x:2790,type:'craftsman',w:148,h:88},
 ];
 
 // Game state
@@ -429,17 +467,17 @@ function drawApartment(sx,w,h){
 function drawBg(){
   // Sky — Seattle blue-gray
   const sg=ctx.createLinearGradient(0,0,0,VH);
-  sg.addColorStop(0,'#1a3050');sg.addColorStop(0.42,'#2d5070');sg.addColorStop(0.80,'#508098');sg.addColorStop(1,'#6e9aaa');
+  sg.addColorStop(0,'#2860b8');sg.addColorStop(0.35,'#4488cc');sg.addColorStop(0.72,'#68aad8');sg.addColorStop(1,'#98c8e8');
   ctx.fillStyle=sg;ctx.fillRect(0,0,VW,VH);
 
-  // Soft cloud wisps
-  [0,340,680,1100,1500,1900].forEach((seed,i)=>{
-    const cx=((seed-camX*0.01)%(VW+500))-250;
-    const cy=48+i*12;
-    ctx.fillStyle=`rgba(165,195,215,${0.06+i%3*0.025})`;
-    ctx.beginPath();ctx.ellipse(cx,cy,145+i*18,22+i*4,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(cx-60,cy+11,95,17,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(cx+75,cy+7,85,15,0,0,Math.PI*2);ctx.fill();
+  // Soft cloud wisps — bright daytime
+  [0,340,680,1100,1500,1900,2400,2900].forEach((seed,i)=>{
+    const cx=((seed-camX*0.01)%(VW+600))-300;
+    const cy=55+i*14;
+    ctx.fillStyle=`rgba(255,255,255,${0.18+i%3*0.06})`;
+    ctx.beginPath();ctx.ellipse(cx,cy,155+i*16,26+i*3,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx-65,cy+12,100,19,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx+80,cy+8,90,16,0,0,Math.PI*2);ctx.fill();
   });
 
   // OLYMPIC MOUNTAINS (west, parallax 1.5%)
@@ -447,14 +485,14 @@ function drawBg(){
   [{dx:55,h:100},{dx:138,h:122},{dx:222,h:92},{dx:310,h:135},{dx:400,h:108},{dx:485,h:84},{dx:572,h:118},{dx:658,h:96},{dx:748,h:80}].forEach(({dx,h})=>{
     const ox=olX+dx;
     if(ox<-90||ox>VW+90) return;
-    ctx.fillStyle='#253848';
+    ctx.fillStyle='#4a6878';
     ctx.beginPath();ctx.moveTo(ox-70,GY+8);ctx.lineTo(ox,GY-h);ctx.lineTo(ox+70,GY+8);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#354858';
+    ctx.fillStyle='#607888';
     ctx.beginPath();ctx.moveTo(ox-42,GY+8);ctx.lineTo(ox,GY-h);ctx.lineTo(ox+45,GY+8);ctx.closePath();ctx.fill();
     // Snow caps
-    ctx.fillStyle='#7a9aaa';
+    ctx.fillStyle='#c8dde6';
     ctx.beginPath();ctx.moveTo(ox,GY-h);ctx.lineTo(ox-18,GY-h+28);ctx.lineTo(ox+15,GY-h+26);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#aabfca';
+    ctx.fillStyle='#e8f2f8';
     ctx.beginPath();ctx.moveTo(ox,GY-h);ctx.lineTo(ox-8,GY-h+14);ctx.lineTo(ox+7,GY-h+12);ctx.closePath();ctx.fill();
   });
 
@@ -462,7 +500,7 @@ function drawBg(){
   const rX=VW*0.67-camX*0.02;
   if(rX>-360&&rX<VW+360){
     // Outer dark mass
-    ctx.fillStyle='#263648';
+    ctx.fillStyle='#4a6270';
     ctx.beginPath();
     ctx.moveTo(rX-345,GY+10);
     ctx.quadraticCurveTo(rX-220,GY-115, rX-55,GY-238);
@@ -470,7 +508,7 @@ function drawBg(){
     ctx.quadraticCurveTo(rX+218,GY-112, rX+360,GY+10);
     ctx.closePath();ctx.fill();
     // Mid-tone layer (atmosphere)
-    ctx.fillStyle='#344a5e';
+    ctx.fillStyle='#5a7888';
     ctx.beginPath();
     ctx.moveTo(rX-238,GY+10);
     ctx.quadraticCurveTo(rX-148,GY-108, rX-42,GY-238);
@@ -478,7 +516,7 @@ function drawBg(){
     ctx.quadraticCurveTo(rX+155,GY-104, rX+265,GY+10);
     ctx.closePath();ctx.fill();
     // Lit NW face
-    ctx.fillStyle='#3e566a';
+    ctx.fillStyle='#6a8898';
     ctx.beginPath();
     ctx.moveTo(rX-130,GY+10);
     ctx.quadraticCurveTo(rX-68,GY-105, rX-8,GY-258);
@@ -529,7 +567,7 @@ function drawBg(){
   const snX=570-camX*0.06;
   if(snX>-450&&snX<VW+450){
     // Downtown buildings
-    ctx.fillStyle='#162030';
+    ctx.fillStyle='#3a5068';
     [[-265,82,40],[-218,106,36],[-174,138,44],[-120,122,38],[-68,92,40],[-18,96,42],[38,112,36],[84,80,40],[132,92,36]].forEach(([dx,bh,bw])=>{
       const bx=snX+dx;
       if(bx<-55||bx>VW+55) return;
@@ -802,18 +840,27 @@ function drawTrashCan(can){
   const sx=can.x-camX;
   if(sx+can.w<0||sx>VW)return;
   const {w,h}=can;const y=can.y;
+  const isBlue=!!can.big;
+  const cBody=isBlue?'#2255bb':'#58686e';
+  const cRib=isBlue?'#1a3e8a':'#48585e';
+  const cLid=isBlue?'#1a44a0':'#384850';
+  const cHi=isBlue?'#5588dd':'#788a90';
   if(!can.searched){
-    ctx.fillStyle='#58686e';ctx.fillRect(sx+2,y+8,w-4,h-8);
-    ctx.fillStyle='#48585e';
+    ctx.fillStyle=cBody;ctx.fillRect(sx+2,y+8,w-4,h-8);
+    ctx.fillStyle=cRib;
     for(let ry=y+14;ry<y+h-4;ry+=12)ctx.fillRect(sx+2,ry,w-4,2);
-    ctx.fillStyle='#384850';ctx.fillRect(sx-2,y,w+4,9);ctx.fillRect(sx,y-5,w,7);
-    ctx.strokeStyle='#788a90';ctx.lineWidth=2.5;
+    ctx.fillStyle=cLid;ctx.fillRect(sx-2,y,w+4,9);ctx.fillRect(sx,y-5,w,7);
+    ctx.strokeStyle=cHi;ctx.lineWidth=2.5;
     ctx.beginPath();ctx.arc(sx+w/2,y-1,7,Math.PI,0);ctx.stroke();
+    if(isBlue){
+      ctx.fillStyle='#88bbff';ctx.font='bold 13px Arial';ctx.textAlign='center';
+      ctx.fillText('♻',sx+w/2,y+h*0.55);ctx.textAlign='left';
+    }
   } else {
-    ctx.fillStyle='#58686e';ctx.fillRect(sx+2,y+14,w-4,h-14);
-    ctx.fillStyle='#48585e';for(let ry=y+20;ry<y+h-4;ry+=12)ctx.fillRect(sx+2,ry,w-4,2);
+    ctx.fillStyle=cBody;ctx.fillRect(sx+2,y+14,w-4,h-14);
+    ctx.fillStyle=cRib;for(let ry=y+20;ry<y+h-4;ry+=12)ctx.fillRect(sx+2,ry,w-4,2);
     ctx.save();ctx.translate(sx+2,y+9);ctx.rotate(-0.5);
-    ctx.fillStyle='#384850';ctx.fillRect(0,0,w+4,9);ctx.restore();
+    ctx.fillStyle=cLid;ctx.fillRect(0,0,w+4,9);ctx.restore();
     ctx.fillStyle='#3a2818';ctx.beginPath();ctx.ellipse(sx+w/2,y+10,12,6,0,0,Math.PI*2);ctx.fill();
   }
   // proximity hint
