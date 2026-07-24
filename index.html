@@ -160,22 +160,22 @@ function _drawJimCanvas(cx,cy,flip,jumping,walkTick){
   ctx.beginPath();ctx.arc(eyeX+1.5,eyeY-1.5,1.2,0,Math.PI*2);
   ctx.fillStyle='#FFFFFF';ctx.fill(); // shine
 
-  // ── MUZZLE / CHEEKS ──
+  // ── MUZZLE (lighter gray fur below mask, not a circle — just a subtle cheek area) ──
   ctx.beginPath();
-  ctx.ellipse(faceX+rx*0.22,faceY+ry*0.14,rx*0.22,ry*0.2,0,0,Math.PI*2);
-  ctx.fillStyle='#E8E0D0';ctx.fill();
+  ctx.ellipse(faceX+rx*0.18,faceY+ry*0.18,rx*0.16,ry*0.15,0,0,Math.PI*2);
+  ctx.fillStyle='#C8C2B4';ctx.fill();
 
-  // ── NOSE ──
+  // ── NOSE (small, dark charcoal — like a real raccoon) ──
   ctx.beginPath();
-  ctx.ellipse(faceX+rx*0.37,faceY+ry*0.1,3.5,2.5,0,0,Math.PI*2);
-  ctx.fillStyle='#CC6677';ctx.fill();
+  ctx.ellipse(faceX+rx*0.36,faceY+ry*0.1,2,1.5,0,0,Math.PI*2);
+  ctx.fillStyle='#1E1C1C';ctx.fill();
 
   // ── FRONT EAR ──
   const ear1X=cx+rx*0.28, ear1Y=cy-ry*0.84;
   ctx.beginPath();ctx.ellipse(ear1X,ear1Y,7,9,-0.25,0,Math.PI*2);
   ctx.fillStyle='#4A4540';ctx.fill();
-  ctx.beginPath();ctx.ellipse(ear1X,ear1Y+1,4.5,6,-0.25,0,Math.PI*2);
-  ctx.fillStyle='#C07888';ctx.fill();
+  ctx.beginPath();ctx.ellipse(ear1X,ear1Y+1,3.5,5,-0.25,0,Math.PI*2);
+  ctx.fillStyle='#7A6068';ctx.fill();
 
   // ── BODY OUTLINE ──
   ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
