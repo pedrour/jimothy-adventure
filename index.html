@@ -221,70 +221,33 @@ const PLATFORMS=[
 ];
 
 // Food items: {x,y,type,pts,taken}
-// y = platform_top - 16 so items float clearly above surface, never inside
+// 14 food items, all 16px above fence or branch tops — never on ground
 const FOOD_DEFS=[
-  {x:340,  y:GY-116,type:'fish',  pts:15},  // fence GY-100
-  {x:620,  y:GY-134,type:'apple', pts:10},  // fence GY-118
-  {x:510,  y:GY-218,type:'pizza', pts:20},  // branch GY-202
-  {x:800,  y:GY-8,  type:'coffee',pts:8},
-  {x:980,  y:GY-124,type:'fish',  pts:15},  // fence GY-108
-  {x:860,  y:GY-234,type:'apple', pts:10},  // branch GY-218
-  {x:1290, y:GY-136,type:'burger',pts:25},  // fence GY-120
-  {x:1620, y:GY-120,type:'fish',  pts:15},  // fence GY-104
-  {x:1730, y:GY-238,type:'pizza', pts:20},  // branch GY-222
-  {x:1400, y:GY-226,type:'apple', pts:10},  // branch GY-210
-  {x:2000, y:GY-8,  type:'coffee',pts:8},
-  {x:2240, y:GY-126,type:'fish',  pts:15},  // fence GY-110
-  {x:2090, y:GY-224,type:'burger',pts:25},  // branch GY-208
-  {x:2400, y:GY-8,  type:'apple', pts:10},
-  {x:2580, y:GY-138,type:'fish',  pts:15},  // fence GY-122
-  {x:2670, y:GY-236,type:'pizza', pts:20},  // branch GY-220
-  {x:2920, y:GY-122,type:'coffee',pts:8},   // fence GY-106
-  {x:3020, y:GY-222,type:'apple', pts:10},  // branch GY-206
-  {x:3260, y:GY-134,type:'fish',  pts:15},  // fence GY-118
-  {x:3410, y:GY-232,type:'burger',pts:25},  // branch GY-216
-  {x:3600, y:GY-8,  type:'coffee',pts:8},
-  {x:3960, y:GY-136,type:'fish',  pts:15},  // fence GY-120
-  {x:4110, y:GY-238,type:'pizza', pts:20},  // branch GY-222
-  {x:4320, y:GY-120,type:'apple', pts:10},  // fence GY-104
-  {x:4660, y:GY-132,type:'fish',  pts:15},  // fence GY-116
-  {x:4850, y:GY-234,type:'burger',pts:25},  // branch GY-218
-  {x:5000, y:GY-8,  type:'coffee',pts:8},
-  {x:5200, y:GY-8,  type:'fish',  pts:15},
-  {x:5360, y:GY-136,type:'pizza', pts:20},  // fence GY-120
-  {x:5530, y:GY-232,type:'apple', pts:10},  // branch GY-216
-  {x:5720, y:GY-124,type:'fish',  pts:15},  // fence GY-108
-  {x:5870, y:GY-224,type:'burger',pts:25},  // branch GY-208
-  {x:6000, y:GY-8,  type:'coffee',pts:8},
-  {x:6210, y:GY-236,type:'pizza', pts:20},  // branch GY-220
-  {x:6370, y:GY-136,type:'fish',  pts:15},  // fence GY-120
-  {x:6570, y:GY-228,type:'apple', pts:10},  // branch GY-212
-  {x:6730, y:GY-120,type:'burger',pts:25},  // fence GY-104
-  {x:6910, y:GY-222,type:'coffee',pts:8},   // branch GY-206
-  {x:7050, y:GY-130,type:'fish',  pts:15},  // fence GY-114
-  {x:7200, y:GY-8,  type:'apple', pts:10},
-  {x:7310, y:GY-8,  type:'pizza', pts:20},
+  {x:370,  y:GY-116,type:'fish',  pts:15},  // fence x=280 top=GY-100
+  {x:880,  y:GY-234,type:'apple', pts:10},  // branch x=840 top=GY-218
+  {x:1330, y:GY-136,type:'pizza', pts:20},  // fence x=1220 top=GY-120
+  {x:1742, y:GY-238,type:'burger',pts:25},  // branch x=1700 top=GY-222
+  {x:2275, y:GY-126,type:'coffee',pts:8},   // fence x=2180 top=GY-110
+  {x:2681, y:GY-236,type:'fish',  pts:15},  // branch x=2640 top=GY-220
+  {x:3300, y:GY-134,type:'apple', pts:10},  // fence x=3200 top=GY-118
+  {x:3422, y:GY-232,type:'pizza', pts:20},  // branch x=3380 top=GY-216
+  {x:4121, y:GY-238,type:'burger',pts:25},  // branch x=4080 top=GY-222
+  {x:4700, y:GY-132,type:'coffee',pts:8},   // fence x=4600 top=GY-116
+  {x:5205, y:GY-228,type:'fish',  pts:15},  // branch x=5160 top=GY-212
+  {x:5881, y:GY-224,type:'apple', pts:10},  // branch x=5840 top=GY-208
+  {x:6445, y:GY-136,type:'pizza', pts:20},  // fence x=6340 top=GY-120
+  {x:7261, y:GY-234,type:'burger',pts:25},  // branch x=7220 top=GY-218
 ];
 let food;
 
-// Trash cans: {x,y,w,h,searched}
+// 6 trash cans in ground gaps between fences (3 regular + 3 big blue)
 const CAN_DEFS=[
-  {x:460, y:GY-54, w:48,h:54},
-  {x:870, y:GY-54, w:48,h:54},
-  {x:1200,y:GY-78, w:70,h:78, big:true},
-  {x:1480,y:GY-54, w:48,h:54},
-  {x:2100,y:GY-54, w:48,h:54},
-  {x:2780,y:GY-54, w:48,h:54},
-  {x:3100,y:GY-78, w:70,h:78, big:true},
-  {x:3520,y:GY-54, w:48,h:54},
-  {x:4020,y:GY-54, w:48,h:54},
-  {x:4680,y:GY-54, w:48,h:54},
-  {x:4900,y:GY-78, w:70,h:78, big:true},
-  {x:5420,y:GY-54, w:48,h:54},
-  {x:5900,y:GY-54, w:48,h:54},
-  {x:6300,y:GY-78, w:70,h:78, big:true},
-  {x:6800,y:GY-54, w:48,h:54},
-  {x:7150,y:GY-54, w:48,h:54},
+  {x:500, y:GY-54, w:48,h:54},
+  {x:1490,y:GY-54, w:48,h:54},
+  {x:2790,y:GY-78, w:70,h:78, big:true},
+  {x:4180,y:GY-54, w:48,h:54},
+  {x:5570,y:GY-78, w:70,h:78, big:true},
+  {x:6940,y:GY-78, w:70,h:78, big:true},
 ];
 let cans;
 
@@ -316,7 +279,7 @@ const BLDG_LAYOUT=[
 ];
 
 // Game state
-let jim,camX,score,totalFood,popups,frame,won;
+let jim,camX,score,totalFood,popups,frame,won,winFrame,fireworks;
 let audio; try{audio=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}
 const keys={};
 const mob={l:false,r:false,j:false,d:false};
@@ -359,7 +322,12 @@ function beep(freq,dur,vol,type){
 }
 function sndJump(){beep(220,0.15,0.12,'sine');setTimeout(()=>beep(330,0.1,0.08,'sine'),60)}
 function sndCollect(){beep(520,0.08,0.15,'sine');setTimeout(()=>beep(780,0.1,0.12,'sine'),80)}
-function sndDig(){beep(80,0.2,0.1,'sawtooth');setTimeout(()=>beep(60,0.2,0.1,'sawtooth'),120)}
+function sndLoot(){
+  beep(440,0.08,0.13,'sine');
+  setTimeout(()=>beep(554,0.08,0.13,'sine'),90);
+  setTimeout(()=>beep(659,0.08,0.13,'sine'),180);
+  setTimeout(()=>beep(880,0.15,0.16,'sine'),280);
+}
 function sndWin(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.25,0.15,'sine'),i*120))}
 
 function doJump(){
@@ -376,7 +344,7 @@ function tryDig(){
     const ccx=can.x+can.w/2;
     if(Math.abs(cx-ccx)<54&&jim.y+JIM_H>=can.y){
       jim.digging=true;jim.digTick=0;jim.digTarget=can;
-      jim.vx=0;sndDig();
+      jim.vx=0;sndLoot();
       if(audio&&audio.state==='suspended')audio.resume();
       return;
     }
@@ -1009,12 +977,7 @@ function drawJim(){
   const flip=jim.facing<0;
 
   if(jim.digging){
-    // Show upside-down (diving into can)
-    ctx.save();
-    const dig_offset=Math.min(jim.digTick*0.4,JIM_H*0.65);
-    ctx.translate(sx+JIM_W/2,sy+JIM_H/2);ctx.scale(flip?-1:1,1);
-    px(JDG,-JIM_W/2,-JIM_H/2+dig_offset,SC);
-    ctx.restore();
+    drawRummageAnim(sx,sy,flip);
     return;
   }
 
@@ -1053,17 +1016,6 @@ function drawHUD(){
   });
 
   // Win message
-  if(won){
-    ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(VW/2-220,VH/2-50,440,100);
-    ctx.fillStyle='#ffcc44';ctx.font='bold 28px Courier New';ctx.textAlign='center';
-    ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH/2-22);
-    ctx.fillStyle='#88ddff';ctx.font='18px Courier New';
-    ctx.fillText('Great scavenge!',VW/2,VH/2+10);
-    ctx.fillStyle='#aabbdd';ctx.font='15px Courier New';
-    ctx.fillText(`${score} bites  —  tap to play again`,VW/2,VH/2+36);
-    ctx.textAlign='left';
-  }
-
   // Controls reminder (fades after 8s)
   if(frame<480){
     const a=Math.max(0,(480-frame)/180);
@@ -1078,9 +1030,10 @@ function drawHUD(){
 function update(){
   frame++;
 
-  // Win → only listen for restart
+  // Win → animate and restart after brief delay
   if(won){
-    if(keys['Space']||mob.j)init();
+    winFrame++;
+    if(winFrame>150&&(keys['Space']||mob.j))init();
     return;
   }
 
@@ -1185,13 +1138,201 @@ function update(){
   if(allFood&&allCans&&!won){won=true;sndWin();}
 }
 
+// ── RUMMAGE ANIMATION ──
+function drawRummageAnim(sx,sy,flip){
+  const can=jim.digTarget;
+  const csx=can.x-camX;
+  const t=jim.digTick;
+
+  // Jimothy bouncing next to can, facing it
+  const bob=Math.sin(t*0.28)*7;
+  ctx.save();
+  ctx.translate(sx+JIM_W/2,0);
+  ctx.scale(flip?-1:1,1);
+  px(t%18<9?JW1:JW2,-JIM_W/2,sy+bob,SC);
+  ctx.restore();
+
+  // Colourful sparkle burst expanding from can top
+  const SPARK=['#ffee44','#ff9922','#44ffbb','#ff66cc','#66ddff','#ffaa44','#88ff66','#ff4488'];
+  for(let i=0;i<8;i++){
+    const a=(i/8)*Math.PI*2-Math.PI/2;
+    const r=Math.min(t*1.8,55);
+    const px2=csx+can.w/2+Math.cos(a)*r;
+    const py2=can.y-6+Math.sin(a)*r*0.6;
+    const alpha=Math.max(0,(1-t/65)*(0.85+0.15*Math.sin(t*0.5+i)));
+    ctx.fillStyle=SPARK[i];ctx.globalAlpha=alpha;
+    ctx.beginPath();ctx.arc(px2,py2,4.5,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // Emojis floating up out of can
+  const EMOJIS=['🍖','⭐','💰','✨'];
+  EMOJIS.forEach((em,i)=>{
+    const st=i*14;
+    if(t>st&&t<st+52){
+      const p=(t-st)/52;
+      ctx.globalAlpha=1-p;
+      ctx.font='18px sans-serif';ctx.textAlign='center';
+      ctx.fillText(em,csx+can.w/2+(i-1.5)*18,can.y-6-p*58);
+      ctx.textAlign='left';ctx.globalAlpha=1;
+    }
+  });
+}
+
+// ── WIN SCENE ──
+function drawWinSpaceNeedle(nX,nBase){
+  const H=370;
+  const deckY=nBase-Math.round(H*0.83);
+  const tY=nBase-H;
+
+  // Tripod legs
+  ctx.strokeStyle='#4a6070';ctx.lineWidth=7;
+  [[-92,48],[0,60],[92,48]].forEach(([dx,dy])=>{
+    ctx.beginPath();ctx.moveTo(nX+dx*0.22,nBase-H*0.08);ctx.lineTo(nX+dx,nBase+dy);ctx.stroke();
+  });
+
+  // Shaft lower section — tapers up to deck
+  const sg=ctx.createLinearGradient(nX-26,0,nX+26,0);
+  sg.addColorStop(0,'#3a5060');sg.addColorStop(0.4,'#7a9aaa');sg.addColorStop(1,'#3a5060');
+  ctx.fillStyle=sg;
+  ctx.beginPath();
+  ctx.moveTo(nX-26,nBase);ctx.lineTo(nX-8,deckY+22);
+  ctx.lineTo(nX+8,deckY+22);ctx.lineTo(nX+26,nBase);
+  ctx.closePath();ctx.fill();
+
+  // Saucer shadow (bottom)
+  ctx.fillStyle='#3a5060';
+  ctx.beginPath();ctx.ellipse(nX,deckY+6,78,22,0,0,Math.PI*2);ctx.fill();
+  // Saucer main
+  ctx.fillStyle='#7a9ab0';
+  ctx.beginPath();ctx.ellipse(nX,deckY,78,22,0,0,Math.PI*2);ctx.fill();
+  // Saucer rim highlight
+  ctx.strokeStyle='#b8d0e0';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(nX,deckY-2,80,23,0,0,Math.PI*2);ctx.stroke();
+  // Dome on top
+  const dg=ctx.createRadialGradient(nX-12,deckY-18,0,nX,deckY-10,54);
+  dg.addColorStop(0,'#c8e0f0');dg.addColorStop(1,'#5880a0');
+  ctx.fillStyle=dg;
+  ctx.beginPath();ctx.ellipse(nX,deckY-12,54,24,0,Math.PI,0);ctx.fill();
+  // Twinkling windows around rim
+  for(let i=0;i<16;i++){
+    const wa=(i/16)*Math.PI*2;
+    const wx=nX+Math.cos(wa)*64;const wy=deckY+3+Math.sin(wa)*14;
+    const lit=(Math.floor(winFrame/8)+i)%3!==0;
+    ctx.fillStyle=lit?'#ffe880':'#223344';
+    ctx.beginPath();ctx.arc(wx,wy,3.5,0,Math.PI*2);ctx.fill();
+  }
+
+  // Thin shaft above deck
+  ctx.fillStyle='#7090a8';ctx.fillRect(nX-5,tY,10,H*0.17);
+
+  // Antenna mast
+  ctx.strokeStyle='#90a8b8';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(nX,deckY-24);ctx.lineTo(nX,tY);ctx.stroke();
+  ctx.lineWidth=2;ctx.strokeStyle='#a0b8c8';
+  ctx.beginPath();ctx.moveTo(nX,tY);ctx.lineTo(nX,tY-85);ctx.stroke();
+
+  // Blinking beacon
+  ctx.fillStyle='#ff2222';ctx.beginPath();ctx.arc(nX,tY-85,6,0,Math.PI*2);ctx.fill();
+  const pulse=0.3+0.7*Math.sin(winFrame*0.18);
+  ctx.fillStyle=`rgba(255,60,60,${pulse*0.65})`;
+  ctx.beginPath();ctx.arc(nX,tY-85,15,0,Math.PI*2);ctx.fill();
+}
+
+function drawWinScene(){
+  // Night sky
+  const sk=ctx.createLinearGradient(0,0,0,VH);
+  sk.addColorStop(0,'#020814');sk.addColorStop(0.65,'#081428');sk.addColorStop(1,'#0d1e3a');
+  ctx.fillStyle=sk;ctx.fillRect(0,0,VW,VH);
+
+  // Stars (deterministic seeded positions)
+  for(let i=0;i<70;i++){
+    const hx=((i*137+59)%VW);const hy=((i*97+23)%(VH*0.68));
+    const tw=0.35+0.65*Math.sin(winFrame*0.07+i*0.9);
+    ctx.fillStyle=`rgba(255,255,220,${tw})`;
+    ctx.beginPath();ctx.arc(hx,hy,1+i%2*0.5,0,Math.PI*2);ctx.fill();
+  }
+
+  // City glow on horizon
+  const cg=ctx.createLinearGradient(0,VH*0.6,0,VH*0.75);
+  cg.addColorStop(0,'rgba(50,90,180,0)');cg.addColorStop(0.5,'rgba(70,110,200,0.18)');cg.addColorStop(1,'rgba(30,70,140,0)');
+  ctx.fillStyle=cg;ctx.fillRect(0,VH*0.55,VW,VH*0.22);
+
+  // Space Needle
+  const nBase=630;
+  drawWinSpaceNeedle(VW/2,nBase);
+
+  // Fireworks
+  if(winFrame%38===0&&fireworks.length<14){
+    fireworks.push({
+      x:VW*0.08+Math.random()*VW*0.84,
+      y:35+Math.random()*VH*0.42,
+      col:[[255,80,60],[255,210,40],[80,255,130],[70,200,255],[255,80,210],[255,165,40]][Math.floor(Math.random()*6)],
+      t:0
+    });
+  }
+  fireworks.forEach(fw=>{
+    fw.t++;
+    for(let i=0;i<12;i++){
+      const a=(i/12)*Math.PI*2;
+      for(let tr=0;tr<5;tr++){
+        const r=fw.t*2.4-tr*3.5;if(r<0)continue;
+        const al=Math.max(0,(1-fw.t/55)*(1-tr/5));
+        ctx.fillStyle=`rgba(${fw.col[0]},${fw.col[1]},${fw.col[2]},${al})`;
+        ctx.beginPath();ctx.arc(fw.x+Math.cos(a)*r,fw.y+Math.sin(a)*r,2.5-tr*0.35,0,Math.PI*2);ctx.fill();
+      }
+    }
+  });
+  fireworks=fireworks.filter(fw=>fw.t<58);
+
+  // Large Jimothy dancing (SC=6 → 120×108px)
+  const SC6=6;
+  const jW=JIM_PW*SC6;const jH=JIM_PH*SC6;
+  const danceBob=Math.sin(winFrame*0.15)*16;
+  const danceFlip=Math.floor(winFrame/45)%2;
+  ctx.save();
+  ctx.translate(VW/2,0);
+  ctx.scale(danceFlip?-1:1,1);
+  px(Math.floor(winFrame/14)%2===0?JW1:JW2,-jW/2,nBase-jH-10+danceBob,SC6);
+  ctx.restore();
+
+  // Confetti rain
+  for(let i=0;i<24;i++){
+    const cx=((i*173+winFrame*2.5+i*winFrame*0.08)%VW);
+    const cy=((winFrame*1.6+i*71)%VH);
+    const cc=['#ff6644','#ffee44','#44ff88','#44aaff','#ff44aa','#ffcc22'];
+    ctx.fillStyle=cc[i%6];
+    const cw=5+i%3;ctx.fillRect(cx,cy,cw,cw+3);
+  }
+
+  // Score panel
+  ctx.fillStyle='rgba(0,0,18,0.9)';ctx.fillRect(0,VH-116,VW,116);
+  ctx.strokeStyle='#2255aa';ctx.lineWidth=2;ctx.strokeRect(0,VH-116,VW,116);
+
+  const tb=Math.sin(winFrame*0.09)*2;
+  ctx.fillStyle='#ffee44';
+  ctx.font=`bold ${Math.round(27+tb)}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH-82);
+  ctx.fillStyle='#88ddff';ctx.font='18px Courier New';
+  ctx.fillText(`${score} bites collected`,VW/2,VH-56);
+  if(winFrame>150){
+    ctx.fillStyle='rgba(180,200,255,0.8)';ctx.font='14px Courier New';
+    ctx.fillText('tap / SPACE to go again',VW/2,VH-28);
+  }
+  ctx.textAlign='left';
+}
+
 // ── LOOP ──
 function loop(){
   update();
-  drawBg();
-  drawWorld();
-  drawJim();
-  drawHUD();
+  if(won){
+    drawWinScene();
+  } else {
+    drawBg();
+    drawWorld();
+    drawJim();
+    drawHUD();
+  }
   requestAnimationFrame(loop);
 }
 
@@ -1202,7 +1343,7 @@ function init(){
   jim={x:140,y:GY-JIM_H,vx:0,vy:0,onGround:true,facing:1,
        walkTick:0,walkFrame:0,digging:false,digTick:0,digTarget:null,
        jumpHeld:false,digHeld:false};
-  camX=0;score=0;popups=[];frame=0;won=false;
+  camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];
 }
 
 // ── MOBILE ──
