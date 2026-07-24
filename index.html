@@ -47,6 +47,17 @@ canvas{
 #mob button:active{background:rgba(60,100,160,.95)}
 #mob-left{display:flex;gap:8px}
 #mob-right{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+#share-btn{
+  display:none;position:fixed;bottom:92px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#ff6644,#ffcc22,#ff44aa);
+  color:#111;border:none;padding:13px 28px;
+  font-family:'Courier New',monospace;font-size:16px;font-weight:bold;
+  border-radius:10px;cursor:pointer;z-index:20;
+  box-shadow:0 0 18px rgba(255,180,0,0.7),0 4px 12px rgba(0,0,0,0.5);
+  animation:share-pulse 1s ease-in-out infinite alternate;
+  white-space:nowrap;
+}
+@keyframes share-pulse{from{box-shadow:0 0 14px rgba(255,120,0,0.6)}to{box-shadow:0 0 28px rgba(255,200,0,0.9)}}
 </style>
 </head>
 <body>
@@ -56,6 +67,7 @@ canvas{
   <span id="hint">← → Move &nbsp;│&nbsp; SPACE Jump &nbsp;│&nbsp; S Rummage trash</span>
   <span id="scoretxt" style="color:#ffcc44;font-size:clamp(13px,2vw,18px)">🍖 0 bites</span>
 </div>
+<button id="share-btn" onclick="doShare()">🦝 SHARE SCORE</button>
 <div id="mob">
   <div id="mob-left">
     <button id="btn-l">◀</button>
@@ -328,7 +340,48 @@ function sndLoot(){
   setTimeout(()=>beep(659,0.08,0.13,'sine'),180);
   setTimeout(()=>beep(880,0.15,0.16,'sine'),280);
 }
-function sndWin(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.25,0.15,'sine'),i*120))}
+function sndVictory80s(){
+  if(!audio)return;
+  const now=audio.currentTime;
+  const mg=audio.createGain();mg.gain.setValueAtTime(0.20,now);mg.connect(audio.destination);
+  function n(freq,t,dur,wave,vol,vib){
+    const o=audio.createOscillator(),g=audio.createGain();
+    o.type=wave||'square';o.frequency.setValueAtTime(freq,now+t);
+    if(vib){const lf=audio.createOscillator(),lg=audio.createGain();
+      lf.frequency.setValueAtTime(5.5,now+t);lg.gain.setValueAtTime(vib,now+t);
+      lf.connect(lg);lg.connect(o.frequency);lf.start(now+t+0.12);lf.stop(now+t+dur);}
+    g.gain.setValueAtTime(0,now+t);g.gain.linearRampToValueAtTime(vol||1,now+t+0.025);
+    g.gain.setValueAtTime(vol||1,now+t+dur*0.65);g.gain.exponentialRampToValueAtTime(0.001,now+t+dur+0.08);
+    o.connect(g);g.connect(mg);o.start(now+t);o.stop(now+t+dur+0.12);
+  }
+  // ── Lead melody (square wave, 80s synth) ──
+  [[392,0.00,0.13],[392,0.16,0.13],[392,0.32,0.13],        // G4 G4 G4  (fanfare)
+   [523,0.48,0.32],                                          // C5
+   [659,0.88,0.22],[587,1.14,0.18],[523,1.36,0.28],         // E5 D5 C5
+   [523,1.72,0.10],[659,1.85,0.10],[784,1.98,0.10],         // run up
+   [1047,2.12,0.46,,,7],                                     // C6! (vibrato)
+   [988,2.66,0.20],[880,2.90,0.20],[784,3.14,0.40,,,5],     // B5 A5 G5
+   [880,3.62,0.12],[784,3.78,0.12],[659,3.94,0.12],[784,4.10,0.12],// A5 G5 E5 G5
+   [880,4.28,0.12],[784,4.44,0.22],[659,4.70,0.22],         // A5 G5 E5
+   [523,4.98,0.26],                                          // C5
+   [523,5.30,0.09],[659,5.42,0.09],[784,5.54,0.09],[1047,5.66,0.09],[1319,5.80,0.09], // arp!
+   [1047,5.96,1.00,,,12]                                     // C6 final (big vibrato)
+  ].forEach(([f,t,d,w,v,vb])=>n(f,t,d,w,v||1,vb));
+  // ── Bass (sawtooth) ──
+  [[131,0.00,0.70],[131,0.85,0.62],
+   [196,1.52,0.60],[175,2.18,0.55],
+   [196,2.78,0.22],[131,3.05,0.62],[131,3.72,0.60],
+   [196,4.38,0.60],[175,5.04,0.52],
+   [220,5.62,0.48],[196,6.16,0.50],[131,6.72,1.30]
+  ].forEach(([f,t,d])=>n(f,t,d,'sawtooth',0.55));
+  // ── Arpeggio chimes (triangle) ──
+  [523,659,784,1047,784,659,523,659,784,1047,784,659,
+   523,659,784,1047,880,1047,1175,1397,1047,880,784,880,
+   1047,1319,1047,880,1047,1319,1047,880
+  ].forEach((f,i)=>n(f,i*0.145,0.13,'triangle',0.16));
+  // ── Loop after ~8s if still winning ──
+  setTimeout(()=>{if(won)sndVictory80s();},8200);
+}
 
 function doJump(){
   if(!jim.onGround)return;
@@ -1033,7 +1086,8 @@ function update(){
   // Win → animate and restart after brief delay
   if(won){
     winFrame++;
-    if(winFrame>150&&(keys['Space']||mob.j))init();
+    if(winFrame===160)document.getElementById('share-btn').style.display='block';
+    if(winFrame>160&&(keys['Space']||mob.j))init();
     return;
   }
 
@@ -1135,7 +1189,22 @@ function update(){
   // Win check
   const allFood=food.every(f=>f.taken);
   const allCans=cans.every(c=>c.searched);
-  if(allFood&&allCans&&!won){won=true;sndWin();}
+  if(allFood&&allCans&&!won){won=true;sndVictory80s();}
+}
+
+// ── SHARE ──
+async function doShare(){
+  const url='https://pedrour.github.io/jimothy-adventure';
+  const text=`🦝 I collected ${score} bites as Jimothy, Seattle's famous round raccoon! Can you beat me?\n${url}`;
+  if(navigator.share){
+    try{await navigator.share({title:"Jimothy's Ballard Adventure",text,url});}catch(e){}
+  } else {
+    navigator.clipboard.writeText(text).then(()=>{
+      const b=document.getElementById('share-btn');
+      const orig=b.innerHTML;b.innerHTML='✓ Copied to clipboard!';
+      setTimeout(()=>{b.innerHTML=orig;},2200);
+    });
+  }
 }
 
 // ── RUMMAGE ANIMATION ──
@@ -1181,143 +1250,323 @@ function drawRummageAnim(sx,sy,flip){
 
 // ── WIN SCENE ──
 function drawWinSpaceNeedle(nX,nBase){
-  const H=370;
-  const deckY=nBase-Math.round(H*0.83);
-  const tY=nBase-H;
+  const H=430;
+  const legJY=nBase-Math.round(H*0.26);  // 138ft – where legs meet column
+  const deckY=nBase-Math.round(H*0.86);  // 520ft – observation deck
+  const topY=nBase-H;                     // top of column
+  const antY=topY-90;                     // 605ft – antenna tip
 
-  // Tripod legs
-  ctx.strokeStyle='#4a6070';ctx.lineWidth=7;
-  [[-92,48],[0,60],[92,48]].forEach(([dx,dy])=>{
-    ctx.beginPath();ctx.moveTo(nX+dx*0.22,nBase-H*0.08);ctx.lineTo(nX+dx,nBase+dy);ctx.stroke();
-  });
+  // Concrete foundation ring
+  ctx.fillStyle='#4a5860';
+  ctx.beginPath();ctx.ellipse(nX,nBase+10,122,17,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#8a9aaa';
+  ctx.beginPath();ctx.ellipse(nX,nBase,122,17,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(180,210,230,0.5)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(nX,nBase,124,18,0,0,Math.PI*2);ctx.stroke();
 
-  // Shaft lower section — tapers up to deck
-  const sg=ctx.createLinearGradient(nX-26,0,nX+26,0);
-  sg.addColorStop(0,'#3a5060');sg.addColorStop(0.4,'#7a9aaa');sg.addColorStop(1,'#3a5060');
-  ctx.fillStyle=sg;
+  // A-frame left leg (curved, realistic shape)
+  ctx.fillStyle='#4a6070';
   ctx.beginPath();
-  ctx.moveTo(nX-26,nBase);ctx.lineTo(nX-8,deckY+22);
-  ctx.lineTo(nX+8,deckY+22);ctx.lineTo(nX+26,nBase);
+  ctx.moveTo(nX-110,nBase-3);
+  ctx.bezierCurveTo(nX-95,nBase-72,nX-42,legJY+44,nX-8,legJY);
+  ctx.lineTo(nX-3,legJY+16);
+  ctx.bezierCurveTo(nX-38,legJY+60,nX-82,nBase-60,nX-96,nBase+7);
+  ctx.closePath();ctx.fill();
+  // Left leg cross detail
+  ctx.strokeStyle='#5a7888';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(nX-78,nBase-50);ctx.lineTo(nX-30,legJY+28);ctx.stroke();
+
+  // A-frame right leg (mirror)
+  ctx.fillStyle='#4a6070';
+  ctx.beginPath();
+  ctx.moveTo(nX+110,nBase-3);
+  ctx.bezierCurveTo(nX+95,nBase-72,nX+42,legJY+44,nX+8,legJY);
+  ctx.lineTo(nX+3,legJY+16);
+  ctx.bezierCurveTo(nX+38,legJY+60,nX+82,nBase-60,nX+96,nBase+7);
+  ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(nX+78,nBase-50);ctx.lineTo(nX+30,legJY+28);ctx.stroke();
+
+  // Rear leg (darker, partially visible)
+  ctx.fillStyle='#303e4a';
+  ctx.beginPath();
+  ctx.moveTo(nX-9,nBase+3);
+  ctx.bezierCurveTo(nX-13,nBase-44,nX-6,legJY+18,nX-5,legJY+3);
+  ctx.lineTo(nX+5,legJY+3);
+  ctx.bezierCurveTo(nX+6,legJY+18,nX+13,nBase-44,nX+9,nBase+3);
   ctx.closePath();ctx.fill();
 
-  // Saucer shadow (bottom)
-  ctx.fillStyle='#3a5060';
-  ctx.beginPath();ctx.ellipse(nX,deckY+6,78,22,0,0,Math.PI*2);ctx.fill();
-  // Saucer main
-  ctx.fillStyle='#7a9ab0';
-  ctx.beginPath();ctx.ellipse(nX,deckY,78,22,0,0,Math.PI*2);ctx.fill();
-  // Saucer rim highlight
-  ctx.strokeStyle='#b8d0e0';ctx.lineWidth=2;
-  ctx.beginPath();ctx.ellipse(nX,deckY-2,80,23,0,0,Math.PI*2);ctx.stroke();
-  // Dome on top
-  const dg=ctx.createRadialGradient(nX-12,deckY-18,0,nX,deckY-10,54);
-  dg.addColorStop(0,'#c8e0f0');dg.addColorStop(1,'#5880a0');
-  ctx.fillStyle=dg;
-  ctx.beginPath();ctx.ellipse(nX,deckY-12,54,24,0,Math.PI,0);ctx.fill();
-  // Twinkling windows around rim
-  for(let i=0;i<16;i++){
-    const wa=(i/16)*Math.PI*2;
-    const wx=nX+Math.cos(wa)*64;const wy=deckY+3+Math.sin(wa)*14;
-    const lit=(Math.floor(winFrame/8)+i)%3!==0;
-    ctx.fillStyle=lit?'#ffe880':'#223344';
+  // Main column (very thin – only 10px wide)
+  const cg=ctx.createLinearGradient(nX-6,0,nX+6,0);
+  cg.addColorStop(0,'#2e4050');cg.addColorStop(0.4,'#9ec0d0');cg.addColorStop(1,'#2e4050');
+  ctx.fillStyle=cg;ctx.fillRect(nX-5,deckY+30,10,legJY-deckY-30);
+
+  // Lower skirt ring
+  ctx.fillStyle='#283848';
+  ctx.beginPath();ctx.ellipse(nX,deckY+28,84,18,0,0,Math.PI*2);ctx.fill();
+
+  // Restaurant level
+  const rg=ctx.createLinearGradient(nX-62,0,nX+62,0);
+  rg.addColorStop(0,'#324252');rg.addColorStop(0.5,'#6a8898');rg.addColorStop(1,'#324252');
+  ctx.fillStyle=rg;ctx.fillRect(nX-62,deckY+2,124,26);
+  ctx.fillStyle='#4a6878';
+  ctx.beginPath();ctx.ellipse(nX,deckY+2,62,13,0,0,Math.PI*2);ctx.fill();
+  // Restaurant windows (cycling)
+  for(let i=0;i<8;i++){
+    const rlit=(Math.floor(winFrame/10)+i)%3;
+    ctx.fillStyle=rlit?'#ffe880':['#ff8844','#44ffaa'][i%2];
+    ctx.fillRect(nX-54+i*14,deckY+7,10,14);
+  }
+
+  // Observation deck saucer – bottom shadow
+  ctx.fillStyle='#1e2e3a';
+  ctx.beginPath();ctx.ellipse(nX,deckY-13,96,22,0,0,Math.PI*2);ctx.fill();
+  // Saucer main body with lateral gradient
+  const sg3=ctx.createLinearGradient(nX-96,0,nX+96,0);
+  sg3.addColorStop(0,'#384858');sg3.addColorStop(0.12,'#7aaabf');
+  sg3.addColorStop(0.5,'#cce8f8');sg3.addColorStop(0.88,'#7aaabf');sg3.addColorStop(1,'#384858');
+  ctx.fillStyle=sg3;
+  ctx.beginPath();ctx.ellipse(nX,deckY-20,96,22,0,0,Math.PI*2);ctx.fill();
+  // Outer rim glow (rainbow!)
+  const rimHue=(winFrame*3)%360;
+  ctx.strokeStyle=`hsla(${rimHue},100%,70%,0.6)`;ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(nX,deckY-22,98,23,0,0,Math.PI*2);ctx.stroke();
+  // Observation walkway
+  ctx.fillStyle='#687888';
+  ctx.beginPath();ctx.ellipse(nX,deckY-28,84,13,0,0,Math.PI*2);ctx.fill();
+  // 22 rainbow-cycling windows
+  for(let i=0;i<22;i++){
+    const wa=(i/22)*Math.PI*2;
+    const wx=nX+Math.cos(wa)*82;const wy=deckY-20+Math.sin(wa)*14;
+    const hue=(winFrame*5+i*16)%360;
+    const lit=(Math.floor(winFrame/4)+i)%4!==0;
+    ctx.fillStyle=lit?`hsl(${hue},100%,68%)`:'#111e28';
     ctx.beginPath();ctx.arc(wx,wy,3.5,0,Math.PI*2);ctx.fill();
+  }
+  // Upper dome
+  const dg3=ctx.createRadialGradient(nX-14,deckY-55,0,nX,deckY-42,64);
+  dg3.addColorStop(0,'#ddf0ff');dg3.addColorStop(0.5,'#78a8c8');dg3.addColorStop(1,'#2e4e6a');
+  ctx.fillStyle=dg3;
+  ctx.beginPath();ctx.ellipse(nX,deckY-42,64,28,0,Math.PI,0);ctx.fill();
+  // Dome windows (5 rainbow slots)
+  for(let i=0;i<5;i++){
+    const dh=(winFrame*6+i*72)%360;
+    ctx.fillStyle=`hsl(${dh},90%,72%)`;
+    ctx.fillRect(nX-38+i*19,deckY-62,14,16);
   }
 
   // Thin shaft above deck
-  ctx.fillStyle='#7090a8';ctx.fillRect(nX-5,tY,10,H*0.17);
+  ctx.fillStyle='#6890a8';ctx.fillRect(nX-4,topY,8,deckY-76-topY);
 
-  // Antenna mast
-  ctx.strokeStyle='#90a8b8';ctx.lineWidth=4;
-  ctx.beginPath();ctx.moveTo(nX,deckY-24);ctx.lineTo(nX,tY);ctx.stroke();
-  ctx.lineWidth=2;ctx.strokeStyle='#a0b8c8';
-  ctx.beginPath();ctx.moveTo(nX,tY);ctx.lineTo(nX,tY-85);ctx.stroke();
+  // Antenna – 3 sections decreasing width
+  ctx.strokeStyle='#8aa8b8';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(nX,deckY-76);ctx.lineTo(nX,topY);ctx.stroke();
+  ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(nX,topY);ctx.lineTo(nX,topY-48);ctx.stroke();
+  ctx.lineWidth=1.5;ctx.strokeStyle='#b0c8d8';
+  ctx.beginPath();ctx.moveTo(nX,topY-48);ctx.lineTo(nX,antY);ctx.stroke();
+  // Tip ball
+  ctx.fillStyle='#ddf0ff';ctx.beginPath();ctx.arc(nX,antY+3,5,0,Math.PI*2);ctx.fill();
+  // Pulsing red beacon
+  ctx.fillStyle='#ff2222';ctx.beginPath();ctx.arc(nX,antY,7,0,Math.PI*2);ctx.fill();
+  const pulse=0.2+0.8*Math.sin(winFrame*0.20);
+  ctx.fillStyle=`rgba(255,50,50,${pulse*0.65})`;
+  ctx.beginPath();ctx.arc(nX,antY,20,0,Math.PI*2);ctx.fill();
+  if(Math.floor(winFrame/6)%2===0){
+    ctx.strokeStyle='rgba(255,80,80,0.25)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(nX,antY,32,0,Math.PI*2);ctx.stroke();
+  }
+  // Neon rings around observation deck (psychedelic)
+  for(let r2=0;r2<4;r2++){
+    const ph=(winFrame*0.07+r2*1.6)%(Math.PI*2);
+    const rr=100+r2*26+Math.sin(ph)*12;
+    const rh=(winFrame*3+r2*90)%360;
+    ctx.strokeStyle=`hsla(${rh},100%,60%,${0.22-r2*0.04})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(nX,deckY-20,rr,0,Math.PI*2);ctx.stroke();
+  }
+}
 
-  // Blinking beacon
-  ctx.fillStyle='#ff2222';ctx.beginPath();ctx.arc(nX,tY-85,6,0,Math.PI*2);ctx.fill();
-  const pulse=0.3+0.7*Math.sin(winFrame*0.18);
-  ctx.fillStyle=`rgba(255,60,60,${pulse*0.65})`;
-  ctx.beginPath();ctx.arc(nX,tY-85,15,0,Math.PI*2);ctx.fill();
+// ── ORCA ──
+function drawOrca(cx,cy,flip,t){
+  ctx.save();ctx.translate(cx,cy);if(flip)ctx.scale(-1,1);
+  const bob=Math.sin(t*0.13+cx*0.01)*14;
+  const tw=Math.sin(t*0.22)*24;
+  const tilt=Math.sin(t*0.11)*0.16;
+  ctx.rotate(tilt);
+  // Body (main black ellipse)
+  ctx.fillStyle='#0d0d0d';
+  ctx.beginPath();ctx.ellipse(0,bob,46,23,0,0,Math.PI*2);ctx.fill();
+  // White belly
+  ctx.fillStyle='#efefef';
+  ctx.beginPath();ctx.ellipse(9,bob+8,26,14,0.1,0,Math.PI);ctx.fill();
+  // White saddle patch
+  ctx.beginPath();ctx.ellipse(-14,bob-6,16,9,0.25,0,Math.PI*2);ctx.fill();
+  // White eye patch
+  ctx.beginPath();ctx.ellipse(32,bob-9,12,9,0.4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#181818';ctx.beginPath();ctx.arc(34,bob-10,3.5,0,Math.PI*2);ctx.fill();
+  // Dorsal fin (tall – the orca's signature)
+  ctx.fillStyle='#080808';
+  ctx.beginPath();
+  ctx.moveTo(-9,bob-21);
+  ctx.bezierCurveTo(-12,bob-62,-4,bob-74,0,bob-76);
+  ctx.bezierCurveTo(4,bob-66,8,bob-45,10,bob-23);
+  ctx.closePath();ctx.fill();
+  // Neon glow on dorsal fin edge
+  const hue=(t*3+cx*2)%360;
+  ctx.save();ctx.shadowColor=`hsl(${hue},100%,60%)`;ctx.shadowBlur=14;
+  ctx.strokeStyle=`hsl(${hue},100%,70%)`;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-9,bob-21);
+  ctx.bezierCurveTo(-12,bob-62,-4,bob-74,0,bob-76);ctx.stroke();
+  ctx.restore();
+  // Pectoral fin
+  ctx.fillStyle='#111';
+  ctx.beginPath();ctx.moveTo(16,bob+10);
+  ctx.quadraticCurveTo(22,bob+32,12,bob+38);
+  ctx.quadraticCurveTo(5,bob+26,12,bob+12);ctx.closePath();ctx.fill();
+  // Upper tail fluke
+  ctx.fillStyle='#0c0c0c';
+  ctx.beginPath();ctx.moveTo(-40,bob+4);
+  ctx.quadraticCurveTo(-56,bob-6+tw,-68,bob-16+tw);
+  ctx.quadraticCurveTo(-63,bob-2+tw,-54,bob+4+tw);
+  ctx.quadraticCurveTo(-47,bob+8,-40,bob+4);ctx.closePath();ctx.fill();
+  // Lower tail fluke
+  ctx.beginPath();ctx.moveTo(-40,bob+6);
+  ctx.quadraticCurveTo(-54,bob+16+tw,-66,bob+22+tw);
+  ctx.quadraticCurveTo(-61,bob+8+tw,-52,bob+4+tw);
+  ctx.quadraticCurveTo(-46,bob+8,-40,bob+6);ctx.closePath();ctx.fill();
+  // Rainbow splash rings
+  for(let i=0;i<3;i++){
+    const sh=(winFrame*5+i*120+cx)%360;
+    const sr=52+i*24+Math.sin(t*0.18+i)*10;
+    ctx.strokeStyle=`hsla(${sh},100%,65%,${0.26-i*0.07})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(0,bob,sr,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
 }
 
 function drawWinScene(){
-  // Night sky
+  const nBase=625;
+
+  // ── Deep psychedelic sky ──
   const sk=ctx.createLinearGradient(0,0,0,VH);
-  sk.addColorStop(0,'#020814');sk.addColorStop(0.65,'#081428');sk.addColorStop(1,'#0d1e3a');
+  sk.addColorStop(0,'#050210');sk.addColorStop(0.5,'#0a1830');sk.addColorStop(1,'#0e2040');
   ctx.fillStyle=sk;ctx.fillRect(0,0,VW,VH);
 
-  // Stars (deterministic seeded positions)
-  for(let i=0;i<70;i++){
-    const hx=((i*137+59)%VW);const hy=((i*97+23)%(VH*0.68));
-    const tw=0.35+0.65*Math.sin(winFrame*0.07+i*0.9);
-    ctx.fillStyle=`rgba(255,255,220,${tw})`;
-    ctx.beginPath();ctx.arc(hx,hy,1+i%2*0.5,0,Math.PI*2);ctx.fill();
+  // Aurora borealis ribbons (6 shifting sine-wave bands)
+  for(let i=0;i<6;i++){
+    const hue=(winFrame*2+i*60)%360;
+    const yc=VH*0.12+i*VH*0.07+Math.sin(winFrame*0.04+i*1.1)*35;
+    const bh=22+Math.sin(winFrame*0.06+i)*12;
+    const ag=ctx.createLinearGradient(0,yc-bh,0,yc+bh);
+    ag.addColorStop(0,'rgba(0,0,0,0)');
+    ag.addColorStop(0.5,`hsla(${hue},100%,58%,0.14)`);
+    ag.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=ag;ctx.fillRect(0,yc-bh,VW,bh*2);
   }
 
-  // City glow on horizon
-  const cg=ctx.createLinearGradient(0,VH*0.6,0,VH*0.75);
-  cg.addColorStop(0,'rgba(50,90,180,0)');cg.addColorStop(0.5,'rgba(70,110,200,0.18)');cg.addColorStop(1,'rgba(30,70,140,0)');
-  ctx.fillStyle=cg;ctx.fillRect(0,VH*0.55,VW,VH*0.22);
+  // Rainbow-pulsing stars
+  for(let i=0;i<80;i++){
+    const hx=(i*137+59)%VW;const hy=(i*97+23)%(VH*0.65);
+    const tw=0.3+0.7*Math.sin(winFrame*0.08+i*0.9);
+    const sh=(winFrame*2+i*23)%360;
+    ctx.fillStyle=`hsla(${sh},60%,90%,${tw})`;
+    ctx.beginPath();ctx.arc(hx,hy,1+i%2*0.6,0,Math.PI*2);ctx.fill();
+  }
+
+  // City glow
+  const cg=ctx.createLinearGradient(0,VH*0.62,0,VH*0.78);
+  cg.addColorStop(0,'rgba(40,80,180,0)');cg.addColorStop(0.5,'rgba(60,100,220,0.2)');cg.addColorStop(1,'rgba(20,60,140,0)');
+  ctx.fillStyle=cg;ctx.fillRect(0,VH*0.58,VW,VH*0.22);
 
   // Space Needle
-  const nBase=630;
   drawWinSpaceNeedle(VW/2,nBase);
 
   // Fireworks
-  if(winFrame%38===0&&fireworks.length<14){
+  if(winFrame%32===0&&fireworks.length<16){
     fireworks.push({
-      x:VW*0.08+Math.random()*VW*0.84,
-      y:35+Math.random()*VH*0.42,
-      col:[[255,80,60],[255,210,40],[80,255,130],[70,200,255],[255,80,210],[255,165,40]][Math.floor(Math.random()*6)],
+      x:VW*0.06+Math.random()*VW*0.88,
+      y:28+Math.random()*VH*0.40,
+      col:[[255,70,50],[255,215,30],[60,255,120],[50,195,255],[255,70,200],[255,160,30],[160,80,255]][Math.floor(Math.random()*7)],
       t:0
     });
   }
   fireworks.forEach(fw=>{
     fw.t++;
-    for(let i=0;i<12;i++){
-      const a=(i/12)*Math.PI*2;
+    for(let i=0;i<14;i++){
+      const a=(i/14)*Math.PI*2;
       for(let tr=0;tr<5;tr++){
-        const r=fw.t*2.4-tr*3.5;if(r<0)continue;
-        const al=Math.max(0,(1-fw.t/55)*(1-tr/5));
+        const r=fw.t*2.6-tr*4;if(r<0)continue;
+        const al=Math.max(0,(1-fw.t/52)*(1-tr/5));
         ctx.fillStyle=`rgba(${fw.col[0]},${fw.col[1]},${fw.col[2]},${al})`;
-        ctx.beginPath();ctx.arc(fw.x+Math.cos(a)*r,fw.y+Math.sin(a)*r,2.5-tr*0.35,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(fw.x+Math.cos(a)*r,fw.y+Math.sin(a)*r,3-tr*0.4,0,Math.PI*2);ctx.fill();
       }
     }
   });
-  fireworks=fireworks.filter(fw=>fw.t<58);
+  fireworks=fireworks.filter(fw=>fw.t<56);
 
-  // Large Jimothy dancing (SC=6 → 120×108px)
-  const SC6=6;
-  const jW=JIM_PW*SC6;const jH=JIM_PH*SC6;
-  const danceBob=Math.sin(winFrame*0.15)*16;
-  const danceFlip=Math.floor(winFrame/45)%2;
-  ctx.save();
-  ctx.translate(VW/2,0);
-  ctx.scale(danceFlip?-1:1,1);
-  px(Math.floor(winFrame/14)%2===0?JW1:JW2,-jW/2,nBase-jH-10+danceBob,SC6);
-  ctx.restore();
+  // ── Orcas leaping on each side of the needle ──
+  const orcaBase=nBase+8;  // "water surface" level
+  const ljump=Math.abs(Math.sin(winFrame*0.06));       // left orca jump arc
+  const rjump=Math.abs(Math.sin(winFrame*0.06+1.4));   // right orca, phase offset
+  const lorcaY=orcaBase-ljump*110;
+  const rorcaY=orcaBase-rjump*110;
+  const lorcaTilt=Math.sin(winFrame*0.06)*0.5;  // body rotates with arc
+  const rorcaTilt=-Math.sin(winFrame*0.06+1.4)*0.5;
 
-  // Confetti rain
-  for(let i=0;i<24;i++){
-    const cx=((i*173+winFrame*2.5+i*winFrame*0.08)%VW);
-    const cy=((winFrame*1.6+i*71)%VH);
-    const cc=['#ff6644','#ffee44','#44ff88','#44aaff','#ff44aa','#ffcc22'];
-    ctx.fillStyle=cc[i%6];
-    const cw=5+i%3;ctx.fillRect(cx,cy,cw,cw+3);
+  // Water splash at base for each orca
+  for(let s=0;s<2;s++){
+    const ox=s===0?82:VW-82;
+    const splash=s===0?ljump:rjump;
+    if(splash<0.15){
+      for(let d=0;d<6;d++){
+        const sa=(d/6)*Math.PI-Math.PI/2;const sr=(1-splash/0.15)*28;
+        const sh=(winFrame*6+d*60)%360;
+        ctx.fillStyle=`hsla(${sh},100%,70%,${(1-splash/0.15)*0.7})`;
+        ctx.beginPath();ctx.arc(ox+Math.cos(sa)*sr,orcaBase+Math.sin(sa)*sr*0.4,3,0,Math.PI*2);ctx.fill();
+      }
+    }
   }
 
-  // Score panel
-  ctx.fillStyle='rgba(0,0,18,0.9)';ctx.fillRect(0,VH-116,VW,116);
-  ctx.strokeStyle='#2255aa';ctx.lineWidth=2;ctx.strokeRect(0,VH-116,VW,116);
+  ctx.save();ctx.translate(82,lorcaY);ctx.rotate(lorcaTilt-0.3);ctx.translate(-82,-lorcaY);
+  drawOrca(82,lorcaY,false,winFrame);
+  ctx.restore();
+  ctx.save();ctx.translate(VW-82,rorcaY);ctx.rotate(rorcaTilt+0.3);ctx.translate(-(VW-82),-rorcaY);
+  drawOrca(VW-82,rorcaY,true,winFrame+40);
+  ctx.restore();
 
-  const tb=Math.sin(winFrame*0.09)*2;
-  ctx.fillStyle='#ffee44';
-  ctx.font=`bold ${Math.round(27+tb)}px Courier New`;ctx.textAlign='center';
-  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH-82);
-  ctx.fillStyle='#88ddff';ctx.font='18px Courier New';
-  ctx.fillText(`${score} bites collected`,VW/2,VH-56);
-  if(winFrame>150){
-    ctx.fillStyle='rgba(180,200,255,0.8)';ctx.font='14px Courier New';
-    ctx.fillText('tap / SPACE to go again',VW/2,VH-28);
+  // ── Large Jimothy dancing (SC=6 → 120×108px) ──
+  const SC6=6;const jW=JIM_PW*SC6;const jH=JIM_PH*SC6;
+  const danceBob=Math.sin(winFrame*0.16)*14;
+  const danceFlip=Math.floor(winFrame/40)%2;
+  ctx.save();ctx.translate(VW/2,0);ctx.scale(danceFlip?-1:1,1);
+  px(Math.floor(winFrame/13)%2===0?JW1:JW2,-jW/2,nBase-jH-8+danceBob,SC6);
+  ctx.restore();
+
+  // ── Confetti rain ──
+  for(let i=0;i<30;i++){
+    const ccx=((i*173+winFrame*2.7+i*winFrame*0.07)%VW);
+    const ccy=((winFrame*1.8+i*67)%VH);
+    const hue=(winFrame*4+i*12)%360;
+    ctx.fillStyle=`hsl(${hue},100%,65%)`;
+    const cw=5+i%3;ctx.fillRect(ccx,ccy,cw,cw+4);
+  }
+
+  // ── Score panel ──
+  const panH=108;
+  ctx.fillStyle='rgba(2,4,20,0.92)';ctx.fillRect(0,VH-panH,VW,panH);
+  const borderHue=(winFrame*4)%360;
+  ctx.strokeStyle=`hsl(${borderHue},100%,55%)`;ctx.lineWidth=2;
+  ctx.strokeRect(0,VH-panH,VW,panH);
+
+  const tb=Math.sin(winFrame*0.10)*2;
+  const titleHue=(winFrame*3)%360;
+  ctx.fillStyle=`hsl(${titleHue},100%,68%)`;
+  ctx.font=`bold ${Math.round(26+tb)}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH-panH+32);
+  ctx.fillStyle='#88ddff';ctx.font='17px Courier New';
+  ctx.fillText(`${score} bites collected`,VW/2,VH-panH+58);
+  if(winFrame>160){
+    ctx.fillStyle='rgba(160,185,255,0.75)';ctx.font='13px Courier New';
+    ctx.fillText('tap / SPACE to go again',VW/2,VH-panH+80);
   }
   ctx.textAlign='left';
 }
@@ -1344,6 +1593,7 @@ function init(){
        walkTick:0,walkFrame:0,digging:false,digTick:0,digTarget:null,
        jumpHeld:false,digHeld:false};
   camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];
+  document.getElementById('share-btn').style.display='none';
 }
 
 // ── MOBILE ──
