@@ -81,7 +81,7 @@ C.width = 1200; C.height = 640;
 const VW=1200,VH=640,WORLD_W=5800;
 const SC=3;
 const JIM_PW=20,JIM_PH=18,JIM_W=60,JIM_H=54;
-const GRAVITY=0.46,JUMP_VY=-11.2,WALK_SPD=2.8;
+const GRAVITY=0.46,JUMP_VY=-11.2,WALK_SPD=4.4;
 const GY=570; // ground Y (top surface)
 
 const COL={
@@ -1046,8 +1046,8 @@ function update(){
   const jumpPressed=keys['Space']||keys['ArrowUp']||keys['KeyW']||mob.j;
   const digPressed=keys['ArrowDown']||keys['KeyS']||mob.d;
 
-  if(left){jim.vx=Math.max(jim.vx-1.2,-WALK_SPD);}
-  else if(right){jim.vx=Math.min(jim.vx+1.2,WALK_SPD);}
+  if(left){jim.vx=Math.max(jim.vx-1.8,-WALK_SPD);}
+  else if(right){jim.vx=Math.min(jim.vx+1.8,WALK_SPD);}
   else{jim.vx*=0.72;}
   if(Math.abs(jim.vx)<0.1)jim.vx=0;
 
