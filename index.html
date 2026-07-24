@@ -353,92 +353,95 @@ function stopBgMusic(){
 function bgMusicLoop(){
   if(!bgMusicPlaying||!audio)return;
   const now=audio.currentTime;
-  const LOOP=16.0; // 16 bars at 120 BPM = 16 seconds
+  const LOOP=16.0;
+
   const mg=audio.createGain();
-  mg.gain.setValueAtTime(0.06,now);
+  mg.gain.setValueAtTime(0.038,now);
   mg.connect(audio.destination);
 
-  function nb(freq,t,dur,wave,vol){
+  // note(freq, startSec, durSec, wave, vol, vibDepth)
+  function nb(freq,t,dur,wave,vol,vd){
     const o=audio.createOscillator(),g=audio.createGain();
     o.type=wave;o.frequency.setValueAtTime(freq,now+t);
+    if(vd&&dur>0.5){                          // delayed vibrato on longer notes
+      const lfo=audio.createOscillator(),lg=audio.createGain();
+      lfo.frequency.setValueAtTime(4.5,now+t);
+      lg.gain.setValueAtTime(0,now+t);
+      lg.gain.linearRampToValueAtTime(vd,now+t+dur*0.45);
+      lfo.connect(lg);lg.connect(o.frequency);
+      lfo.start(now+t);lfo.stop(now+t+dur+0.1);
+    }
     g.gain.setValueAtTime(0,now+t);
-    g.gain.linearRampToValueAtTime(vol,now+t+0.02);
-    g.gain.setValueAtTime(vol,now+t+dur*0.82);
-    g.gain.exponentialRampToValueAtTime(0.0001,now+t+dur+0.06);
-    o.connect(g);g.connect(mg);o.start(now+t);o.stop(now+t+dur+0.1);
+    g.gain.linearRampToValueAtTime(vol,now+t+0.09);  // slow bloom
+    g.gain.setValueAtTime(vol,now+t+dur*0.80);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+t+dur+0.12);
+    o.connect(g);g.connect(mg);o.start(now+t);o.stop(now+t+dur+0.18);
   }
 
-  // ─ Time constants: A major, 120 BPM ─
-  // Q=quarter(0.5s) E=eighth(0.25s) S=16th(0.125s) DE=dotted-eighth(0.375s)
-  // One bar (H) = 2 beats = 1.0s. Loop = 16 bars = 16s.
-  const Q=0.5,E=0.25,S=0.125,DE=0.375,H=1.0;
-  // Frequencies: A major (A B C# D E F# G# A)
-  // A3=220 B3=247 C#4=277 D4=294 E4=330 F#4=370
-  // A4=440 B4=494 C#5=554 D5=587 E5=659 F#5=740 G#5=831 A5=880
+  // D Dorian, 90 BPM, 3/4 waltz — 8 bars = 16s loop
+  // Chord prog: Dm | G | Am | G | Dm | Am | G | Dm
+  // (The G-major chord = raised 6th = signature Dorian sound, very Pacific NW)
+  const Q=60/90, H=Q*2, B=Q*3; // B = full bar (dotted half)
 
-  // ── Melody (square wave — NES pulse channel feel) ──
+  // ── Melody (triangle — lyrical, not buzzy) ──
   [
-    // A section (0–4s) — gentle opening, mid-register
-    [440,0.00,Q],[494,0.50,E],[554,0.75,E],           // A4 B4 C#5
-    [659,1.00,DE],[587,1.375,S],[554,1.50,Q],          // E5(dotted8) D5(16) C#5
-    [554,2.00,E],[587,2.25,E],[659,2.50,Q],            // C#5 D5 E5
-    [740,3.00,E],[659,3.25,E],[587,3.50,Q],            // F#5 E5 D5
-    // A′ (4–8s) — descending answer phrase
-    [659,4.00,E],[587,4.25,E],[554,4.50,E],[494,4.75,E], // E5 D5 C#5 B4
-    [440,5.00,E],[494,5.25,E],[554,5.50,Q],            // A4 B4 C#5
-    [587,6.00,E],[659,6.25,E],[740,6.50,E],[659,6.75,E],// D5 E5 F#5 E5
-    [587,7.00,E],[554,7.25,E],[440,7.50,Q],            // D5 C#5 A4 (breathes into loop)
-    // B section (8–12s) — climbs into upper register
-    [880,8.00,DE],[831,8.375,S],[740,8.50,E],[659,8.75,E], // A5 G#5 F#5 E5
-    [587,9.00,E],[659,9.25,E],[740,9.50,Q],            // D5 E5 F#5
-    [659,10.00,E],[587,10.25,E],[554,10.50,E],[494,10.75,E], // E5 D5 C#5 B4
-    [440,11.00,E],[494,11.25,E],[554,11.50,Q],         // A4 B4 C#5
-    // B′ (12–16s) — rising then settling home
-    [587,12.00,E],[659,12.25,E],[740,12.50,E],[831,12.75,E], // D5 E5 F#5 G#5
-    [880,13.00,Q+E],[740,13.75,E],                     // A5(dotted-q) F#5
-    [587,14.00,E],[554,14.25,E],[494,14.50,E],[440,14.75,E], // D5 C#5 B4 A4
-    [440,15.00,H],                                     // A4 holds through loop seam
-  ].forEach(([f,t,d])=>nb(f,t,d,'square',0.62));
+    // Bar 1 (0–2s) Dm: descend from the 5th, like mist coming in
+    [440, 0,    Q,   5],       // A4
+    [392, Q,    Q      ],      // G4
+    [349, H,    Q      ],      // F4
+    // Bar 2 (2–4s) G: breathe and settle
+    [330, B,    Q      ],      // E4
+    [294, B+Q,  H,   4],      // D4 held (vib)
+    // Bar 3 (4–6s) Am: rise up through the chord
+    [349, B*2,  Q      ],     // F4 (passing)
+    [440, B*2+Q,Q      ],     // A4
+    [523, B*2+H,Q,   5],     // C5 (vib)
+    // Bar 4 (6–8s) G: B-natural — the Dorian brightness
+    [494, B*3,  H,   5],     // B4 held (maj6 of D, maj3 of G) (vib)
+    [440, B*3+H,Q      ],    // A4
+    // Bar 5 (8–10s) Dm: build toward peak
+    [440, B*4,  Q      ],    // A4
+    [523, B*4+Q,Q      ],    // C5
+    [587, B*4+H,Q,   4],    // D5 (vib)
+    // Bar 6 (10–12s) Am: melodic peak, start of descent
+    [659, B*5,  Q,   5],    // E5 (vib)
+    [587, B*5+Q,Q      ],   // D5
+    [523, B*5+H,Q      ],   // C5
+    // Bar 7 (12–14s) G: glide home
+    [494, B*6,  Q      ],   // B4
+    [440, B*6+Q,Q      ],   // A4
+    [392, B*6+H,Q      ],   // G4
+    // Bar 8 (14–16s) Dm: rest on the 5th, D4 pickup into loop
+    [440, B*7,  H,   4],   // A4 held (vib)
+    [294, B*7+H,Q      ],  // D4 — pickup straight into bar 1 A4
+  ].forEach(([f,t,d,vd])=>nb(f,t,d,'triangle',0.60,vd));
 
-  // ── Bass (triangle — warm, smooth analog feel) ──
+  // ── Bass (triangle — one root per bar, long and warm) ──
   [
-    [220,0.00,Q],[220,0.50,Q],   // A3 A3
-    [165,1.00,Q],[165,1.50,Q],   // E3 E3
-    [147,2.00,Q],[147,2.50,Q],   // D3 D3
-    [165,3.00,Q],[165,3.50,Q],   // E3 E3
-    [220,4.00,Q],[220,4.50,Q],   // A3 A3
-    [220,5.00,Q],[247,5.50,Q],   // A3 B3 (passing)
-    [147,6.00,Q],[147,6.50,Q],   // D3 D3
-    [220,7.00,H],                 // A3 (held)
-    [220,8.00,Q],[165,8.50,Q],   // A3 E3
-    [147,9.00,Q],[165,9.50,Q],   // D3 E3
-    [220,10.00,Q],[165,10.50,Q], // A3 E3
-    [147,11.00,Q],[165,11.50,Q], // D3 E3
-    [147,12.00,Q],[185,12.50,Q], // D3 F#3
-    [220,13.00,H],                // A3 (held)
-    [147,14.00,Q],[165,14.50,Q], // D3 E3
-    [220,15.00,H],                // A3 (held, seam)
-  ].forEach(([f,t,d])=>nb(f,t,d,'triangle',0.68));
+    [147, 0,    B*0.93],    // D3  Dm
+    [196, B,    B*0.93],    // G3  G  (the IV in Dorian)
+    [220, B*2,  B*0.93],    // A3  Am
+    [196, B*3,  B*0.93],    // G3  G
+    [147, B*4,  H*0.93],    // D3  Dm
+    [220, B*4+H,Q*0.88],    // A3  (walking)
+    [220, B*5,  B*0.93],    // A3  Am
+    [196, B*6,  H*0.93],    // G3  G
+    [147, B*6+H,Q*0.88],    // D3
+    [147, B*7,  B*0.93],    // D3  Dm (final bar)
+  ].forEach(([f,t,d])=>nb(f,t,d,'triangle',0.58));
 
-  // ── Counter-melody (triangle — soft off-beat harmony fills) ──
+  // ── Pad / chord tones (sine — whole-bar sustained, barely audible) ──
+  // Each note is the 3rd of the current chord, creating a soft harmonic wash
   [
-    [554,0.25,E],[659,0.75,E],   // C#5 E5
-    [659,1.25,E],[880,1.75,E],   // E5 A5
-    [659,2.25,E],[880,2.75,E],   // E5 A5
-    [880,3.25,E],[740,3.75,E],   // A5 F#5
-    [659,4.25,E],[554,4.75,E],   // E5 C#5
-    [440,5.25,E],[554,5.75,E],   // A4 C#5
-    [740,6.25,E],[880,6.75,E],   // F#5 A5
-    [880,7.25,E],[659,7.75,E],   // A5 E5
-    [880,8.25,E],[1109,8.75,E],  // A5 C#6
-    [880,9.25,E],[740,9.75,E],   // A5 F#5
-    [659,10.25,E],[880,10.75,E], // E5 A5
-    [554,11.25,E],[659,11.75,E], // C#5 E5
-    [740,12.25,E],[880,12.75,E], // F#5 A5
-    [1109,13.25,E],[880,13.75,E],// C#6 A5
-    [740,14.25,E],[554,14.75,E], // F#5 C#5
-    [440,15.25,E],[554,15.75,E], // A4 C#5 (into next loop)
-  ].forEach(([f,t,d])=>nb(f,t,d,'triangle',0.28));
+    [349, 0,    B*0.88],    // F4  (3rd of Dm)
+    [247, B,    B*0.88],    // B3  (maj3 of G — the Dorian fingerprint!)
+    [523, B*2,  B*0.88],    // C5  (minor 7th over Am)
+    [494, B*3,  B*0.88],    // B4  (maj3 of G — brightness again)
+    [349, B*4,  B*0.88],    // F4  (3rd of Dm)
+    [330, B*5,  B*0.88],    // E4  (5th of Am)
+    [392, B*6,  B*0.88],    // G4  (root of G as colour)
+    [349, B*7,  B*0.88],    // F4  (3rd of Dm, home)
+  ].forEach(([f,t,d])=>nb(f,t,d,'sine',0.20));
 
   bgMusicTimeout=setTimeout(bgMusicLoop,(LOOP-0.08)*1000);
 }
