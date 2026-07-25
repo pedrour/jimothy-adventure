@@ -328,6 +328,15 @@ const BLDG_LAYOUT=[
   {x:2790,type:'craftsman',w:148,h:88},
 ];
 
+// ── ANALYTICS ──
+const _sessionStart=Date.now();
+let _gameStarted=false;
+let _progressMilestones={25:false,50:false,75:false};
+let _sessionBuckets={30:false,60:false,120:false,300:false};
+function track(name,params){
+  try{if(typeof gtag==='function')gtag('event',name,params||{});}catch(e){}
+}
+
 // Game state
 let jim,camX,score,totalFood,popups,frame,won,winFrame,fireworks;
 let particles=[];   // collect burst particles
@@ -338,6 +347,7 @@ let audio; try{audio=new(window.AudioContext||window.webkitAudioContext)()}catch
 function toggleMute(){
   muted=!muted;
   document.getElementById('vol-btn').textContent=muted?'🔇':'🔊';
+  track('mute_toggled',{muted});
   if(muted){stopBgMusic();}
   else{if(audio&&audio.state==='suspended')audio.resume().then(()=>startBgMusic());else startBgMusic();}
 }
@@ -540,7 +550,7 @@ function tryDig(){
     const ccx=can.x+can.w/2;
     if(Math.abs(cx-ccx)<54&&jim.y+JIM_H>=can.y){
       jim.digging=true;jim.digTick=0;jim.digTarget=can;
-      jim.vx=0;sndLoot();
+      jim.vx=0;sndLoot();track('trash_rummaged');
       if(audio&&audio.state==='suspended')audio.resume();
       return;
     }
@@ -1502,6 +1512,25 @@ function update(){
   // Auto-start bg music as soon as audio context is unlocked
   if(!bgMusicPlaying&&!won&&audio&&audio.state==='running')startBgMusic();
 
+  // ── ANALYTICS ──
+  // game_start: first movement
+  if(!_gameStarted&&jim&&(jim.vx!==0||!jim.onGround)){
+    _gameStarted=true;track('game_start');
+  }
+  // game_progress: world traversal milestones
+  if(_gameStarted&&!won){
+    const _pct=Math.min(100,Math.floor((camX/(WORLD_W-VW))*100));
+    if(_pct>=25&&!_progressMilestones[25]){_progressMilestones[25]=true;track('game_progress',{percent:25});}
+    if(_pct>=50&&!_progressMilestones[50]){_progressMilestones[50]=true;track('game_progress',{percent:50});}
+    if(_pct>=75&&!_progressMilestones[75]){_progressMilestones[75]=true;track('game_progress',{percent:75});}
+  }
+  // session_duration_bucket: time on page
+  const _elapsed=Math.floor((Date.now()-_sessionStart)/1000);
+  if(_elapsed>=30 &&!_sessionBuckets[30]) {_sessionBuckets[30] =true;track('session_duration_bucket',{bucket:'30s'});}
+  if(_elapsed>=60 &&!_sessionBuckets[60]) {_sessionBuckets[60] =true;track('session_duration_bucket',{bucket:'60s'});}
+  if(_elapsed>=120&&!_sessionBuckets[120]){_sessionBuckets[120]=true;track('session_duration_bucket',{bucket:'2min'});}
+  if(_elapsed>=300&&!_sessionBuckets[300]){_sessionBuckets[300]=true;track('session_duration_bucket',{bucket:'5min'});}
+
   // Win → animate and restart after brief delay
   if(won){
     winFrame++;
@@ -1601,7 +1630,7 @@ function update(){
       sndCollect();
       if(audio&&audio.state==='suspended')audio.resume();
       // Coffee speed boost
-      if(f.type==='coffee') coffeeBoost=220;
+      if(f.type==='coffee'){coffeeBoost=220;track('coffee_collected');}
       // Particle burst
       const cols=['#FFD700','#FF8C00','#FF4500','#00FF7F','#00BFFF','#FF69B4','#ADFF2F','#FF6347'];
       for(let i=0;i<14;i++){
@@ -1621,17 +1650,22 @@ function update(){
   // Win check
   const allFood=food.every(f=>f.taken);
   const allCans=cans.every(c=>c.searched);
-  if(allFood&&allCans&&!won){won=true;stopBgMusic();sndVictory80s();}
+  if(allFood&&allCans&&!won){won=true;stopBgMusic();sndVictory80s();track('game_complete',{score});}
 }
 
 // ── SHARE ──
 async function doShare(){
-  const url='https://pedrour.github.io/jimothy-adventure';
+  track('share_tapped',{score});
+  const url='https://playjimothy.com';
   const text=`🦝 I collected ${score} bites as Jimothy, Seattle's famous round raccoon! Can you beat me?\n${url}`;
   if(navigator.share){
-    try{await navigator.share({title:"Jimothy Eats Seattle",text,url});}catch(e){}
+    try{
+      await navigator.share({title:"Jimothy Eats Seattle",text,url});
+      track('share_completed',{method:'native',score});
+    }catch(e){}
   } else {
     navigator.clipboard.writeText(text).then(()=>{
+      track('share_completed',{method:'clipboard',score});
       const b=document.getElementById('share-btn');
       const orig=b.innerHTML;b.innerHTML='✓ Copied to clipboard!';
       setTimeout(()=>{b.innerHTML=orig;},2200);
@@ -2277,6 +2311,7 @@ function init(){
        walkTick:0,walkFrame:0,digging:false,digTick:0,digTarget:null,
        jumpHeld:false,digHeld:false};
   camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];particles=[];coffeeBoost=0;
+  _gameStarted=false;_progressMilestones={25:false,50:false,75:false};
   document.getElementById('share-btn').style.display='none';
   startBgMusic();
 }
