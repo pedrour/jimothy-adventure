@@ -367,8 +367,13 @@ function toggleMute(){
   muted=!muted;
   document.getElementById('vol-btn').textContent=muted?'🔇':'🔊';
   track('mute_toggled',{muted});
-  if(muted){stopBgMusic();}
-  else{if(audio&&audio.state==='suspended')audio.resume().then(()=>startBgMusic());else startBgMusic();}
+  if(muted){
+    stopBgMusic();
+    if(audio&&audio.state==='running')audio.suspend();
+  } else {
+    if(audio&&audio.state==='suspended')audio.resume().then(()=>{if(!won)startBgMusic();});
+    else if(!won)startBgMusic();
+  }
 }
 const keys={};
 const mob={l:false,r:false,j:false,d:false};
@@ -377,7 +382,7 @@ const mob={l:false,r:false,j:false,d:false};
 window.addEventListener('keydown',e=>{
   keys[e.code]=true;
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
-  if(audio&&audio.state==='suspended')audio.resume();
+  if(!muted&&audio&&audio.state==='suspended')audio.resume();
   if((e.code==='Space'||e.code==='ArrowUp')&&jim&&jim.onGround) doJump();
   if((e.code==='KeyS'||e.code==='ArrowDown')&&jim&&!jim.digging) tryDig();
 });
@@ -420,7 +425,7 @@ function sndLoot(){
 }
 // ── BACKGROUND MUSIC ──
 function startBgMusic(){
-  if(bgMusicPlaying||!audio||audio.state==='suspended')return;
+  if(bgMusicPlaying||muted||!audio||audio.state==='suspended')return;
   bgMusicPlaying=true;bgMusicLoop();
 }
 function stopBgMusic(){
@@ -559,7 +564,7 @@ function doJump(){
   if(!jim.onGround)return;
   jim.vy=JUMP_VY;jim.onGround=false;
   sndJump();
-  if(audio&&audio.state==='suspended')audio.resume();
+  if(!muted&&audio&&audio.state==='suspended')audio.resume();
 }
 function tryDig(){
   if(!jim.onGround)return;
@@ -570,7 +575,7 @@ function tryDig(){
     if(Math.abs(cx-ccx)<54&&jim.y+JIM_H>=can.y){
       jim.digging=true;jim.digTick=0;jim.digTarget=can;
       jim.vx=0;sndLoot();track('trash_rummaged');
-      if(audio&&audio.state==='suspended')audio.resume();
+      if(!muted&&audio&&audio.state==='suspended')audio.resume();
       return;
     }
   }
@@ -1529,7 +1534,7 @@ function drawHUD(){
 function update(){
   frame++;
   // Auto-start bg music as soon as audio context is unlocked
-  if(!bgMusicPlaying&&!won&&audio&&audio.state==='running')startBgMusic();
+  if(!bgMusicPlaying&&!won&&!muted&&audio&&audio.state==='running')startBgMusic();
 
   // ── ANALYTICS ──
   // game_start: first movement
@@ -1650,7 +1655,7 @@ function update(){
       const word=COLLECT_WORDS[Math.floor(Math.random()*COLLECT_WORDS.length)];
       popups.push({x:f.x,y:f.y-16,text:`+${f.pts} ${word}`,alpha:1,vy:-1.8});
       sndCollect();
-      if(audio&&audio.state==='suspended')audio.resume();
+      if(!muted&&audio&&audio.state==='suspended')audio.resume();
       // Coffee speed boost
       if(f.type==='coffee'){coffeeBoost=220;track('coffee_collected');}
       // Particle burst
@@ -2370,7 +2375,8 @@ function setupMobile(){
   function hold(id,prop){
     const el=document.getElementById(id);
     el.addEventListener('touchstart',e=>{e.preventDefault();mob[prop]=true;
-      if(audio&&audio.state==='suspended')audio.resume();},{passive:false});
+      if(!muted&&audio&&audio.state==='suspended')audio.resume();
+    },{passive:false});
     el.addEventListener('touchend',e=>{e.preventDefault();mob[prop]=false;},{passive:false});
     el.addEventListener('touchcancel',()=>{mob[prop]=false;});
     // Mouse fallback for desktop testing
