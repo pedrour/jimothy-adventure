@@ -330,8 +330,8 @@ let audio; try{audio=new(window.AudioContext||window.webkitAudioContext)()}catch
 function toggleMute(){
   muted=!muted;
   document.getElementById('vol-btn').textContent=muted?'🔇':'🔊';
-  if(muted) stopBgMusic();
-  else if(!won) startBgMusic();
+  if(muted){stopBgMusic();}
+  else{if(audio&&audio.state==='suspended')audio.resume().then(()=>startBgMusic());else startBgMusic();}
 }
 const keys={};
 const mob={l:false,r:false,j:false,d:false};
@@ -340,6 +340,7 @@ const mob={l:false,r:false,j:false,d:false};
 window.addEventListener('keydown',e=>{
   keys[e.code]=true;
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+  if(audio&&audio.state==='suspended')audio.resume();
   if((e.code==='Space'||e.code==='ArrowUp')&&jim&&jim.onGround) doJump();
   if((e.code==='KeyS'||e.code==='ArrowDown')&&jim&&!jim.digging) tryDig();
 });
