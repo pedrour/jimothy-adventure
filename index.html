@@ -67,6 +67,21 @@ canvas{
   padding:0;transition:background 0.2s;
 }
 #vol-btn:hover{background:rgba(0,0,0,0.55);}
+#social-btns{
+  display:none;position:fixed;bottom:148px;left:50%;transform:translateX(-50%);
+  gap:10px;flex-direction:row;align-items:center;z-index:20;
+}
+#social-btns button{
+  background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);
+  color:#fff;font-size:15px;font-weight:bold;
+  width:44px;height:44px;border-radius:10px;cursor:pointer;
+  font-family:'Courier New',monospace;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s;
+}
+#social-btns button:hover{background:rgba(255,255,255,0.15);}
+#social-btns button.x-btn{background:rgba(0,0,0,0.8);}
+#social-btns button.fb-btn{background:rgba(24,119,242,0.85);}
 </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMBX27898J"></script>
@@ -85,6 +100,10 @@ canvas{
   <span id="scoretxt" style="color:#ffcc44;font-size:clamp(13px,2vw,18px)">🍖 0 bites</span>
 </div>
 <button id="share-btn" onclick="doShare()">🦝 SHARE SCORE</button>
+<div id="social-btns">
+  <button class="x-btn" onclick="shareToX()" title="Share on X">𝕏</button>
+  <button class="fb-btn" onclick="shareToFB()" title="Share on Facebook">f</button>
+</div>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
 <div id="mob">
   <div id="mob-left">
@@ -1534,7 +1553,10 @@ function update(){
   // Win → animate and restart after brief delay
   if(won){
     winFrame++;
-    if(winFrame===160)document.getElementById('share-btn').style.display='block';
+    if(winFrame===160){
+      document.getElementById('share-btn').style.display='block';
+      document.getElementById('social-btns').style.display='flex';
+    }
     if(winFrame>160&&(keys['Space']||mob.j))init();
     return;
   }
@@ -1654,23 +1676,45 @@ function update(){
 }
 
 // ── SHARE ──
+const _shareURL='https://playjimothy.com';
+function _shareText(){return `🦝 I fed Jimothy ${score} bites exploring Seattle! Can you beat me?\n${_shareURL}`;}
+
 async function doShare(){
   track('share_tapped',{score});
-  const url='https://playjimothy.com';
-  const text=`🦝 I collected ${score} bites as Jimothy, Seattle's famous round raccoon! Can you beat me?\n${url}`;
+  // Try image share first — enables IG Stories & TikTok save on mobile
+  try{
+    const blob=await new Promise(r=>C.toBlob(r,'image/png'));
+    const file=new File([blob],'jimothy-eats-seattle.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:'Jimothy Eats Seattle',text:_shareText(),url:_shareURL});
+      track('share_completed',{method:'image',score});return;
+    }
+  }catch(e){}
+  // Fallback: URL-only native share (Android/desktop)
   if(navigator.share){
     try{
-      await navigator.share({title:"Jimothy Eats Seattle",text,url});
+      await navigator.share({title:'Jimothy Eats Seattle',text:_shareText(),url:_shareURL});
       track('share_completed',{method:'native',score});
     }catch(e){}
   } else {
-    navigator.clipboard.writeText(text).then(()=>{
+    navigator.clipboard.writeText(_shareText()).then(()=>{
       track('share_completed',{method:'clipboard',score});
       const b=document.getElementById('share-btn');
-      const orig=b.innerHTML;b.innerHTML='✓ Copied to clipboard!';
+      const orig=b.innerHTML;b.innerHTML='✓ Copied!';
       setTimeout(()=>{b.innerHTML=orig;},2200);
     });
   }
+}
+function shareToX(){
+  track('share_tapped',{score,platform:'x'});
+  const t=encodeURIComponent(`🦝 I fed Jimothy ${score} bites in Seattle! Play free:`);
+  window.open(`https://x.com/intent/tweet?text=${t}&url=${encodeURIComponent(_shareURL)}`,'_blank');
+  track('share_completed',{method:'x',score});
+}
+function shareToFB(){
+  track('share_tapped',{score,platform:'facebook'});
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(_shareURL)}`,'_blank');
+  track('share_completed',{method:'facebook',score});
 }
 
 // ── RUMMAGE ANIMATION ──
@@ -2313,6 +2357,7 @@ function init(){
   camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];particles=[];coffeeBoost=0;
   _gameStarted=false;_progressMilestones={25:false,50:false,75:false};
   document.getElementById('share-btn').style.display='none';
+  document.getElementById('social-btns').style.display='none';
   startBgMusic();
 }
 
