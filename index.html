@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta property="og:title" content="Jimothy's Ballard Adventure 🦝">
-<meta property="og:description" content="Explore Ballard with Seattle's famous round raccoon. Jump fences, raid trash cans, find food!">
-<title>Jimothy's Ballard Adventure 🦝</title>
+<meta property="og:title" content="Jimothy Eats Seattle 🦝">
+<meta property="og:description" content="Seattle's roundest raccoon is hungry. One trash can at a time. Free browser game — no download needed.">
+<title>Jimothy Eats Seattle 🦝</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{
@@ -70,7 +70,7 @@ canvas{
 </style>
 </head>
 <body>
-<div id="titlebar">🦝 JIMOTHY'S BALLARD ADVENTURE</div>
+<div id="titlebar">🦝 JIMOTHY EATS SEATTLE</div>
 <canvas id="c"></canvas>
 <div id="btmbar">
   <span id="hint">← → Move &nbsp;│&nbsp; SPACE Jump &nbsp;│&nbsp; S Rummage trash</span>
@@ -1621,7 +1621,7 @@ async function doShare(){
   const url='https://pedrour.github.io/jimothy-adventure';
   const text=`🦝 I collected ${score} bites as Jimothy, Seattle's famous round raccoon! Can you beat me?\n${url}`;
   if(navigator.share){
-    try{await navigator.share({title:"Jimothy's Ballard Adventure",text,url});}catch(e){}
+    try{await navigator.share({title:"Jimothy Eats Seattle",text,url});}catch(e){}
   } else {
     navigator.clipboard.writeText(text).then(()=>{
       const b=document.getElementById('share-btn');
