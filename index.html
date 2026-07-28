@@ -2393,7 +2393,7 @@ function drawWinScene(){
   }
 
   // ── Score panel ──
-  const panH=108;
+  const panH=126;
   ctx.fillStyle='rgba(2,4,20,0.92)';ctx.fillRect(0,VH-panH,VW,panH);
   const borderHue=(winFrame*4)%360;
   ctx.strokeStyle=`hsl(${borderHue},100%,55%)`;ctx.lineWidth=2;
@@ -2403,16 +2403,18 @@ function drawWinScene(){
   const titleHue=(winFrame*3)%360;
   ctx.fillStyle=`hsl(${titleHue},100%,68%)`;
   ctx.font=`bold ${Math.round(26+tb)}px Courier New`;ctx.textAlign='center';
-  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH-panH+32);
+  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH-panH+30);
   ctx.fillStyle='#88ddff';ctx.font='17px Courier New';
-  ctx.fillText(`${score} bites collected`,VW/2,VH-panH+56);
+  ctx.fillText(`${score} bites collected`,VW/2,VH-panH+54);
   // URL — baked into canvas so it's visible in screenshots/shares
   ctx.fillStyle='rgba(255,255,255,0.55)';ctx.font='bold 12px Courier New';
-  ctx.fillText('playjimothy.com',VW/2,VH-panH+76);
+  ctx.fillText('playjimothy.com',VW/2,VH-panH+74);
   if(winFrame>160){
     ctx.fillStyle='rgba(160,185,255,0.65)';ctx.font='12px Courier New';
-    ctx.fillText('tap / SPACE to go again',VW/2,VH-panH+94);
+    ctx.fillText('tap / SPACE to go again',VW/2,VH-panH+93);
   }
+  ctx.fillStyle='rgba(255,255,255,0.28)';ctx.font='10px Courier New';
+  ctx.fillText('get in touch — contact@nebulaailabs.com',VW/2,VH-panH+112);
   ctx.textAlign='left';
 }
 
