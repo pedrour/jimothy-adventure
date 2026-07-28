@@ -489,6 +489,7 @@ window.addEventListener('keydown',e=>{
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
   if(!muted&&audio&&audio.state==='suspended')audio.resume();
   if((e.code==='Space'||e.code==='ArrowUp')&&jim&&jim.onGround) doJump();
+  if((e.code==='KeyS'||e.code==='ArrowDown')&&!e.repeat) noteDownPress();
   if((e.code==='KeyS'||e.code==='ArrowDown')&&jim&&!jim.digging) tryDig();
 });
 window.addEventListener('keyup',e=>{keys[e.code]=false});
@@ -1787,6 +1788,27 @@ function update(){
   if(allFood&&allCans&&!won){won=true;stopBgMusic();sndVictory80s();track('game_complete',{score});}
 }
 
+// ── CHEAT: 10 rapid Down presses skips to the win screen ──
+const CHEAT_TAPS=10, CHEAT_GAP=900;  // ms allowed between taps
+let downStreak=0, lastDownAt=0;
+function noteDownPress(){
+  if(won)return;
+  const now=Date.now();
+  downStreak=(now-lastDownAt<CHEAT_GAP)?downStreak+1:1;
+  lastDownAt=now;
+  if(downStreak>=CHEAT_TAPS){downStreak=0;cheatWin();}
+}
+function cheatWin(){
+  if(won)return;
+  // Award everything not yet collected so the win panel totals stay honest
+  food.forEach(f=>{if(!f.taken){f.taken=true;score+=f.pts;}});
+  cans.forEach(c=>{if(!c.searched){c.searched=true;score+=12+Math.floor(Math.random()*18);}});
+  jim.digging=false;jim.digTarget=null;
+  won=true;winFrame=0;
+  stopBgMusic();sndVictory80s();
+  track('game_complete',{score,cheat:true});
+}
+
 // ── SHARE ──
 const _shareURL='https://playjimothy.com';
 function _shareText(){return `🦝 I fed Jimothy ${score} bites exploring Seattle! Can you beat me?\n${_shareURL}`;}
@@ -2483,6 +2505,7 @@ function init(){
        jumpHeld:false,digHeld:false};
   camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];particles=[];coffeeBoost=0;
   _gameStarted=false;_progressMilestones={25:false,50:false,75:false};
+  downStreak=0;lastDownAt=0;
   document.getElementById('win-actions').style.display='none';
   startBgMusic();
 }
@@ -2493,12 +2516,13 @@ function setupMobile(){
   function hold(id,prop){
     const el=document.getElementById(id);
     el.addEventListener('touchstart',e=>{e.preventDefault();mob[prop]=true;
+      if(prop==='d')noteDownPress();
       if(!muted&&audio&&audio.state==='suspended')audio.resume();
     },{passive:false});
     el.addEventListener('touchend',e=>{e.preventDefault();mob[prop]=false;},{passive:false});
     el.addEventListener('touchcancel',()=>{mob[prop]=false;});
     // Mouse fallback for desktop testing
-    el.addEventListener('mousedown',e=>{mob[prop]=true;});
+    el.addEventListener('mousedown',e=>{mob[prop]=true;if(prop==='d')noteDownPress();});
     el.addEventListener('mouseup',()=>{mob[prop]=false;});
   }
   hold('btn-l','l');hold('btn-r','r');hold('btn-j','j');hold('btn-d','d');
