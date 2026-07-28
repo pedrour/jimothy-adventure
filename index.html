@@ -102,12 +102,17 @@ canvas{
 #mob button:active{background:rgba(60,100,160,.95)}
 #mob-left{display:flex;gap:8px}
 #mob-right{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+/* Win-screen action row — positioned over the canvas by layoutWinActions() */
+#win-actions{
+  display:none;position:fixed;z-index:20;
+  gap:8px;align-items:center;
+  transform-origin:center center;
+}
 #share-btn{
-  display:none;position:fixed;bottom:92px;left:50%;transform:translateX(-50%);
   background:linear-gradient(135deg,#ff6644,#ffcc22,#ff44aa);
-  color:#111;border:none;padding:13px 28px;
+  color:#111;border:none;padding:13px 24px;
   font-family:'Courier New',monospace;font-size:16px;font-weight:bold;
-  border-radius:10px;cursor:pointer;z-index:20;
+  border-radius:10px;cursor:pointer;
   box-shadow:0 0 18px rgba(255,180,0,0.7),0 4px 12px rgba(0,0,0,0.5);
   animation:share-pulse 1s ease-in-out infinite alternate;
   white-space:nowrap;
@@ -122,21 +127,17 @@ canvas{
   padding:0;transition:background 0.2s;
 }
 #vol-btn:hover{background:rgba(0,0,0,0.55);}
-#social-btns{
-  display:none;position:fixed;bottom:92px;left:calc(50% + 100px);
-  gap:8px;flex-direction:row;align-items:center;z-index:20;
-}
-#social-btns button{
-  background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);
+#win-actions .soc{
+  border:1px solid rgba(255,255,255,0.2);
   color:#fff;font-size:15px;font-weight:bold;
-  width:44px;height:44px;border-radius:10px;cursor:pointer;
+  width:46px;height:46px;border-radius:10px;cursor:pointer;
   font-family:'Courier New',monospace;
   display:flex;align-items:center;justify-content:center;
-  transition:background 0.15s;
+  transition:background 0.15s;flex-shrink:0;
 }
-#social-btns button:hover{background:rgba(255,255,255,0.15);}
-#social-btns button.x-btn{background:rgba(0,0,0,0.8);}
-#social-btns button.fb-btn{background:rgba(24,119,242,0.85);}
+#win-actions .soc:hover{background:rgba(255,255,255,0.18);}
+#win-actions .x-btn{background:rgba(0,0,0,0.8);}
+#win-actions .fb-btn{background:rgba(24,119,242,0.9);}
 </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMBX27898J"></script>
@@ -184,10 +185,10 @@ canvas{
   <span id="hint">← → Move &nbsp;│&nbsp; SPACE Jump &nbsp;│&nbsp; S Rummage trash</span>
   <span id="scoretxt" style="color:#ffcc44;font-size:clamp(13px,2vw,18px)">🍖 0 bites</span>
 </div>
-<button id="share-btn" onclick="doShare()">🦝 SHARE SCORE</button>
-<div id="social-btns">
-  <button class="x-btn" onclick="shareToX()" title="Share on X">𝕏</button>
-  <button class="fb-btn" onclick="shareToFB()" title="Share on Facebook">f</button>
+<div id="win-actions">
+  <button id="share-btn" onclick="doShare()">🦝 SHARE SCORE</button>
+  <button class="soc x-btn" onclick="shareToX()" title="Share on X" aria-label="Share on X">𝕏</button>
+  <button class="soc fb-btn" onclick="shareToFB()" title="Share on Facebook" aria-label="Share on Facebook">f</button>
 </div>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
 <div id="mob">
@@ -442,6 +443,25 @@ function track(name,params){
 }
 
 // Game state
+// Canvas y where the win-screen button row is centred. The score panel
+// reserves this band, so canvas text and the HTML buttons never overlap.
+const WIN_ACTIONS_Y=652;
+
+// The buttons are HTML overlaid on a canvas that scales with the viewport,
+// so they must be anchored to the canvas rect — not to the viewport.
+function layoutWinActions(){
+  const wa=document.getElementById('win-actions');
+  if(!wa||wa.style.display==='none')return;
+  const r=C.getBoundingClientRect();
+  if(!r.height)return;
+  const s=r.height/VH;
+  wa.style.left=(r.left+r.width/2)+'px';
+  wa.style.top=(r.top+WIN_ACTIONS_Y*s)+'px';
+  wa.style.transform=`translate(-50%,-50%) scale(${Math.min(1.15,Math.max(0.68,s))})`;
+}
+window.addEventListener('resize',layoutWinActions);
+window.addEventListener('orientationchange',()=>setTimeout(layoutWinActions,250));
+
 let jim,camX,score,totalFood,popups,frame,won,winFrame,fireworks;
 let particles=[];   // collect burst particles
 let coffeeBoost=0;  // frames of speed boost remaining
@@ -1644,9 +1664,11 @@ function update(){
   if(won){
     winFrame++;
     if(winFrame===160){
-      document.getElementById('share-btn').style.display='block';
-      document.getElementById('social-btns').style.display='flex';
+      document.getElementById('win-actions').style.display='flex';
+      layoutWinActions();
     }
+    // Re-anchor periodically — mobile browser chrome can resize the canvas
+    if(winFrame>160&&winFrame%15===0)layoutWinActions();
     if(winFrame>160&&(keys['Space']||mob.j))init();
     return;
   }
@@ -1848,7 +1870,7 @@ function drawRummageAnim(sx,sy,flip){
 
 // ── WIN SCENE ──
 function drawWinSpaceNeedle(nX,nBase){
-  const H=430;
+  const H=330;
   const legJY=nBase-Math.round(H*0.26);  // 138ft – where legs meet column
   const deckY=nBase-Math.round(H*0.86);  // 520ft – observation deck
   const topY=nBase-H;                     // top of column
@@ -2287,7 +2309,8 @@ function drawPikePlace(cx,base,frame){
 }
 
 function drawWinScene(){
-  const nBase=625;
+  const panH=190;              // score panel height
+  const nBase=VH-panH-8;       // ground line — sits just above the panel
 
   // ── Deep psychedelic sky ──
   const sk=ctx.createLinearGradient(0,0,0,VH);
@@ -2351,7 +2374,7 @@ function drawWinScene(){
   fireworks=fireworks.filter(fw=>fw.t<56);
 
   // ── Orcas leaping on each side of the needle ──
-  const orcaBase=nBase+8;  // "water surface" level
+  const orcaBase=nBase-6;  // "water surface" level — kept above the score panel
   const ljump=Math.abs(Math.sin(winFrame*0.06));       // left orca jump arc
   const rjump=Math.abs(Math.sin(winFrame*0.06+1.4));   // right orca, phase offset
   const lorcaY=orcaBase-ljump*110;
@@ -2393,28 +2416,37 @@ function drawWinScene(){
   }
 
   // ── Score panel ──
-  const panH=126;
-  ctx.fillStyle='rgba(2,4,20,0.92)';ctx.fillRect(0,VH-panH,VW,panH);
+  // All text sits above WIN_ACTIONS_Y; that band is reserved for the
+  // HTML share buttons overlaid on the canvas.
+  const panTop=VH-panH;
+  ctx.fillStyle='rgba(2,4,20,0.92)';ctx.fillRect(0,panTop,VW,panH);
   const borderHue=(winFrame*4)%360;
   ctx.strokeStyle=`hsl(${borderHue},100%,55%)`;ctx.lineWidth=2;
-  ctx.strokeRect(0,VH-panH,VW,panH);
+  ctx.strokeRect(0,panTop,VW,panH);
 
   const tb=Math.sin(winFrame*0.10)*2;
   const titleHue=(winFrame*3)%360;
+  ctx.textAlign='center';
   ctx.fillStyle=`hsl(${titleHue},100%,68%)`;
-  ctx.font=`bold ${Math.round(26+tb)}px Courier New`;ctx.textAlign='center';
-  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,VH-panH+30);
-  ctx.fillStyle='#88ddff';ctx.font='17px Courier New';
-  ctx.fillText(`${score} bites collected`,VW/2,VH-panH+54);
+  ctx.font=`bold ${Math.round(26+tb)}px Courier New`;
+  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,panTop+34);
+
+  // Item count and points are different things — show both so it's clear
+  const tot=food.length+cans.length;
+  ctx.fillStyle='#88ddff';ctx.font='16px Courier New';
+  ctx.fillText(`all ${tot} snacks · ${score} bites`,VW/2,panTop+58);
+
   // URL — baked into canvas so it's visible in screenshots/shares
-  ctx.fillStyle='rgba(255,255,255,0.55)';ctx.font='bold 12px Courier New';
-  ctx.fillText('playjimothy.com',VW/2,VH-panH+74);
+  ctx.fillStyle='rgba(255,255,255,0.6)';ctx.font='bold 12px Courier New';
+  ctx.fillText('playjimothy.com',VW/2,panTop+78);
+
+  ctx.fillStyle='rgba(255,255,255,0.32)';ctx.font='10px Courier New';
+  ctx.fillText('get in touch — contact@nebulaailabs.com',VW/2,panTop+95);
+
   if(winFrame>160){
-    ctx.fillStyle='rgba(160,185,255,0.65)';ctx.font='12px Courier New';
-    ctx.fillText('tap / SPACE to go again',VW/2,VH-panH+93);
+    ctx.fillStyle='rgba(160,185,255,0.6)';ctx.font='11px Courier New';
+    ctx.fillText('tap / SPACE to go again',VW/2,panTop+112);
   }
-  ctx.fillStyle='rgba(255,255,255,0.28)';ctx.font='10px Courier New';
-  ctx.fillText('get in touch — contact@nebulaailabs.com',VW/2,VH-panH+112);
   ctx.textAlign='left';
 }
 
@@ -2451,8 +2483,7 @@ function init(){
        jumpHeld:false,digHeld:false};
   camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];particles=[];coffeeBoost=0;
   _gameStarted=false;_progressMilestones={25:false,50:false,75:false};
-  document.getElementById('share-btn').style.display='none';
-  document.getElementById('social-btns').style.display='none';
+  document.getElementById('win-actions').style.display='none';
   startBgMusic();
 }
 
