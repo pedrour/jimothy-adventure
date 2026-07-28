@@ -480,6 +480,30 @@ function toggleMute(){
     else if(!won)startBgMusic();
   }
 }
+
+// Browsers block AudioContext until the user interacts with the page, so
+// music can never start on load alone. Unlock on the first gesture of any
+// kind, anywhere — previously only the arrow keys and the on-screen control
+// buttons did this, so tapping the game area left the page silent.
+function unlockAudio(){
+  if(!audio||muted)return;
+  if(audio.state==='running'){
+    if(!bgMusicPlaying&&!won)startBgMusic();
+    return;
+  }
+  // 'suspended' on load, and 'interrupted' after a call/alarm on iOS
+  audio.resume().then(()=>{
+    if(!muted&&!won)startBgMusic();
+  }).catch(()=>{});
+}
+['pointerdown','touchstart','mousedown','keydown','click'].forEach(ev=>{
+  window.addEventListener(ev,unlockAudio,{capture:true,passive:true});
+});
+// iOS can suspend the context when the tab is backgrounded
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)unlockAudio();
+});
+
 const keys={};
 const mob={l:false,r:false,j:false,d:false};
 
