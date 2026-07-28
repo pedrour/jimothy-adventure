@@ -2339,7 +2339,7 @@ function drawPikePlace(cx,base,frame){
 }
 
 function drawWinScene(){
-  const panH=222;              // score panel height
+  const panH=234;              // score panel height
   const nBase=VH-panH-10;      // ground line — sits just above the panel
 
   // ── Deep psychedelic sky ──
@@ -2467,15 +2467,22 @@ function drawWinScene(){
   ctx.fillText(`all ${tot} snacks · ${score} bites`,VW/2,panTop+68);
 
   // URL — baked into canvas so it's visible in screenshots/shares
-  ctx.fillStyle='rgba(255,255,255,0.72)';ctx.font='bold 13px Courier New';
-  ctx.fillText('playjimothy.com',VW/2,panTop+94);
+  ctx.fillStyle='rgba(255,255,255,0.78)';ctx.font='bold 14px Courier New';
+  ctx.fillText('playjimothy.com',VW/2,panTop+96);
 
-  ctx.fillStyle='rgba(210,225,255,0.6)';ctx.font='12px Courier New';
-  ctx.fillText('get in touch — contact@nebulaailabs.com',VW/2,panTop+118);
+  // Contact — dim label, bright address so the email itself stays readable
+  const cPre='get in touch — ', cMail='contact@nebulaailabs.com';
+  ctx.font='14px Courier New';
+  const wPre=ctx.measureText(cPre).width, wMail=ctx.measureText(cMail).width;
+  const cx0=VW/2-(wPre+wMail)/2, cy0=panTop+128;
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(190,205,230,0.62)';ctx.fillText(cPre,cx0,cy0);
+  ctx.fillStyle='rgba(255,255,255,0.96)';ctx.fillText(cMail,cx0+wPre,cy0);
+  ctx.textAlign='center';
 
   if(winFrame>160){
     ctx.fillStyle='rgba(160,185,255,0.55)';ctx.font='11px Courier New';
-    ctx.fillText('tap / SPACE to go again',VW/2,panTop+140);
+    ctx.fillText('tap / SPACE to go again',VW/2,panTop+154);
   }
   ctx.textAlign='left';
 }
