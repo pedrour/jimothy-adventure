@@ -1720,6 +1720,7 @@ function update(){
     if(winFrame===160){
       document.getElementById('win-actions').style.display='flex';
       layoutWinActions();
+      track('win_screen_view',{score,mode:gameMode});
     }
     // Re-anchor periodically — mobile browser chrome can resize the canvas
     if(winFrame>160&&winFrame%15===0)layoutWinActions();
