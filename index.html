@@ -127,6 +127,16 @@ canvas{
   padding:0;transition:background 0.2s;
 }
 #vol-btn:hover{background:rgba(0,0,0,0.55);}
+#daily-btn{
+  position:fixed;top:10px;left:10px;
+  background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15);
+  color:#ccc;font-size:12px;font-family:'Courier New',monospace;
+  height:32px;padding:0 10px;border-radius:8px;cursor:pointer;z-index:20;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.2s;white-space:nowrap;
+}
+#daily-btn:hover{background:rgba(0,0,0,0.55);}
+#daily-btn.active{background:rgba(60,0,120,0.75);border-color:rgba(200,120,255,0.55);color:#dd99ff;}
 #win-actions .soc{
   border:1px solid rgba(255,255,255,0.2);
   color:#fff;font-size:15px;font-weight:bold;
@@ -191,6 +201,7 @@ canvas{
   <button class="soc fb-btn" onclick="shareToFB()" title="Share on Facebook" aria-label="Share on Facebook">f</button>
 </div>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
+<button id="daily-btn" onclick="toggleDailyMode()" title="Daily challenge">📅 DAILY</button>
 <div id="mob">
   <div id="mob-left">
     <button id="btn-l">◀</button>
@@ -514,6 +525,7 @@ window.addEventListener('keydown',e=>{
   if(!muted&&audio&&audio.state==='suspended')audio.resume();
   if((e.code==='Space'||e.code==='ArrowUp')&&jim&&jim.onGround) doJump();
   if((e.code==='KeyS'||e.code==='ArrowDown')&&!e.repeat) noteDownPress();
+  if(e.code==='ArrowUp'&&!e.repeat) noteUpPress();
   if((e.code==='KeyS'||e.code==='ArrowDown')&&jim&&!jim.digging) tryDig();
 });
 window.addEventListener('keyup',e=>{keys[e.code]=false});
@@ -919,6 +931,11 @@ function drawBg(){
   for(let i=0;i<10;i++){
     const wx=((i*83+frame*0.5)%(VW+60))-30;
     ctx.fillStyle='rgba(160,210,240,0.12)';ctx.fillRect(wx,psY+4,36+i*6,2);
+  }
+  // ── MID-RUN ORCA BREACH (behind ferry, in front of water) ──
+  if(orcaBreaching){
+    const _bArc=Math.sin(orcaBreachFrame*Math.PI/300);
+    drawOrca(VW*0.85,psY+14-_bArc*82,false,orcaBreachFrame);
   }
   // Washington State Ferry — MV Tacoma class (double-ended, 4 car lanes, 2 passenger decks)
   const ferryX=VW*0.72-camX*0.012;
@@ -1634,6 +1651,17 @@ function drawHUD(){
     ctx.fillText('☕ ZOOM!',VW-48,23);ctx.textAlign='left';
     ctx.restore();
   }
+  // Daily mode timer
+  if(gameMode==='daily'&&_gameStarted&&dailyStart>0&&!won){
+    const _el=Date.now()-dailyStart;
+    const _tm=`⏱ ${Math.floor(_el/60000)}:${Math.floor((_el%60000)/1000).toString().padStart(2,'0')}`;
+    ctx.save();
+    ctx.fillStyle='rgba(40,0,80,0.72)';
+    ctx.beginPath();ctx.roundRect(VW-88,38,82,26,8);ctx.fill();
+    ctx.fillStyle='#dd99ff';ctx.font='bold 13px Courier New';ctx.textAlign='center';
+    ctx.fillText(_tm,VW-47,56);ctx.textAlign='left';
+    ctx.restore();
+  }
 
   // Popups
   popups=popups.filter(p=>{
@@ -1669,7 +1697,9 @@ function update(){
   // ── ANALYTICS ──
   // game_start: first movement
   if(!_gameStarted&&jim&&(jim.vx!==0||!jim.onGround)){
-    _gameStarted=true;track('game_start');
+    _gameStarted=true;
+    if(gameMode==='daily')dailyStart=Date.now();
+    track('game_start',{mode:gameMode});
   }
   // game_progress: world traversal milestones
   if(_gameStarted&&!won){
@@ -1806,15 +1836,32 @@ function update(){
   camX+=(targetCamX-camX)*0.1;
   camX=Math.max(0,Math.min(WORLD_W-VW,camX));
 
+  // Orca sighting: trigger when player is ~15% through world
+  if(!won&&orcaWillShow&&!orcaBreaching&&!orcaShown&&_gameStarted&&camX>WORLD_W*0.15){
+    orcaBreaching=true;orcaBreachFrame=0;orcaWillShow=false;
+    track('orca_sighted');showOrcaToast();
+  }
+  if(!won&&orcaBreaching){
+    orcaBreachFrame++;
+    if(orcaBreachFrame>=300){orcaBreaching=false;orcaShown=true;}
+  }
+
   // Win check
   const allFood=food.every(f=>f.taken);
   const allCans=cans.every(c=>c.searched);
-  if(allFood&&allCans&&!won){won=true;stopBgMusic();sndVictory80s();track('game_complete',{score});}
+  if(allFood&&allCans&&!won){
+    if(gameMode==='daily'&&dailyStart>0){dailyTime=Date.now()-dailyStart;saveDailyResult();}
+    won=true;stopBgMusic();sndVictory80s();
+    track('game_complete',{score,mode:gameMode,time_ms:dailyTime||undefined});
+  }
 }
 
 // ── CHEAT: 10 rapid Down presses skips to the win screen ──
 const CHEAT_TAPS=10, CHEAT_GAP=900;  // ms allowed between taps
 let downStreak=0, lastDownAt=0;
+let orcaWillShow=false,orcaBreaching=false,orcaBreachFrame=0,orcaShown=false;
+let upStreak=0,lastUpAt=0;
+let gameMode='explore',dailyStart=0,dailyTime=0;
 function noteDownPress(){
   if(won)return;
   const now=Date.now();
@@ -1830,12 +1877,95 @@ function cheatWin(){
   jim.digging=false;jim.digTarget=null;
   won=true;winFrame=0;
   stopBgMusic();sndVictory80s();
-  track('game_complete',{score,cheat:true});
+  if(gameMode==='daily'&&dailyStart>0){dailyTime=Date.now()-dailyStart;saveDailyResult();}
+  track('game_complete',{score,mode:gameMode,cheat:true});
+}
+
+// ── UP-ARROW × 10 → FORCE ORCA ──
+const UP_TAPS=10,UP_GAP=900;
+function noteUpPress(){
+  if(won)return;
+  const now=Date.now();
+  upStreak=(now-lastUpAt<UP_GAP)?upStreak+1:1;
+  lastUpAt=now;
+  if(upStreak>=UP_TAPS){upStreak=0;forceOrca();}
+}
+function forceOrca(){
+  if(orcaShown||orcaBreaching)return;
+  orcaBreaching=true;orcaBreachFrame=0;orcaWillShow=false;
+  track('orca_sighted',{forced:true});showOrcaToast();
+}
+
+// ── ORCA TOAST ──
+function showOrcaToast(){
+  const el=document.createElement('div');
+  el.textContent='🐋 orca spotted!';
+  Object.assign(el.style,{
+    position:'fixed',bottom:'110px',left:'50%',
+    transform:'translateX(-50%)',
+    background:'rgba(0,18,50,0.92)',color:'#66eeff',
+    fontFamily:'Courier New,monospace',fontSize:'17px',fontWeight:'bold',
+    padding:'9px 20px',borderRadius:'10px',
+    border:'1px solid rgba(80,180,255,0.35)',
+    zIndex:'30',pointerEvents:'none',
+    transition:'opacity 0.8s',opacity:'1'
+  });
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';},2800);
+  setTimeout(()=>el.remove(),3700);
+}
+
+// ── DAILY MODE ──
+function getDayNum(){
+  // Day 1 = July 1, 2026 (game soft-launch month)
+  return Math.floor(Date.now()/86400000)-20621;
+}
+function getDailyKey(){return 'jimothy_daily_'+Math.floor(Date.now()/86400000);}
+function formatTime(ms){
+  const m=Math.floor(ms/60000);
+  const s=Math.floor((ms%60000)/1000).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+function getStreak(){
+  const yesterday='jimothy_daily_'+(Math.floor(Date.now()/86400000)-1);
+  if(localStorage.getItem('jimothy_last_daily')===yesterday){
+    return parseInt(localStorage.getItem('jimothy_streak')||'0');
+  }
+  return 0;
+}
+function saveDailyResult(){
+  const key=getDailyKey();
+  if(localStorage.getItem(key))return; // only first completion counts
+  const streak=getStreak()+1;
+  localStorage.setItem(key,JSON.stringify({score,time:dailyTime,streak}));
+  localStorage.setItem('jimothy_last_daily',key);
+  localStorage.setItem('jimothy_streak',String(streak));
+  updateDailyBtn();
+}
+function toggleDailyMode(){
+  gameMode=gameMode==='daily'?'explore':'daily';
+  updateDailyBtn();init();
+  track('mode_changed',{mode:gameMode});
+}
+function updateDailyBtn(){
+  const btn=document.getElementById('daily-btn');if(!btn)return;
+  const done=!!localStorage.getItem(getDailyKey());
+  btn.classList.toggle('active',gameMode==='daily');
+  btn.textContent=gameMode==='daily'&&done?'📅 DONE':'📅 DAILY';
 }
 
 // ── SHARE ──
 const _shareURL='https://playjimothy.com';
-function _shareText(){return `🦝 I fed Jimothy ${score} bites exploring Seattle! Can you beat me?\n${_shareURL}`;}
+function _shareText(){
+  if(gameMode==='daily'){
+    const _dn=getDayNum();
+    const _ts=dailyTime?` · ⏱ ${formatTime(dailyTime)}`:'';
+    const _str=parseInt(localStorage.getItem('jimothy_streak')||'1');
+    const _fire=_str>=3?`🔥×${_str} `:_str>=2?'🔥🔥 ':'';
+    return `🦝 Jimothy Daily #${_dn}${_ts}\n${_fire}🍖 ${score} bites\n${_shareURL}`;
+  }
+  return `🦝 I fed Jimothy ${score} bites exploring Seattle! Can you beat me?\n${_shareURL}`;
+}
 
 async function doShare(){
   track('share_tapped',{score});
@@ -2101,7 +2231,7 @@ function drawOrca(cx,cy,flip,t){
   ctx.quadraticCurveTo(-46,bob+8,-40,bob+6);ctx.closePath();ctx.fill();
   // Rainbow splash rings
   for(let i=0;i<3;i++){
-    const sh=(winFrame*5+i*120+cx)%360;
+    const sh=(t*5+i*120+Math.round(cx))%360;
     const sr=52+i*24+Math.sin(t*0.18+i)*10;
     ctx.strokeStyle=`hsla(${sh},100%,65%,${0.26-i*0.07})`;ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(0,bob,sr,0,Math.PI*2);ctx.stroke();
@@ -2483,12 +2613,19 @@ function drawWinScene(){
   ctx.textAlign='center';
   ctx.fillStyle=`hsl(${titleHue},100%,68%)`;
   ctx.font=`bold ${Math.round(26+tb)}px Courier New`;
-  ctx.fillText('🦝 JIMOTHY IS FULL! 🦝',VW/2,panTop+38);
+  const _isDly=gameMode==='daily';
+  ctx.fillText(_isDly?`🦝 DAILY #${getDayNum()} DONE! 🦝`:'🦝 JIMOTHY IS FULL! 🦝',VW/2,panTop+38);
 
-  // Item count and points are different things — show both so it's clear
+  // Item count and score
   const tot=food.length+cans.length;
-  ctx.fillStyle='#88ddff';ctx.font='16px Courier New';
-  ctx.fillText(`all ${tot} snacks · ${score} bites`,VW/2,panTop+68);
+  let _scoreLine=`all ${tot} snacks · ${score} bites`;
+  if(_isDly&&dailyTime){
+    _scoreLine+=` · ⏱ ${formatTime(dailyTime)}`;
+    const _str=parseInt(localStorage.getItem('jimothy_streak')||'0');
+    if(_str>0)_scoreLine+=` · 🔥×${_str}`;
+  }
+  ctx.fillStyle='#88ddff';ctx.font=`${_isDly?'14':'16'}px Courier New`;
+  ctx.fillText(_scoreLine,VW/2,panTop+68);
 
   // URL — baked into canvas so it's visible in screenshots/shares
   ctx.fillStyle='rgba(255,255,255,0.78)';ctx.font='bold 14px Courier New';
@@ -2545,7 +2682,11 @@ function init(){
   camX=0;score=0;popups=[];frame=0;won=false;winFrame=0;fireworks=[];particles=[];coffeeBoost=0;
   _gameStarted=false;_progressMilestones={25:false,50:false,75:false};
   downStreak=0;lastDownAt=0;
+  orcaWillShow=Math.random()<0.20;orcaBreaching=false;orcaBreachFrame=0;orcaShown=false;
+  upStreak=0;lastUpAt=0;
+  if(gameMode==='daily'){dailyStart=0;dailyTime=0;}
   document.getElementById('win-actions').style.display='none';
+  updateDailyBtn();
   startBgMusic();
 }
 
@@ -2556,12 +2697,13 @@ function setupMobile(){
     const el=document.getElementById(id);
     el.addEventListener('touchstart',e=>{e.preventDefault();mob[prop]=true;
       if(prop==='d')noteDownPress();
+      if(prop==='j')noteUpPress();
       if(!muted&&audio&&audio.state==='suspended')audio.resume();
     },{passive:false});
     el.addEventListener('touchend',e=>{e.preventDefault();mob[prop]=false;},{passive:false});
     el.addEventListener('touchcancel',()=>{mob[prop]=false;});
     // Mouse fallback for desktop testing
-    el.addEventListener('mousedown',e=>{mob[prop]=true;if(prop==='d')noteDownPress();});
+    el.addEventListener('mousedown',e=>{mob[prop]=true;if(prop==='d')noteDownPress();if(prop==='j')noteUpPress();});
     el.addEventListener('mouseup',()=>{mob[prop]=false;});
   }
   hold('btn-l','l');hold('btn-r','r');hold('btn-j','j');hold('btn-d','d');
