@@ -127,16 +127,15 @@ canvas{
   padding:0;transition:background 0.2s;
 }
 #vol-btn:hover{background:rgba(0,0,0,0.55);}
-#daily-btn{
-  position:fixed;top:10px;left:10px;
-  background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15);
-  color:#ccc;font-size:12px;font-family:'Courier New',monospace;
-  height:32px;padding:0 10px;border-radius:8px;cursor:pointer;z-index:20;
-  display:flex;align-items:center;justify-content:center;
-  transition:background 0.2s;white-space:nowrap;
+/* Daily button lives inside #mob bar — override base mob-button sizing */
+#mob #daily-btn{
+  background:rgba(20,0,40,0.8);color:#b080e0;
+  border:1px solid rgba(160,80,255,0.35);
+  font-size:11px;padding:6px 9px;min-width:auto;
+  white-space:nowrap;align-self:center;transition:background 0.2s;
 }
-#daily-btn:hover{background:rgba(0,0,0,0.55);}
-#daily-btn.active{background:rgba(60,0,120,0.75);border-color:rgba(200,120,255,0.55);color:#dd99ff;}
+#mob #daily-btn:hover{background:rgba(40,0,80,0.9);}
+#mob #daily-btn.active{background:rgba(60,0,120,0.9);border-color:rgba(200,120,255,0.7);color:#ee99ff;}
 #win-actions .soc{
   border:1px solid rgba(255,255,255,0.2);
   color:#fff;font-size:15px;font-weight:bold;
@@ -201,13 +200,13 @@ canvas{
   <button class="soc fb-btn" onclick="shareToFB()" title="Share on Facebook" aria-label="Share on Facebook">f</button>
 </div>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
-<button id="daily-btn" onclick="toggleDailyMode()" title="Daily challenge">📅 DAILY</button>
 <div id="mob">
   <div id="mob-left">
     <button id="btn-l">◀</button>
     <button id="btn-r">▶</button>
     <button id="btn-d">⬇</button>
   </div>
+  <button id="daily-btn" onclick="toggleDailyMode()" title="Daily challenge">📅 DAILY</button>
   <div id="mob-right">
     <button id="btn-j">⬆ JUMP</button>
   </div>
@@ -1851,7 +1850,9 @@ function update(){
   const allCans=cans.every(c=>c.searched);
   if(allFood&&allCans&&!won){
     if(gameMode==='daily'&&dailyStart>0){dailyTime=Date.now()-dailyStart;saveDailyResult();}
-    won=true;stopBgMusic();sndVictory80s();
+    won=true;
+    const _db=document.getElementById('daily-btn');if(_db)_db.style.display='none';
+    stopBgMusic();sndVictory80s();
     track('game_complete',{score,mode:gameMode,time_ms:dailyTime||undefined});
   }
 }
@@ -1878,6 +1879,7 @@ function cheatWin(){
   won=true;winFrame=0;
   stopBgMusic();sndVictory80s();
   if(gameMode==='daily'&&dailyStart>0){dailyTime=Date.now()-dailyStart;saveDailyResult();}
+  const _db2=document.getElementById('daily-btn');if(_db2)_db2.style.display='none';
   track('game_complete',{score,mode:gameMode,cheat:true});
 }
 
@@ -1952,6 +1954,7 @@ function updateDailyBtn(){
   const done=!!localStorage.getItem(getDailyKey());
   btn.classList.toggle('active',gameMode==='daily');
   btn.textContent=gameMode==='daily'&&done?'📅 DONE':'📅 DAILY';
+  btn.style.display=''; // restore after win screen hides it
 }
 
 // ── SHARE ──
