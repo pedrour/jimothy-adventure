@@ -595,6 +595,19 @@ function drawJimAt(sx,sy){
 // ── SCENERY ──
 // PNW daytime sky with a cloud cover cycle: socked-in → sun break → socked-in
 function cloudCover(){return 0.32+0.30*Math.sin(frame*0.0011)+0.12*Math.sin(frame*0.0037);}
+// Douglas fir: trunk + stacked triangles, the PNW tree
+function drawFir(x,baseY,h,a){
+  ctx.fillStyle=`rgba(74,56,38,${0.85*a})`;
+  ctx.fillRect(x-h*0.05,baseY-h*0.28,Math.max(1.5,h*0.1),h*0.3);
+  const tiers=3,tw=h*0.55;
+  for(let i=0;i<tiers;i++){
+    const ty=baseY-h*0.18-(h*0.82/tiers)*i;
+    const w=tw*(1-i*0.26);
+    ctx.fillStyle=i%2?`rgba(29,58,44,${a})`:`rgba(38,74,56,${a})`;
+    ctx.beginPath();
+    ctx.moveTo(x-w,ty);ctx.lineTo(x,ty-h*0.42);ctx.lineTo(x+w,ty);ctx.closePath();ctx.fill();
+  }
+}
 function drawBG(){
   const cc=Math.max(0,Math.min(0.75,cloudCover()));
   const alt=1-camY/(WH-VH);
@@ -617,9 +630,9 @@ function drawBG(){
     ctx.beginPath();ctx.arc(370,110,16,0,Math.PI*2);ctx.fill();
   }
 
-  // Mount Rainier — far southeast, moves the least
-  const rainY=GROUND_Y-camY*0.90-40;
-  if(rainY<VH+200&&rainY>-100){
+  // Mount Rainier — far southeast; so distant it stays on the horizon all climb
+  const rainY=545-alt*45;
+  {
     ctx.fillStyle='rgba(148,164,186,0.85)';
     ctx.beginPath();
     ctx.moveTo(255,rainY);ctx.lineTo(330,rainY-95);ctx.lineTo(352,rainY-88);
@@ -632,17 +645,52 @@ function drawBG(){
     ctx.lineTo(322,rainY-64);ctx.closePath();ctx.fill();
   }
 
-  // city + Elliott Bay below
-  const cityY=GROUND_Y-camY*0.96;
+  // downtown skyline + Elliott Bay below (Kerry Park view: towers, Sound, firs)
+  // horizon band: visible from the base, slides away over the first stretch of climb
+  const climbedPx=(WH-VH)-camY;
+  const cityY=615+climbedPx*0.10;
   if(cityY<VH+240){
-    ctx.fillStyle='rgba(96,112,132,0.9)';
-    const hs=[70,110,55,130,80,95,60,120,72];
-    let bx=-10;
-    for(let i=0;i<hs.length;i++){ctx.fillRect(bx,cityY-hs[i],44,hs[i]+240);bx+=52;}
-    ctx.fillStyle='rgba(70,84,102,0.9)';
-    for(let i=0;i<40;i++){
-      const wx=(i*61)%VW,wy=cityY-((i*37)%120)-8;
-      if(wy<cityY)ctx.fillRect(wx,wy,3,3);
+    // far row of pale towers
+    ctx.fillStyle='rgba(140,154,172,0.75)';
+    const far=[52,84,40,96,64,78,46,90,58];
+    let fx2=6;
+    for(let i=0;i<far.length;i++){ctx.fillRect(fx2,cityY-far[i]-8,34,far[i]+240);fx2+=50;}
+    // main row — distinct Seattle towers
+    const towers=[
+      {x:-8, w:40,h:78, c:'#6d7e92'},
+      {x:36, w:34,h:104,c:'#5b6c80',ant:true},                 // antenna tower
+      {x:76, w:46,h:66, c:'#7a8ba0'},
+      {x:128,w:30,h:126,c:'#4e6076'},                          // slim glass
+      {x:164,w:44,h:88, c:'#68798e'},
+      {x:214,w:38,h:112,c:'#57687c'},
+      {x:258,w:48,h:74, c:'#75869a'},
+      {x:352,w:34,h:96, c:'#5e6f84'},
+      {x:392,w:42,h:70, c:'#718296'},
+      {x:436,w:34,h:84, c:'#66778c'},
+    ];
+    for(const t of towers){
+      ctx.fillStyle=t.c;ctx.fillRect(t.x,cityY-t.h,t.w,t.h+240);
+      ctx.fillStyle='rgba(255,255,255,0.14)';ctx.fillRect(t.x+2,cityY-t.h,4,t.h);
+      if(t.ant){ctx.fillStyle=t.c;ctx.fillRect(t.x+t.w/2-1.5,cityY-t.h-16,3,16);}
+    }
+    // Columbia Center — tallest, near-black, three stepped curved lobes
+    const ccx=296,cch=158;
+    ctx.fillStyle='#232c38';
+    ctx.beginPath();ctx.moveTo(ccx,cityY+240);ctx.lineTo(ccx,cityY-cch+26);
+    ctx.quadraticCurveTo(ccx+9,cityY-cch+14,ccx+18,cityY-cch+26);ctx.lineTo(ccx+18,cityY+240);ctx.fill();
+    ctx.fillStyle='#1a222c';
+    ctx.beginPath();ctx.moveTo(ccx+14,cityY+240);ctx.lineTo(ccx+14,cityY-cch+8);
+    ctx.quadraticCurveTo(ccx+24,cityY-cch-6,ccx+34,cityY-cch+8);ctx.lineTo(ccx+34,cityY+240);ctx.fill();
+    ctx.fillStyle='#232c38';
+    ctx.beginPath();ctx.moveTo(ccx+30,cityY+240);ctx.lineTo(ccx+30,cityY-cch+34);
+    ctx.quadraticCurveTo(ccx+39,cityY-cch+22,ccx+48,cityY-cch+34);ctx.lineTo(ccx+48,cityY+240);ctx.fill();
+    ctx.fillStyle='rgba(200,214,230,0.25)';                     // glass shine
+    ctx.fillRect(ccx+16,cityY-cch+12,3,cch);
+    // lit windows across the skyline
+    ctx.fillStyle='rgba(255,238,180,0.5)';
+    for(let i=0;i<46;i++){
+      const wx=(i*53)%VW,wy=cityY-((i*29)%118)-8;
+      ctx.fillRect(wx,wy,2.5,2.5);
     }
     // the Sound
     const wy=cityY+40;
@@ -661,6 +709,20 @@ function drawBG(){
         ctx.fillStyle='#d8dee2';ctx.fillRect(fx+14,fy-10,6,4);
       }
     }
+  }
+  // PNW conifers: tiny treeline in front of the skyline + firs around the base
+  const treeY=640+climbedPx*0.16;
+  if(treeY<VH+160){
+    for(let i=0;i<26;i++){
+      const tx=(i*19.7)%VW;
+      drawFir(tx,treeY,9+((i*7)%3)*3,0.75);
+    }
+  }
+  const baseY=GROUND_Y-camY;
+  if(baseY<VH+120&&baseY>-40){
+    // Seattle Center greenery flanking the legs — kept clear of the play lane
+    const firs=[[16,44],[42,34],[68,50],[96,30],[134,40],[330,38],[362,50],[396,32],[420,46],[446,36]];
+    for(const [tx,th] of firs)drawFir(tx,baseY+4,th,1);
   }
 
   // drifting cumulus puffs (parallax)
