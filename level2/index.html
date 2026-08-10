@@ -6,8 +6,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#aebfd2">
-<title>Jimothy Level 2 — Climb the Space Needle (prototype)</title>
-<!-- Prototype: keep out of search until it graduates -->
+<title>Jimothy Level 2 — Climb the Space Needle</title>
+<!-- Unlisted until linked from the main game -->
 <meta name="robots" content="noindex, nofollow">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -52,12 +52,6 @@ canvas{
   font-family:'Courier New',monospace;
 }
 #home-btn:hover{background:rgba(20,40,70,0.8)}
-#proto-tag{
-  position:fixed;top:10px;right:52px;
-  background:rgba(120,40,160,0.45);border:1px solid rgba(200,120,255,0.5);
-  color:#f0d8ff;font-size:10px;letter-spacing:1px;padding:6px 8px;
-  border-radius:8px;z-index:20;font-family:'Courier New',monospace;
-}
 #vol-btn{
   position:fixed;top:10px;right:10px;
   background:rgba(20,40,70,0.55);border:1px solid rgba(255,255,255,0.25);
@@ -78,8 +72,8 @@ canvas{
 <body>
 
 <header style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
-  <h1>Jimothy Level 2 — climb the Space Needle (prototype)</h1>
-  <p>Prototype second level of the Jimothy game. Jimothy the round Seattle raccoon climbs
+  <h1>Jimothy Level 2 — climb the Space Needle</h1>
+  <p>Second level of the Jimothy game. Jimothy the round Seattle raccoon climbs
   the Space Needle on a grey-then-golden Pacific Northwest day — beam by beam past the
   hourglass legs, riding the golden elevator, rummaging ironworker lunchboxes and seagull
   nests, with Mount Rainier and a departing ferry on Elliott Bay below.
@@ -87,7 +81,6 @@ canvas{
 </header>
 
 <a id="home-btn" href="/">← LEVEL 1</a>
-<div id="proto-tag">PROTOTYPE</div>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
 <canvas id="c" aria-label="Jimothy climbs the Space Needle game screen" role="img"></canvas>
 <div id="mob">
@@ -362,7 +355,7 @@ function elevY(f){
 // ── STATE ──
 let jim,camY,frame,started,won,winFrame,score,fireworks,wind,windT,downTaps,lastDownT;
 let coffeeT,featherT,rummaging,rumTarget,rumTick,popups,particles,prevElY,hornPlayed,planeX,planeOn,gullCryT;
-let drone=null,droneCd=900,screenFlash=0;
+let drone=null,droneCd=900,screenFlash=0,lastRainFrame=-99999;
 function resetGame(){
   buildWorld();
   jim={x:NX-JIM_W/2,y:GROUND_Y-JIM_H,w:JIM_W,h:JIM_H,vx:0,vy:0,onGround:false,face:1,walkTick:0};
@@ -370,7 +363,7 @@ function resetGame(){
   fireworks=[];wind=0;windT=0;downTaps=0;lastDownT=0;
   coffeeT=0;featherT=0;rummaging=false;rumTarget=null;rumTick=0;
   popups=[];particles=[];prevElY=elevY(0);hornPlayed=false;planeX=-999;planeOn=false;gullCryT=0;
-  drone=null;droneCd=900;screenFlash=0;
+  drone=null;droneCd=900;screenFlash=0;lastRainFrame=-99999;
   stopBgMusic();
 }
 resetGame();
@@ -537,10 +530,10 @@ function update(){
   const target=jim.y-VH*0.55;
   camY+=(Math.max(0,Math.min(WH-VH,target))-camY)*0.12;
 
-  // plane near the summit
+  // passenger plane, upper half of the climb — bigger and more frequent now
   const alt=1-camY/(WH-VH);
-  if(alt>0.78&&!planeOn&&Math.random()<0.003){planeOn=true;planeX=-50;}
-  if(planeOn){planeX+=0.9;if(planeX>VW+80)planeOn=false;}
+  if(alt>0.5&&!planeOn&&Math.random()<0.01){planeOn=true;planeX=-80;}
+  if(planeOn){planeX+=1.2;if(planeX>VW+120)planeOn=false;}
 
   if(jim.onGround&&jim.y+jim.h<=SAUCER_Y+2&&jim.y+jim.h>=SAUCER_Y-6){
     won=true;winFrame=0;
@@ -762,6 +755,33 @@ function drawBG(){
     // Seattle Center greenery flanking the legs — kept clear of the play lane
     const firs=[[16,44],[42,34],[68,50],[96,30],[134,40],[330,38],[362,50],[396,32],[420,46],[446,36]];
     for(const [tx,th] of firs)drawFir(tx,baseY+4,th,1);
+    // tourists at the base, necks craned up at the tower
+    const bts=[
+      {x:158,c:'#c0563c',ph:0.3,cam:false},
+      {x:181,c:'#3c6ac0',ph:1.5,cam:true},                     // phone aimed at the Needle
+      {x:288,c:'#8a4ac0',ph:2.4,cam:false},
+      {x:309,c:'#3f9457',ph:3.4,cam:false,kid:true},           // kid, pointing up
+    ];
+    for(const t of bts){
+      const s=t.kid?0.7:1,bob=Math.sin(frame*0.05+t.ph)*0.8;
+      const fy=baseY+4+bob;
+      ctx.fillStyle=t.c;ctx.fillRect(t.x-3*s,fy-12*s,6*s,9*s);                 // body
+      ctx.fillStyle='#e8c49a';
+      ctx.beginPath();ctx.arc(t.x+1*s,fy-14.5*s,3*s,0,Math.PI*2);ctx.fill();   // head, tipped back
+      ctx.fillStyle='#2b2b2b';
+      ctx.fillRect(t.x-2.5*s,fy-3*s,2*s,3*s);ctx.fillRect(t.x+0.8*s,fy-3*s,2*s,3*s);
+      if(t.cam){
+        ctx.fillStyle='#222';ctx.fillRect(t.x+3.4,fy-19,3,4);                  // phone held high
+        if(frame%300<5){
+          ctx.fillStyle=`rgba(255,255,255,${0.9-(frame%300)*0.15})`;
+          ctx.beginPath();ctx.arc(t.x+5,fy-18,6+(frame%300)*1.6,0,Math.PI*2);ctx.fill();
+        }
+      }
+      if(t.kid){
+        ctx.strokeStyle=t.c;ctx.lineWidth=1.4;                                 // arm pointing at the top
+        ctx.beginPath();ctx.moveTo(t.x+2*s,fy-10*s);ctx.lineTo(t.x+5.5,fy-16);ctx.stroke();
+      }
+    }
   }
 
   // drifting cumulus puffs (parallax)
@@ -791,16 +811,20 @@ function drawBG(){
       ctx.fillStyle=fg;ctx.fillRect(0,sy-fb.h/2,VW,fb.h);
     }
   }
-  // summit plane, tiny, with contrail
+  // passenger plane with contrail
   if(planeOn){
     const py=86;
-    ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(planeX-70,py+1);ctx.lineTo(planeX-8,py+1);ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.45)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(planeX-130,py+2);ctx.lineTo(planeX-10,py+2);ctx.stroke();
     ctx.fillStyle='#eef2f6';
-    ctx.fillRect(planeX,py,14,3);
-    ctx.beginPath();ctx.moveTo(planeX+4,py+1);ctx.lineTo(planeX+1,py-4);ctx.lineTo(planeX+7,py+1);ctx.fill();
-    ctx.fillStyle='#c9d2da';ctx.fillRect(planeX+12,py-1,3,2);
+    ctx.beginPath();ctx.roundRect(planeX,py,26,5.5,3);ctx.fill();
+    ctx.beginPath();ctx.moveTo(planeX+8,py+2);ctx.lineTo(planeX+3,py-7);ctx.lineTo(planeX+14,py+2);ctx.fill();   // wing
+    ctx.beginPath();ctx.moveTo(planeX+1,py+1);ctx.lineTo(planeX-2,py-6);ctx.lineTo(planeX+6,py+1);ctx.fill();   // tail fin
+    ctx.fillStyle='#c9d2da';ctx.fillRect(planeX+22,py-1,5,3);
+    ctx.fillStyle='#5b7690';
+    for(let i=0;i<5;i++)ctx.fillRect(planeX+6+i*3.4,py+1.5,1.6,1.6);                                             // windows
   }
+  drawSkyLife(alt);
   // wind gust streaks
   if(wind!==0){
     ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;
@@ -809,6 +833,106 @@ function drawBG(){
       const wx=(frame*(wind>0?9:-9)+i*70)%(VW+80);
       const x0=((wx%(VW+80))+(VW+80))%(VW+80)-40;
       ctx.beginPath();ctx.moveTo(x0,wy3);ctx.lineTo(x0+30*(wind>0?1:-1),wy3+3);ctx.stroke();
+    }
+  }
+}
+
+// ── Ambient sky life: floatplane, eagle, geese, Seafair jets, rain + rainbow ──
+function drawSkyLife(alt){
+  const cc=Math.max(0,Math.min(0.75,cloudCover()));
+
+  // passing rain shower when the cover is thick
+  if(cc>0.58){
+    lastRainFrame=frame;
+    ctx.strokeStyle='rgba(160,180,200,0.35)';ctx.lineWidth=1.2;
+    for(let i=0;i<34;i++){
+      const rx=((i*89+frame*2.2)%(VW+40))-20;
+      const ry=((i*53+frame*5.5)%VH);
+      ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx-3,ry+11);ctx.stroke();
+    }
+  }
+  // rainbow when the sun breaks through right after rain
+  if(cc<0.32&&frame-lastRainFrame>0&&frame-lastRainFrame<1600){
+    const fade=Math.min(1,(frame-lastRainFrame)/200)*Math.max(0,1-(frame-lastRainFrame-1100)/500);
+    const RB=['#e0524a','#e8963c','#e8d04a','#5aa85e','#4a7ec0','#7a5ac0'];
+    ctx.lineWidth=5;
+    for(let i=0;i<RB.length;i++){
+      ctx.strokeStyle=RB[i];
+      ctx.globalAlpha=0.22*fade;
+      ctx.beginPath();ctx.arc(80,VH+150,430-i*6,Math.PI*1.18,Math.PI*1.82);ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // Kenmore Air floatplane, low over the Sound
+  if(alt<0.55){
+    const t=frame%2600;
+    if(t<1050){
+      const p=t/1050,fx=-70+p*(VW+140),fy=168+Math.sin(p*7)*6;
+      ctx.fillStyle='#f2f5f8';
+      ctx.beginPath();ctx.roundRect(fx,fy,24,6,3);ctx.fill();                  // fuselage
+      ctx.fillStyle='#d43b2f';ctx.fillRect(fx+2,fy+1,20,1.6);                  // red trim
+      ctx.fillStyle='#e8ecf0';ctx.fillRect(fx+5,fy-3,13,3);                    // high wing
+      ctx.beginPath();ctx.moveTo(fx+2,fy+1);ctx.lineTo(fx-1,fy-6);ctx.lineTo(fx+7,fy+1);ctx.fill(); // tail
+      ctx.strokeStyle='#8f9aa8';ctx.lineWidth=1.4;                             // float struts
+      ctx.beginPath();ctx.moveTo(fx+6,fy+6);ctx.lineTo(fx+6,fy+9);ctx.moveTo(fx+17,fy+6);ctx.lineTo(fx+17,fy+9);ctx.stroke();
+      ctx.fillStyle='#c9d2dc';
+      ctx.beginPath();ctx.roundRect(fx+2,fy+9,9,2.6,1.3);ctx.fill();           // pontoons
+      ctx.beginPath();ctx.roundRect(fx+13,fy+9,9,2.6,1.3);ctx.fill();
+      ctx.fillStyle=`rgba(120,132,146,${0.4+0.3*Math.sin(frame*1.2)})`;        // prop blur
+      ctx.beginPath();ctx.ellipse(fx+25,fy+3,1.4,4.5,0,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  // bald eagle circling a thermal, mid climb
+  if(alt>0.22&&alt<0.85){
+    const t=frame%2400;
+    if(t>=900&&t<1750){
+      const u=(t-900)/850;
+      const ecx=VW*0.28+u*46,ecy=138+u*26,a=u*Math.PI*4;
+      const ex=ecx+Math.cos(a)*58,ey=ecy+Math.sin(a)*20;
+      const dir=Math.sin(a)>0?-1:1,tilt=Math.cos(a)*0.25;
+      ctx.save();ctx.translate(ex,ey);ctx.rotate(tilt);
+      ctx.strokeStyle='#4a3421';ctx.lineWidth=3;ctx.lineCap='round';           // soaring wings
+      ctx.beginPath();ctx.moveTo(-15,0);ctx.quadraticCurveTo(-7,-4,0,-1);ctx.quadraticCurveTo(7,-4,15,0);ctx.stroke();
+      ctx.fillStyle='#4a3421';ctx.beginPath();ctx.ellipse(0,0,5,2.4,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#f4f7fa';
+      ctx.beginPath();ctx.arc(5.5*dir,-0.5,2,0,Math.PI*2);ctx.fill();          // white head
+      ctx.beginPath();ctx.ellipse(-5.5*dir,0.5,2.4,1.4,0,0,Math.PI*2);ctx.fill(); // white tail
+      ctx.fillStyle='#e8b93c';ctx.fillRect(7*dir-(dir<0?1.6:0),-1,1.6,1.2);    // beak
+      ctx.restore();
+    }
+  }
+
+  // geese heading south in a V
+  if(alt<0.75){
+    const t=frame%3400;
+    if(t<1250){
+      const p=t/1250,gx=-60+p*(VW+140),gy=112;
+      for(let i=0;i<7;i++){
+        const rank=Math.ceil(i/2),sideV=i===0?0:(i%2?1:-1);
+        const bx=gx-rank*16,by=gy+sideV*rank*7;
+        const flap=Math.sin(frame*0.35+i)*2.5;
+        ctx.strokeStyle='#3a3f46';ctx.lineWidth=1.8;
+        ctx.beginPath();ctx.moveTo(bx-4,by+flap);ctx.lineTo(bx,by);ctx.lineTo(bx+4,by+flap);ctx.stroke();
+      }
+    }
+  }
+
+  // Seafair jet pair streaking past the summit
+  if(alt>0.6){
+    const t=frame%1900;
+    if(t<300){
+      const p=t/300;
+      for(const [ox,oy] of [[0,0],[-30,12]]){
+        const jx=-90+p*(VW+220)+ox,jy=64+oy;
+        ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.moveTo(jx-90,jy+1);ctx.lineTo(jx-4,jy+1);ctx.stroke();
+        ctx.fillStyle='#5b6878';
+        ctx.beginPath();ctx.moveTo(jx,jy+3);ctx.lineTo(jx+16,jy+1);ctx.lineTo(jx,jy-1);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#8f9aa8';
+        ctx.beginPath();ctx.moveTo(jx+3,jy+1);ctx.lineTo(jx+1,jy-4);ctx.lineTo(jx+8,jy+1);ctx.closePath();ctx.fill();
+      }
     }
   }
 }
@@ -1066,8 +1190,6 @@ function drawHUD(){
 function drawStart(){
   ctx.fillStyle='rgba(20,36,60,0.62)';ctx.fillRect(0,0,VW,VH);
   ctx.textAlign='center';
-  ctx.fillStyle='#d9a8ff';ctx.font='bold 13px Courier New';
-  ctx.fillText('P R O T O T Y P E',VW/2,196);
   ctx.fillStyle='#ffe9a8';ctx.font='bold 30px Courier New';
   ctx.fillText('LEVEL 2',VW/2,238);
   ctx.fillStyle='#fff';ctx.font='bold 19px Courier New';
@@ -1147,7 +1269,7 @@ function drawWinScreen(){
   ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font='bold 14px Courier New';
   ctx.fillText('playjimothy.com',VW/2,panTop+98);
   ctx.fillStyle='rgba(216,168,255,0.9)';ctx.font='13px Courier New';
-  ctx.fillText('level 2 is a prototype — more soon',VW/2,panTop+124);
+  ctx.fillText('more levels coming soon 🦝',VW/2,panTop+124);
   if(winFrame>90&&winFrame%60<40){
     ctx.fillStyle='rgba(190,205,255,0.8)';ctx.font='12px Courier New';
     ctx.fillText('tap / SPACE to climb again',VW/2,panTop+156);
