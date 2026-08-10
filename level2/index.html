@@ -193,6 +193,11 @@ function sndGull(){
   beep(1180,0.12,0.03,'sawtooth');
   setTimeout(()=>beep(980,0.14,0.025,'sawtooth'),140);
 }
+function sndShutter(){
+  if(!audio||muted)return;
+  beep(1800,0.03,0.08,'square');
+  setTimeout(()=>beep(900,0.04,0.06,'square'),45);
+}
 
 // ── BACKGROUND MUSIC — sibling of level 1's tune: same G-major / 120 BPM /
 // G-Em-C-D loop and marimba texture, new "climbing" melody that keeps stepping upward ──
@@ -357,6 +362,7 @@ function elevY(f){
 // ── STATE ──
 let jim,camY,frame,started,won,winFrame,score,fireworks,wind,windT,downTaps,lastDownT;
 let coffeeT,featherT,rummaging,rumTarget,rumTick,popups,particles,prevElY,hornPlayed,planeX,planeOn,gullCryT;
+let drone=null,droneCd=900,screenFlash=0;
 function resetGame(){
   buildWorld();
   jim={x:NX-JIM_W/2,y:GROUND_Y-JIM_H,w:JIM_W,h:JIM_H,vx:0,vy:0,onGround:false,face:1,walkTick:0};
@@ -364,6 +370,7 @@ function resetGame(){
   fireworks=[];wind=0;windT=0;downTaps=0;lastDownT=0;
   coffeeT=0;featherT=0;rummaging=false;rumTarget=null;rumTick=0;
   popups=[];particles=[];prevElY=elevY(0);hornPlayed=false;planeX=-999;planeOn=false;gullCryT=0;
+  drone=null;droneCd=900;screenFlash=0;
   stopBgMusic();
 }
 resetGame();
@@ -494,6 +501,38 @@ function update(){
       if(s.kind==='coffee'){coffeeT=420;addPopup('☕ big jumps!',s.x,s.y-14);}
     }
   }
+
+  // paparazzi drone: flies in, hovers, takes Jimothy's photo, zips away
+  if(!drone&&--droneCd<=0){
+    const side=Math.random()<0.5?-1:1;
+    drone={side,x:side<0?-30:VW+30,y:jim.y-90,phase:0,t:0};
+    droneCd=1400+Math.random()*1400;
+  }
+  if(drone){
+    drone.t++;
+    const tx=jim.x+jim.w/2+drone.side*74, ty=jim.y-26;
+    if(drone.phase===0){                                   // approach
+      drone.x+=(tx-drone.x)*0.045;
+      drone.y+=(ty-drone.y)*0.045+Math.sin(frame*0.2)*0.5;
+      if(Math.abs(drone.x-tx)<8&&Math.abs(drone.y-ty)<14){drone.phase=1;drone.t=0;}
+      if(drone.t>420){drone.phase=3;drone.t=0;}            // give up if jimothy runs
+    }else if(drone.phase===1){                             // hover + frame the shot
+      drone.x+=(tx-drone.x)*0.08;
+      drone.y=ty+Math.sin(frame*0.25)*3;
+      if(drone.t>55){
+        drone.phase=2;drone.t=0;screenFlash=7;sndShutter();
+        addPopup('📸 going viral again',jim.x+jim.w/2,jim.y-46);
+      }
+    }else if(drone.phase===2){                             // linger a beat after the shot
+      drone.y=ty+Math.sin(frame*0.25)*3;
+      if(drone.t>26){drone.phase=3;drone.t=0;}
+    }else{                                                 // zip away up and out
+      drone.x+=drone.side*(3+drone.t*0.12);
+      drone.y-=1.4+drone.t*0.05;
+      if(drone.x<-60||drone.x>VW+60||drone.y-camY<-60)drone=null;
+    }
+  }
+  if(screenFlash>0)screenFlash--;
 
   const target=jim.y-VH*0.55;
   camY+=(Math.max(0,Math.min(WH-VH,target))-camY)*0.12;
@@ -860,6 +899,30 @@ function drawSaucer(){
   // the deck platform you land on
   ctx.fillStyle='#5b6878';ctx.fillRect(NX-150,sy,300,8);
   ctx.fillStyle='#ffcc44';ctx.fillRect(NX-150,sy,300,2);
+  // tourists out on the observation deck, admiring the view
+  const tourists=[
+    {ox:-96,c:'#c0563c',ph:0,cam:false},
+    {ox:-52,c:'#3c6ac0',ph:1.4,cam:true},                    // this one takes photos
+    {ox:72,c:'#3f9457',ph:2.6,cam:false,point:true},
+  ];
+  for(const t of tourists){
+    const txx=NX+t.ox, bob=Math.sin(frame*0.05+t.ph)*0.8;
+    const fy=sy-8+bob;                                       // feet on the deck rim
+    ctx.fillStyle=t.c;ctx.fillRect(txx-2.5,fy-9,5,7);        // body
+    ctx.fillStyle='#e8c49a';ctx.beginPath();ctx.arc(txx,fy-11.5,2.6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2b2b2b';ctx.fillRect(txx-2,fy-2,1.6,2);ctx.fillRect(txx+0.6,fy-2,1.6,2);
+    if(t.point){                                             // pointing at Rainier
+      ctx.strokeStyle=t.c;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(txx+2,fy-8);ctx.lineTo(txx+7,fy-11);ctx.stroke();
+    }
+    if(t.cam){
+      ctx.fillStyle='#222';ctx.fillRect(txx+2.5,fy-12,3.5,2.5);   // phone up
+      if(frame%260<5){                                       // tiny tourist flash
+        ctx.fillStyle=`rgba(255,255,255,${0.9-(frame%260)*0.15})`;
+        ctx.beginPath();ctx.arc(txx+4.5,fy-11,5+(frame%260)*1.5,0,Math.PI*2);ctx.fill();
+      }
+    }
+  }
 }
 
 function drawBeams(){
@@ -931,6 +994,30 @@ function drawRummable(r,sy){
     ctx.font='bold 11px Courier New';ctx.textAlign='center';
     ctx.fillText('⬇ / S',r.x,sy-22);ctx.textAlign='left';
   }
+}
+
+function drawDrone(){
+  if(!drone)return;
+  const dx=drone.x,dy=drone.y-camY;
+  if(dy<-40||dy>VH+40)return;
+  const spin=frame*0.9;
+  // rotor arms + blurred props
+  ctx.strokeStyle='#3a4450';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(dx-10,dy-3);ctx.lineTo(dx+10,dy-3);ctx.stroke();
+  for(const px2 of [-10,10]){
+    ctx.fillStyle=`rgba(120,132,146,${0.35+0.25*Math.sin(spin+px2)})`;
+    ctx.beginPath();ctx.ellipse(dx+px2,dy-5,7,1.6,0,0,Math.PI*2);ctx.fill();
+  }
+  // body
+  ctx.fillStyle='#2d3540';ctx.beginPath();ctx.roundRect(dx-7,dy-4,14,7,3);ctx.fill();
+  ctx.fillStyle='#4a5462';ctx.fillRect(dx-4,dy-3,8,2);
+  // camera gimbal, aimed at Jimothy
+  ctx.fillStyle='#1d232c';ctx.fillRect(dx-3,dy+3,6,5);
+  ctx.fillStyle=drone.phase===1?'#9adcff':'#5b7690';
+  ctx.beginPath();ctx.arc(dx+(drone.side<0?2:-2),dy+5.5,1.8,0,Math.PI*2);ctx.fill();
+  // status LED: blinks red while framing, green after the shot
+  ctx.fillStyle=drone.phase<2?(frame%20<10?'#ff4444':'#7a2222'):'#4ade80';
+  ctx.beginPath();ctx.arc(dx+6,dy-2,1.5,0,Math.PI*2);ctx.fill();
 }
 
 function drawGull(g,sy){
@@ -1087,6 +1174,16 @@ function draw(){
     if(sy>-20&&sy<VH+20)drawGull(g,sy);
   }
   drawJimAt(jim.x,jim.y-camY);
+  drawDrone();
+  // camera flash: white burst from the drone + brief whole-frame wash
+  if(screenFlash>0&&drone){
+    const dx=drone.x,dy=drone.y-camY,a=screenFlash/7;
+    const fg=ctx.createRadialGradient(dx,dy,2,dx,dy,120);
+    fg.addColorStop(0,`rgba(255,255,255,${0.95*a})`);
+    fg.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=fg;ctx.fillRect(dx-120,dy-120,240,240);
+    ctx.fillStyle=`rgba(255,255,255,${0.38*a})`;ctx.fillRect(0,0,VW,VH);
+  }
   drawHUD();
   if(!started)drawStart();
 }
