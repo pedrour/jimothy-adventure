@@ -113,9 +113,10 @@ const SAUCER_Y=560;
 const GROUND_Y=WH-60;
 const NEEDLE_FT=605;
 const JIM_W=34,JIM_H=40;
-// Space Needle silhouette: tripod legs flare from a wide base into an
-// hourglass waist ~42% up, then a slim trunk carries the tophouse.
-const WAIST_Y=SAUCER_Y+(GROUND_Y-SAUCER_Y)*0.58;
+// Space Needle silhouette matched to the real tower: the tripod legs cross
+// low — about a quarter of the way up — and a slim fluted trunk carries the
+// tophouse the rest of the way.
+const WAIST_Y=SAUCER_Y+(GROUND_Y-SAUCER_Y)*0.78;
 function towerHalfW(y){
   if(y>=WAIST_Y){
     const t=(GROUND_Y-y)/(GROUND_Y-WAIST_Y);         // 0 base → 1 waist
@@ -940,42 +941,44 @@ function drawSkyLife(alt){
 // The Needle itself: white tripod legs → hourglass waist → trunk → tophouse
 function drawNeedleStructure(){
   const w2s=y=>y-camY;
-  // three legs: two outer (front pair) + one center (behind)
+  // tripod legs — long elegant flare crossing at the low waist, no lattice
   ctx.lineCap='round';
   for(const s of [-1,1]){
-    // outer edge of leg
-    ctx.strokeStyle='#c9d2dc';ctx.lineWidth=13;
+    ctx.strokeStyle='#c3cdd8';ctx.lineWidth=11;
     ctx.beginPath();
     ctx.moveTo(NX+s*150,w2s(GROUND_Y));
-    ctx.quadraticCurveTo(NX+s*95,w2s(GROUND_Y-(GROUND_Y-WAIST_Y)*0.72),NX+s*22,w2s(WAIST_Y));
+    ctx.quadraticCurveTo(NX+s*64,w2s(GROUND_Y-(GROUND_Y-WAIST_Y)*0.86),NX+s*13,w2s(WAIST_Y));
     ctx.stroke();
-    ctx.strokeStyle='#f2f5f8';ctx.lineWidth=7;
+    ctx.strokeStyle='#f4f7fa';ctx.lineWidth=5;
     ctx.beginPath();
     ctx.moveTo(NX+s*146,w2s(GROUND_Y));
-    ctx.quadraticCurveTo(NX+s*92,w2s(GROUND_Y-(GROUND_Y-WAIST_Y)*0.72),NX+s*20,w2s(WAIST_Y));
+    ctx.quadraticCurveTo(NX+s*61,w2s(GROUND_Y-(GROUND_Y-WAIST_Y)*0.86),NX+s*11,w2s(WAIST_Y));
     ctx.stroke();
   }
   // center leg behind
-  ctx.strokeStyle='#aeb9c6';ctx.lineWidth=10;
+  ctx.strokeStyle='#aeb9c6';ctx.lineWidth=9;
   ctx.beginPath();
   ctx.moveTo(NX,w2s(GROUND_Y)+6);
   ctx.quadraticCurveTo(NX,w2s(GROUND_Y-(GROUND_Y-WAIST_Y)*0.6),NX,w2s(WAIST_Y));
   ctx.stroke();
-  // lattice between legs below the waist
-  ctx.strokeStyle='rgba(150,162,176,0.6)';ctx.lineWidth=2;
-  for(let wy=Math.max(WAIST_Y,Math.floor(camY/110)*110);wy<Math.min(GROUND_Y,camY+VH+110);wy+=110){
-    const hw=towerHalfW(wy)*0.92,sy=w2s(wy);
-    ctx.beginPath();ctx.moveTo(NX-hw,sy);ctx.lineTo(NX+hw,sy+55);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(NX+hw,sy);ctx.lineTo(NX-hw,sy+55);ctx.stroke();
+  // two slim horizontal ties low on the legs (the real tower is clean, not latticed)
+  ctx.strokeStyle='rgba(150,162,176,0.55)';ctx.lineWidth=3;
+  for(const f of [0.3,0.55]){
+    const wy=GROUND_Y-(GROUND_Y-WAIST_Y)*f,hw=towerHalfW(wy)*0.82,sy=w2s(wy);
+    if(sy>-10&&sy<VH+10){ctx.beginPath();ctx.moveTo(NX-hw,sy);ctx.lineTo(NX+hw,sy);ctx.stroke();}
   }
-  // trunk above the waist: slim white core with elevator rails
-  const tTop=w2s(SAUCER_Y-10),tBot=w2s(WAIST_Y);
-  if(tBot>0&&tTop<VH){
-    ctx.fillStyle='#c9d2dc';ctx.fillRect(NX-22,tTop,44,tBot-tTop+8);
-    ctx.fillStyle='#f2f5f8';ctx.fillRect(NX-15,tTop,30,tBot-tTop+8);
-    ctx.fillStyle='#aeb9c6';ctx.fillRect(NX-3,tTop,6,tBot-tTop+8);  // center seam
-    ctx.fillStyle='#8f9aa8';                                          // elevator rails
-    ctx.fillRect(NX-24,tTop,3,tBot-tTop+8);ctx.fillRect(NX+21,tTop,3,tBot-tTop+8);
+  // fluted trunk, waist → tophouse: three close columns with dark seams,
+  // slimmest mid-height, flaring slightly at both ends (the hyperboloid look)
+  const yA=SAUCER_Y-6,yB=WAIST_Y;
+  const rowTop=Math.max(yA,camY-12),rowBot=Math.min(yB,camY+VH+12);
+  for(let wy=rowTop;wy<rowBot;wy+=6){
+    const t=(wy-yA)/(yB-yA);                       // 0 under saucer → 1 waist
+    const hw=21-7*Math.sin(t*Math.PI);             // concave taper
+    const sy=w2s(wy),cw=hw*0.54;
+    ctx.fillStyle='#77828f';ctx.fillRect(NX-hw,sy,hw*2,6.5);          // seam shadow
+    ctx.fillStyle='#e4eaf0';ctx.fillRect(NX-hw,sy,cw,6.5);            // left flute
+    ctx.fillStyle='#f6f9fb';ctx.fillRect(NX-cw/2,sy,cw,6.5);          // center flute
+    ctx.fillStyle='#cfd7e0';ctx.fillRect(NX+hw-cw,sy,cw,6.5);         // right flute
   }
   // golden elevator capsule
   const ely=elevY(frame),esy=w2s(ely);
@@ -990,36 +993,49 @@ function drawNeedleStructure(){
 function drawSaucer(){
   const sy=SAUCER_Y-camY;
   if(sy<-200||sy>VH+120)return;
-  // crown struts flaring from the trunk to cradle the tophouse
-  ctx.strokeStyle='#c9d2dc';ctx.lineWidth=6;
-  for(const s of [-1,1]){
-    ctx.beginPath();ctx.moveTo(NX+s*18,sy+96);ctx.quadraticCurveTo(NX+s*60,sy+50,NX+s*118,sy+18);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(NX+s*12,sy+120);ctx.quadraticCurveTo(NX+s*40,sy+70,NX+s*74,sy+26);ctx.stroke();
+  // ── the real tophouse, bottom to top ──
+  // stepped underside rings narrowing into the trunk
+  ctx.fillStyle='#b5bfcb';
+  ctx.beginPath();ctx.moveTo(NX-92,sy+14);ctx.lineTo(NX+92,sy+14);ctx.lineTo(NX+44,sy+34);ctx.lineTo(NX-44,sy+34);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#9daab8';
+  ctx.beginPath();ctx.moveTo(NX-44,sy+32);ctx.lineTo(NX+44,sy+32);ctx.lineTo(NX+22,sy+52);ctx.lineTo(NX-22,sy+52);ctx.closePath();ctx.fill();
+  // restaurant ring — white with a thin dark window slit
+  ctx.fillStyle='#dde4eb';ctx.beginPath();ctx.ellipse(NX,sy+9,120,14,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#404c5a';
+  for(let i=-8;i<=8;i++)ctx.fillRect(NX+i*14-4,sy+6,8,5);
+  // halo — the widest disc, white, with radial ribs and a dotted edge
+  ctx.fillStyle='#f4f7fa';ctx.beginPath();ctx.ellipse(NX,sy-1,155,16,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(170,181,193,0.8)';ctx.lineWidth=1.2;
+  for(let i=0;i<26;i++){
+    const a=(i/26)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(NX+Math.cos(a)*44,sy-1+Math.sin(a)*4.6);
+    ctx.lineTo(NX+Math.cos(a)*151,sy-1+Math.sin(a)*15.4);
+    ctx.stroke();
   }
-  // halo ring under the deck
-  ctx.strokeStyle='#9aa6b2';ctx.lineWidth=4;
-  ctx.beginPath();ctx.ellipse(NX,sy+16,152,17,0,0,Math.PI*2);ctx.stroke();
-  // underside cone
-  ctx.fillStyle='#c2ccd6';
-  ctx.beginPath();ctx.moveTo(NX-118,sy+8);ctx.lineTo(NX+118,sy+8);ctx.lineTo(NX+30,sy+56);ctx.lineTo(NX-30,sy+56);ctx.closePath();ctx.fill();
-  // deck ring (white) with window band (dark glass)
-  ctx.fillStyle='#e8edf2';ctx.beginPath();ctx.ellipse(NX,sy+2,150,20,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#3d4a58';
-  for(let i=-6;i<=6;i++)ctx.fillRect(NX+i*21-6,sy-6,12,9);
-  // observation deck rim
-  ctx.fillStyle='#f4f7fa';ctx.beginPath();ctx.ellipse(NX,sy-8,132,14,0,0,Math.PI*2);ctx.fill();
-  // Galaxy Gold sloped roof
-  const rg=ctx.createLinearGradient(NX-110,sy-40,NX+110,sy-8);
-  rg.addColorStop(0,'#f0b03c');rg.addColorStop(0.5,'#e8963c');rg.addColorStop(1,'#c87828');
+  ctx.strokeStyle='#c3cdd8';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(NX,sy-1,155,16,0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#55606e';
+  for(let i=-9;i<=9;i++){ctx.beginPath();ctx.arc(NX+i*16.4,sy+11.5,1.3,0,Math.PI*2);ctx.fill();}
+  // observation glass band — dark with white mullions
+  ctx.fillStyle='#35404e';ctx.beginPath();ctx.ellipse(NX,sy-13,102,11,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(240,245,250,0.85)';
+  for(let i=-7;i<=7;i++)ctx.fillRect(NX+i*14-1,sy-20,2,10);
+  // white shallow dome roof with overhang lip
+  ctx.fillStyle='#e8edf2';ctx.beginPath();ctx.ellipse(NX,sy-21,110,9,0,0,Math.PI*2);ctx.fill();
+  const rg=ctx.createLinearGradient(NX-100,sy-48,NX+100,sy-20);
+  rg.addColorStop(0,'#f8fafc');rg.addColorStop(0.55,'#eef2f6');rg.addColorStop(1,'#cfd7e0');
   ctx.fillStyle=rg;
-  ctx.beginPath();ctx.moveTo(NX-118,sy-10);ctx.quadraticCurveTo(NX,sy-52,NX+118,sy-10);
-  ctx.quadraticCurveTo(NX,sy-24,NX-118,sy-10);ctx.fill();
-  // spire + blinking beacon
-  ctx.fillStyle='#c9d2dc';ctx.fillRect(NX-3,sy-104,6,68);
-  ctx.fillStyle='#8f9aa8';ctx.fillRect(NX-1.5,sy-134,3,32);
+  ctx.beginPath();ctx.moveTo(NX-106,sy-22);ctx.quadraticCurveTo(NX,sy-52,NX+106,sy-22);
+  ctx.quadraticCurveTo(NX,sy-32,NX-106,sy-22);ctx.fill();
+  // spire + blinking beacon + tiny flag
+  ctx.fillStyle='#c9d2dc';ctx.fillRect(NX-2.5,sy-102,5,64);
+  ctx.fillStyle='#8f9aa8';ctx.fillRect(NX-1.2,sy-132,2.4,32);
   const bl=0.5+0.5*Math.sin(frame*0.12);
   ctx.fillStyle=`rgba(255,60,60,${0.45+bl*0.5})`;
-  ctx.beginPath();ctx.arc(NX,sy-138,3.5+bl*2,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(NX,sy-134,3+bl*2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#c0392b';
+  ctx.beginPath();ctx.moveTo(NX+1,sy-131);ctx.lineTo(NX+9,sy-128.5);ctx.lineTo(NX+1,sy-126);ctx.closePath();ctx.fill();
   // the deck platform you land on
   ctx.fillStyle='#5b6878';ctx.fillRect(NX-150,sy,300,8);
   ctx.fillStyle='#ffcc44';ctx.fillRect(NX-150,sy,300,2);
@@ -1246,7 +1262,7 @@ function drawWinScreen(){
   ctx.fillStyle='#3d4a58';for(let i=-6;i<=6;i++)ctx.fillRect(NX+i*21-6,sy-2,12,9);
   ctx.fillStyle='#f4f7fa';ctx.beginPath();ctx.ellipse(NX,sy-6,132,14,0,0,Math.PI*2);ctx.fill();
   const rg=ctx.createLinearGradient(NX-110,sy-38,NX+110,sy-6);
-  rg.addColorStop(0,'#f0b03c');rg.addColorStop(0.5,'#e8963c');rg.addColorStop(1,'#c87828');
+  rg.addColorStop(0,'#fdf6e8');rg.addColorStop(0.55,'#f0ede4');rg.addColorStop(1,'#d4d2c8');
   ctx.fillStyle=rg;
   ctx.beginPath();ctx.moveTo(NX-118,sy-8);ctx.quadraticCurveTo(NX,sy-50,NX+118,sy-8);
   ctx.quadraticCurveTo(NX,sy-22,NX-118,sy-8);ctx.fill();
