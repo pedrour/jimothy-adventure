@@ -408,12 +408,18 @@ function buildWorld(){
   plats.push({x:NX-60,y:SAUCER_Y+200,w:120});
   plats.push({x:NX-55,y:SAUCER_Y+95,w:110});
   plats.push({x:NX-150,y:SAUCER_Y,w:300,saucer:true});
-  // snacks
+  // snacks — capped at 25 for a fair full-clear run, kept evenly spread by height
   const kinds=['fish','fries','coffee','burger'];
   plats.forEach((p,i)=>{
     if(i<2||p.saucer)return;
     if(rnd()<0.5)snacks.push({x:p.x+p.w/2,y:p.y-16,kind:kinds[Math.floor(rnd()*kinds.length)],got:false});
   });
+  const MAX_SNACKS=25;
+  if(snacks.length>MAX_SNACKS){
+    const keep=[];
+    for(let i=0;i<MAX_SNACKS;i++)keep.push(snacks[Math.floor(i*snacks.length/MAX_SNACKS)]);
+    snacks=keep;
+  }
   // rummage objects: ironworker lunchboxes, seagull nests, maintenance hatches
   const beamList=plats.filter((p,i)=>i>4&&!p.saucer);
   const types=['lunchbox','nest','panel'];
