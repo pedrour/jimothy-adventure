@@ -440,7 +440,7 @@ function elevY(f){
 // ── STATE ──
 let jim,camY,frame,started,won,winFrame,score,fireworks,wind,windT,downTaps,lastDownT;
 let coffeeT,featherT,rummaging,rumTarget,rumTick,popups,particles,prevElY,hornPlayed,planeX,planeOn,gullCryT;
-let drone=null,droneCd=900,screenFlash=0,lastRainFrame=-99999,fallT=0,chuteOn=false;
+let drone=null,droneCd=900,screenFlash=0,lastRainFrame=-99999,fallT=0,chuteOn=false,fullClear=false;
 function resetGame(){
   buildWorld();
   jim={x:NX-JIM_W/2,y:GROUND_Y-JIM_H,w:JIM_W,h:JIM_H,vx:0,vy:0,onGround:false,face:1,walkTick:0};
@@ -448,7 +448,7 @@ function resetGame(){
   fireworks=[];wind=0;windT=0;downTaps=0;lastDownT=0;
   coffeeT=0;featherT=0;rummaging=false;rumTarget=null;rumTick=0;
   popups=[];particles=[];prevElY=elevY(0);hornPlayed=false;planeX=-999;planeOn=false;gullCryT=0;
-  drone=null;droneCd=900;screenFlash=0;lastRainFrame=-99999;fallT=0;chuteOn=false;
+  drone=null;droneCd=900;screenFlash=0;lastRainFrame=-99999;fallT=0;chuteOn=false;fullClear=false;
   const _wa=document.getElementById('win-actions');if(_wa)_wa.style.display='none';
   stopBgMusic();
 }
@@ -551,7 +551,7 @@ function update(){
   // emergency parachute: free-falling for 3+ seconds pops a yellow chute,
   // gone the moment he touches anything
   if(!jim.onGround&&jim.vy>0)fallT++;else fallT=0;
-  if(fallT>180&&!chuteOn){chuteOn=true;addPopup('🪂!',jim.x+jim.w/2,jim.y-34);sndGull();}
+  if(fallT>120&&!chuteOn){chuteOn=true;addPopup('🪂!',jim.x+jim.w/2,jim.y-34);sndGull();}
   const grav=chuteOn?GRAVITY*0.3:featherT>0?GRAVITY*0.4:GRAVITY;
   const vcap=chuteOn?2.6:featherT>0?3.2:13;
   if(featherT>0)featherT--;
@@ -628,8 +628,9 @@ function update(){
 
   if(jim.onGround&&jim.y+jim.h<=SAUCER_Y+2&&jim.y+jim.h>=SAUCER_Y-6){
     won=true;winFrame=0;
+    fullClear=snacks.every(s=>s.got);
     stopBgMusic();sndVictory();
-    track('level2_win',{snacks:score});
+    track('level2_win',{snacks:score,full_clear:fullClear});
   }
 }
 
@@ -1085,6 +1086,17 @@ function drawNeedleStructure(){
     const wy=GROUND_Y-(GROUND_Y-WAIST_Y)*f,hw=towerHalfW(wy)*0.82,sy=w2s(wy);
     if(sy>-10&&sy<VH+10){ctx.beginPath();ctx.moveTo(NX-hw,sy);ctx.lineTo(NX+hw,sy);ctx.stroke();}
   }
+  // ground level: concrete footings + the glass entry pavilion between the legs
+  const gy0=GROUND_Y-camY;
+  if(gy0>-60&&gy0<VH+60){
+    ctx.fillStyle='#9aa5b2';
+    ctx.fillRect(NX-150-16,gy0-6,32,8);ctx.fillRect(NX+150-16,gy0-6,32,8);
+    ctx.fillStyle='#c7d3de';ctx.fillRect(NX-72,gy0-28,144,28);        // pavilion body
+    ctx.fillStyle='#54718a';
+    for(let i=0;i<8;i++)ctx.fillRect(NX-66+i*17,gy0-23,12,23);        // glass panes
+    ctx.fillStyle='#e8b93c';ctx.fillRect(NX-9,gy0-23,18,23);          // lit entry
+    ctx.fillStyle='#e8edf2';ctx.fillRect(NX-80,gy0-36,160,9);         // roof slab
+  }
   // fluted trunk, waist → tophouse: three close columns with dark seams,
   // slimmest mid-height, flaring slightly at both ends (the hyperboloid look)
   const yA=SAUCER_Y-6,yB=WAIST_Y;
@@ -1333,6 +1345,54 @@ function drawHUD(){
   });
 }
 
+// Orcas — cloned from level 1's win scene, neon dorsal glow and all
+function drawOrca(cx,cy,flip,t){
+  ctx.save();ctx.translate(cx,cy);if(flip)ctx.scale(-1,1);
+  const bob=Math.sin(t*0.13+cx*0.01)*14;
+  const tw=Math.sin(t*0.22)*24;
+  const tilt=Math.sin(t*0.11)*0.16;
+  ctx.rotate(tilt);
+  ctx.fillStyle='#0d0d0d';
+  ctx.beginPath();ctx.ellipse(0,bob,46,23,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#efefef';
+  ctx.beginPath();ctx.ellipse(9,bob+8,26,14,0.1,0,Math.PI);ctx.fill();
+  ctx.beginPath();ctx.ellipse(-14,bob-6,16,9,0.25,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(32,bob-9,12,9,0.4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#181818';ctx.beginPath();ctx.arc(34,bob-10,3.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#080808';
+  ctx.beginPath();
+  ctx.moveTo(-9,bob-21);
+  ctx.bezierCurveTo(-12,bob-62,-4,bob-74,0,bob-76);
+  ctx.bezierCurveTo(4,bob-66,8,bob-45,10,bob-23);
+  ctx.closePath();ctx.fill();
+  const hue=(t*3+cx*2)%360;
+  ctx.save();ctx.shadowColor=`hsl(${hue},100%,60%)`;ctx.shadowBlur=14;
+  ctx.strokeStyle=`hsl(${hue},100%,70%)`;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-9,bob-21);
+  ctx.bezierCurveTo(-12,bob-62,-4,bob-74,0,bob-76);ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle='#111';
+  ctx.beginPath();ctx.moveTo(16,bob+10);
+  ctx.quadraticCurveTo(22,bob+32,12,bob+38);
+  ctx.quadraticCurveTo(5,bob+26,12,bob+12);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#0c0c0c';
+  ctx.beginPath();ctx.moveTo(-40,bob+4);
+  ctx.quadraticCurveTo(-56,bob-6+tw,-68,bob-16+tw);
+  ctx.quadraticCurveTo(-63,bob-2+tw,-54,bob+4+tw);
+  ctx.quadraticCurveTo(-47,bob+8,-40,bob+4);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(-40,bob+6);
+  ctx.quadraticCurveTo(-54,bob+16+tw,-66,bob+22+tw);
+  ctx.quadraticCurveTo(-61,bob+8+tw,-52,bob+4+tw);
+  ctx.quadraticCurveTo(-46,bob+8,-40,bob+6);ctx.closePath();ctx.fill();
+  for(let i=0;i<3;i++){
+    const sh=(t*5+i*120+Math.round(cx))%360;
+    const sr=52+i*24+Math.sin(t*0.18+i)*10;
+    ctx.strokeStyle=`hsla(${sh},100%,65%,${0.26-i*0.07})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(0,bob,sr,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawStart(){
   ctx.fillStyle='rgba(20,36,60,0.62)';ctx.fillRect(0,0,VW,VH);
   ctx.textAlign='center';
@@ -1374,6 +1434,39 @@ function drawWinScreen(){
     ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=2.5;
     ctx.beginPath();ctx.moveTo(gx-8,gy+flap);ctx.lineTo(gx,gy);ctx.lineTo(gx+8,gy+flap);ctx.stroke();
   }
+  if(fullClear){
+    // FULL CLEAR: the orcas come dancing, straight from level 1's party
+    const lj=Math.abs(Math.sin(winFrame*0.06)),rj=Math.abs(Math.sin(winFrame*0.06+1.4));
+    const ly=330-lj*110,ry=330-rj*110;
+    ctx.save();ctx.translate(80,ly);ctx.rotate(Math.sin(winFrame*0.06)*0.5-0.3);ctx.translate(-80,-ly);
+    drawOrca(80,ly,false,winFrame);ctx.restore();
+    ctx.save();ctx.translate(VW-80,ry);ctx.rotate(-Math.sin(winFrame*0.06+1.4)*0.5+0.3);ctx.translate(-(VW-80),-ry);
+    drawOrca(VW-80,ry,true,winFrame+40);ctx.restore();
+    const gh=(winFrame*4)%360;
+    ctx.textAlign='center';
+    ctx.fillStyle=`hsl(${gh},100%,60%)`;ctx.font='bold 22px Courier New';
+    ctx.fillText('⭐ EVERY SNACK FOUND! ⭐',VW/2,64+Math.sin(winFrame*0.1)*4);
+    ctx.textAlign='left';
+  }else{
+    // no full clear: a plane tows a BIG banner across the top of the sky
+    const span=VW+640;
+    const bx=((winFrame*1.7)%span)-600;
+    const by=54;
+    // tow plane out front
+    ctx.strokeStyle='rgba(255,255,255,0.45)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(bx+366,by+14);ctx.lineTo(bx+404,by+14);ctx.stroke(); // tow rope
+    ctx.fillStyle='#eef2f6';
+    ctx.beginPath();ctx.roundRect(bx+404,by+10,36,8,4);ctx.fill();
+    ctx.beginPath();ctx.moveTo(bx+415,by+13);ctx.lineTo(bx+409,by+1);ctx.lineTo(bx+424,by+13);ctx.fill();
+    ctx.fillStyle='#c9d2da';ctx.fillRect(bx+436,by+9,6,4);
+    // the banner itself — big and readable
+    ctx.fillStyle='rgba(255,255,255,0.95)';
+    ctx.fillRect(bx,by,366,34);
+    ctx.strokeStyle='#c0392b';ctx.lineWidth=3;ctx.strokeRect(bx,by,366,34);
+    ctx.fillStyle='#c0392b';ctx.font='bold 17px Courier New';ctx.textAlign='center';
+    ctx.fillText('GET ALL SNACKS FOR A SURPRISE! 🦝',bx+183,by+23);
+    ctx.textAlign='left';
+  }
   // confetti
   for(let i=0;i<26;i++){
     const ccx=((i*173+winFrame*2.7+i*winFrame*0.07)%VW);
@@ -1408,14 +1501,15 @@ function drawWinScreen(){
   ctx.fillStyle='rgba(24,34,52,0.93)';ctx.fillRect(0,panTop,VW,panH);
   ctx.strokeStyle='#ffcc44';ctx.lineWidth=2;ctx.strokeRect(0,panTop,VW,panH);
   ctx.textAlign='center';
-  ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(22+Math.sin(winFrame*0.1)*2)}px Courier New`;
-  ctx.fillText('🦝 TOP OF THE NEEDLE!',VW/2,panTop+34);
-  ctx.fillStyle='#88ddff';ctx.font='14px Courier New';
-  ctx.fillText(`${NEEDLE_FT} ft climbed · ${score} snack${score===1?'':'s'}`,VW/2,panTop+60);
-  ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font='bold 13px Courier New';
-  ctx.fillText('playjimothy.com',VW/2,panTop+83);
-  ctx.fillStyle='rgba(216,168,255,0.9)';ctx.font='12px Courier New';
-  ctx.fillText('tap the sky to climb again · more levels soon 🦝',VW/2,panTop+106);
+  ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(26+Math.sin(winFrame*0.1)*2)}px Courier New`;
+  ctx.fillText(fullClear?'🦝 PERFECT CLIMB!':'🦝 TOP OF THE NEEDLE!',VW/2,panTop+38);
+  const _got=snacks.filter(s=>s.got).length;
+  ctx.fillStyle='#88ddff';ctx.font='17px Courier New';
+  ctx.fillText(`${NEEDLE_FT} ft · ${_got}/${snacks.length} snacks · ${score} bites`,VW/2,panTop+68);
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 16px Courier New';
+  ctx.fillText('playjimothy.com',VW/2,panTop+93);
+  ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='13px Courier New';
+  ctx.fillText('tap the sky to climb again 🦝',VW/2,panTop+116);
   ctx.textAlign='left';
   // share/tip row appears once the fanfare settles — same flow as level 1
   if(winFrame===90){
