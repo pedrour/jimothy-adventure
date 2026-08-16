@@ -2124,7 +2124,8 @@ function shareToX(){
 // screenshot attached, so the dedicated button was redundant and broken.
 function goLevel2(){
   track('next_level_click',{score});
-  location.href='/level2/';
+  // brief grace period so the analytics beacon survives the navigation
+  setTimeout(()=>{location.href='/level2/';},200);
 }
 
 // ── RUMMAGE ANIMATION ──
