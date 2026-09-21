@@ -84,7 +84,7 @@ canvas{
 #mob button:active{background:rgba(56,120,90,.95)}
 #mob-left{display:flex;gap:8px}
 #home-btn{
-  position:fixed;top:10px;left:10px;
+  position:fixed;top:48px;left:10px;
   background:rgba(16,38,28,0.6);border:1px solid rgba(255,255,255,0.25);
   color:#d8f4e4;font-size:12px;font-weight:bold;padding:7px 10px;
   border-radius:8px;cursor:pointer;z-index:20;text-decoration:none;
@@ -248,6 +248,7 @@ function goHub(placement){
 }
 function goHubChip(e){e.preventDefault();goHub('chip');return false;}
 const WIN_ACTIONS_Y=650;
+const WIN_TEXT_BOTTOM=583;
 function layoutWinActions(){
   const wa=document.getElementById('win-actions');
   if(!wa||wa.style.display==='none')return;
@@ -1897,7 +1898,7 @@ function drawWinScreen(){
   ctx.fillText('PUBLIC MARKET CENTER',VW/2,398);
   ctx.shadowBlur=0;
   // big golden Rachel, properly piggy (same gold as in-level)
-  const rx2=VW/2,ry2=482;
+  const rx2=VW/2,ry2=476;
   ctx.fillStyle='#C9A227';
   ctx.beginPath();ctx.ellipse(rx2,ry2,52,32,0,0,Math.PI*2);ctx.fill();       // body
   ctx.beginPath();ctx.ellipse(rx2+46,ry2-12,20,16,0,0,Math.PI*2);ctx.fill(); // head
@@ -1913,15 +1914,15 @@ function drawWinScreen(){
   const bounce=Math.abs(Math.sin(winFrame*0.12))*12;
   _drawJimCanvas(rx2-8,ry2-52-bounce,Math.sin(winFrame*0.05)<0,true,winFrame);
   // panel
-  const panH=170,panTop=VH-panH;
+  const panH=180,panTop=VH-panH;
   ctx.fillStyle='rgba(24,20,12,0.93)';ctx.fillRect(0,panTop,VW,panH);
   ctx.strokeStyle='#FF6B5A';ctx.lineWidth=2;ctx.strokeRect(0,panTop,VW,panH);
-  ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(22+Math.sin(winFrame*0.1)*2)}px Courier New`;
-  ctx.fillText('🦝 MARKET CONQUERED!',VW/2,panTop+26);
-  ctx.fillStyle='#88ddff';ctx.font='14px Courier New';
-  ctx.fillText(`🍖 ${score} bites · 🐟 ${fishDodged} dodged · ${fishHits} bonk${fishHits===1?'':'s'}`,VW/2,panTop+48);
-  ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='12px Courier New';
-  ctx.fillText(GOLDJIM?'✨ golden raid — tap the sky to go again':'☕ $2 coffee → GOLDEN JIMOTHY skin ✨',VW/2,panTop+68);
+  ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(20+Math.sin(winFrame*0.1)*1.5)}px Courier New`;
+  ctx.fillText('🦝 MARKET CONQUERED!',VW/2,panTop+24);
+  ctx.fillStyle='#88ddff';ctx.font='13px Courier New';
+  ctx.fillText(`🍖 ${score} bites · 🐟 ${fishDodged} dodged · ${fishHits} bonk${fishHits===1?'':'s'}`,VW/2,panTop+42);
+  ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='11px Courier New';
+  ctx.fillText(GOLDJIM?'playjimothy.com · ✨ golden raid!':'playjimothy.com · ☕ $2 → GOLDEN JIMOTHY ✨',VW/2,panTop+58);
   ctx.textAlign='left';
   if(winFrame===90){
     const wa=document.getElementById('win-actions');
