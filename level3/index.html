@@ -381,6 +381,7 @@ const FISHERS=[
   {x:3300,dx:300,high:false,cd:160,windup:0},
 ];
 const STALLS=[
+  {x:1280,w:400,type:'fish'},   // the fish stand LEFT of Rachel — pig in between
   {x:2200,w:520,type:'fish'},
   {x:2780,w:520,type:'fish'},
   {x:3600,w:320,type:'flower'},
@@ -1617,6 +1618,9 @@ function drawWorldObjects(){
     const anyFish=fishes.find(fs=>Math.abs(fs.x1-(f.x+f.dx))<8);
     drawFishmonger(f.x+f.dx,true,false,anyFish&&anyFish.t/anyFish.dur>0.75);
   }
+  // idle mongers working the fish stand by Rachel (no throwing here)
+  drawFishmonger(1320,false,false,false);
+  drawFishmonger(1640,true,false,false);
   // fish in flight
   for(const fs of fishes){
     if(fs.fx===undefined)continue;
@@ -1658,21 +1662,6 @@ function drawWorldObjects(){
       ctx.fillStyle='#3E8B45';ctx.fillRect(sx+9*dir-2,GY-36+step*0.3,2,7); // greens poking out
     }
     ctx.restore();
-  }
-  // a stray flying fish sails past just left of Rachel
-  {
-    const per=200,t=(frame%per)/per;
-    if(t<0.55){
-      const p=t/0.55;
-      const fx=RACHEL_X-90-240*p;                       // 1640 → 1400, flying left
-      const fy=GY-72-Math.sin(p*Math.PI)*62;
-      const fsx=w2s(fx);
-      if(fsx>-40&&fsx<VW+40){
-        drawFishSprite(fsx,fy,0.25-Math.sin(p*Math.PI*2)*0.3);
-        ctx.fillStyle='rgba(200,230,250,0.3)';
-        ctx.beginPath();ctx.ellipse(fsx+12,fy+2,9,3,0,0,Math.PI*2);ctx.fill();
-      }
-    }
   }
   // the famous fish-toss show, always running behind the counters
   for(const st of STALLS){
