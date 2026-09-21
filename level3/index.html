@@ -430,6 +430,7 @@ function buildWorld(){
     const k=i%7===5?'coffee':kinds[Math.floor(rnd()*5)];
     snacks.push({x,y:(onCrate?onCrate.y:GY)-20,kind:k,got:false});
   });
+  snacks.find(s=>s.x===470).kind='coffee';   // a guaranteed coffee hidden in the gum alley
   // rummage spots, one flavor per market zone
   rums.push({x:820, type:'crate', used:false});   // gum alley
   rums.push({x:2460,type:'crate', used:false});   // fish arcade
@@ -850,25 +851,46 @@ function drawBackdrop(){
       ctx.beginPath();ctx.arc(dx+42,342,34,Math.PI,0);ctx.fill();
     }
   }
-  // gum wall alley overrides the interior
+  // gum wall alley — Post Alley open air, a SHORT half-height wall smothered in gum
   const g0=w2s(GUM_X0),g1=w2s(GUM_X1);
   if(g1>0&&g0<VW){
     const bx=Math.max(-40,g0),bw=Math.min(VW+40,g1)-bx;
-    ctx.fillStyle='#5A3428';ctx.fillRect(bx,254,bw,GY-254);
-    ctx.fillStyle='rgba(0,0,0,0.25)';
-    for(let y=254;y<GY;y+=26)ctx.fillRect(bx,y,bw,2);
-    for(let x=Math.floor((camX+bx)/34)*34;x<camX+bx+bw;x+=34){
-      ctx.fillRect(w2s(x)+(Math.floor(x/34)%2?17:0),254,2,GY-254);
+    const WT=430;                                        // wall top — it's not a tall wall
+    const asky=ctx.createLinearGradient(0,140,0,WT);
+    asky.addColorStop(0,'#BFDCF0');asky.addColorStop(1,'#DCEEF8');
+    ctx.fillStyle=asky;ctx.fillRect(bx,182,bw,WT-182);   // sky above the wall
+    ctx.fillStyle='rgba(124,140,160,0.45)';              // rooftops peeking over
+    for(let i=0;i<4;i++){
+      const rx=w2s(170+i*260);
+      ctx.fillRect(rx,322-(i%2)*24,160,WT-322+(i%2)*24);
     }
+    ctx.fillStyle='#6E5A4A';ctx.fillRect(bx,WT-8,bw,8);  // wall cap
+    // base coat: the wall is COMPLETELY gummed over — no bare wall shows
+    ctx.fillStyle='#B87A98';ctx.fillRect(bx,WT,bw,GY-WT);
     const rnd=seedRand(5309);
-    for(let i=0;i<260;i++){
-      const gx2=GUM_X0+rnd()*(GUM_X1-GUM_X0),gy2=272+rnd()*(GY-320);
+    // melted, chewed, stretched smears in muted shades, layered everywhere
+    for(let i=0;i<420;i++){
+      const gx2=GUM_X0-20+rnd()*(GUM_X1-GUM_X0+40),gy2=WT+rnd()*(GY-WT);
       const sx2=w2s(gx2);
-      if(sx2<-10||sx2>VW+10)continue;
+      if(sx2<-30||sx2>VW+30)continue;
       const hue=Math.floor(rnd()*360);
-      ctx.fillStyle=`hsl(${hue},${60+rnd()*30}%,${50+rnd()*20}%)`;
-      ctx.beginPath();ctx.arc(sx2,gy2,2.2+rnd()*3.4,0,Math.PI*2);ctx.fill();
-      if(rnd()<0.12){ctx.fillRect(sx2-1,gy2,2,5+rnd()*8);}
+      ctx.fillStyle=`hsl(${hue},${32+rnd()*26}%,${40+rnd()*24}%)`;
+      const rw=7+rnd()*16,rh=3+rnd()*6;
+      ctx.beginPath();ctx.ellipse(sx2,gy2,rw,rh,(rnd()-0.5)*0.9,0,Math.PI*2);ctx.fill();
+      if(rnd()<0.3){                                     // long drips
+        ctx.fillRect(sx2-1.5,gy2,3,5+rnd()*14);
+        ctx.beginPath();ctx.arc(sx2,gy2+8+rnd()*10,2.2,0,Math.PI*2);ctx.fill();
+      }
+    }
+    // just a few fresh glossy ones catch the light
+    for(let i=0;i<10;i++){
+      const gx2=GUM_X0+rnd()*(GUM_X1-GUM_X0),gy2=WT+10+rnd()*(GY-WT-20);
+      const sx2=w2s(gx2);
+      if(sx2<-20||sx2>VW+20)continue;
+      ctx.fillStyle=`hsl(${Math.floor(rnd()*360)},78%,58%)`;
+      ctx.beginPath();ctx.ellipse(sx2,gy2,8,4.5,(rnd()-0.5),0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.5)';
+      ctx.beginPath();ctx.ellipse(sx2-2,gy2-1.5,2.4,1.2,0,0,Math.PI*2);ctx.fill();
     }
   }
 }
