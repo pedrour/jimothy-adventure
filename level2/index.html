@@ -225,6 +225,19 @@ function track(name,params){
   try{if(typeof gtag==='function')gtag('event',name,params||{});}catch(e){}
 }
 
+// GOLDEN JIMOTHY supporter skin — shared with level 1 via localStorage
+let GOLDJIM=false,goldToastT=0;
+try{GOLDJIM=localStorage.getItem('jimothy_gold')==='1';}catch(e){}
+try{
+  const _gc=new URLSearchParams(location.search).get('code');
+  if(_gc&&_gc.toUpperCase()==='GOLDENJIM'){
+    if(!GOLDJIM){track('gold_unlocked',{level:2});goldToastT=360;}
+    GOLDJIM=true;
+    try{localStorage.setItem('jimothy_gold','1');}catch(e){}
+    try{history.replaceState(null,'',location.pathname);}catch(e){}
+  }
+}catch(e){}
+
 // ── SHARE (same experience as level 1's win screen) ──
 const _shareURL='https://playjimothy.com/level2/';
 function _shareText(){
@@ -740,10 +753,17 @@ function _drawJimCanvas(cx,cy,flip,jumping,walkTick){
   if(flip){ctx.translate(cx*2,0);ctx.scale(-1,1);}
   const rx=jumping?14:17;
   const ry=jumping?21:17;
+  const GP=GOLDJIM
+    ?{rings:['#8A6410','#F5D76E','#8A6410','#F5D76E','#8A6410','#FDF3C8'],
+      g0:'#F9E9A8',g1:'#D9AC2E',g2:'#7A5A0E',belly:'#F9EFC6',bear:'#A5801A',
+      muz:'#EFE0A0',e1:'#B8901C',e2:'#E8C86A',l1:'#9A7A20',l2:'#5C450A',l3:'#8A6E18'}
+    :{rings:['#303030','#909090','#303030','#909090','#303030','#C8C0B0'],
+      g0:'#9E9888',g1:'#706860',g2:'#3C3830',belly:'#D8D2C4',bear:'#3A3530',
+      muz:'#C8C2B4',e1:'#4A4540',e2:'#7A6068',l1:'#555048',l2:'#222018',l3:'#444038'};
   const tBx=cx-rx*0.6,tBy=cy+ry*0.3;
   const tMx=cx-rx*1.5,tMy=cy-ry*0.5;
   const tTx=cx-rx*1.0,tTy=cy-ry*1.1;
-  const RINGS=['#303030','#909090','#303030','#909090','#303030','#C8C0B0'];
+  const RINGS=GP.rings;
   for(let i=0;i<=9;i++){
     const t=i/9;
     const tx=_bez(tBx,tMx,tTx,t),ty=_bez(tBy,tMy,tTy,t);
@@ -752,17 +772,17 @@ function _drawJimCanvas(cx,cy,flip,jumping,walkTick){
     ctx.fillStyle=RINGS[Math.floor(t*5)];ctx.fill();
   }
   const bodyGrad=ctx.createRadialGradient(cx+rx*0.25,cy+ry*0.25,1,cx,cy,Math.max(rx,ry)*1.1);
-  bodyGrad.addColorStop(0,'#9E9888');
-  bodyGrad.addColorStop(0.55,'#706860');
-  bodyGrad.addColorStop(1,'#3C3830');
+  bodyGrad.addColorStop(0,GP.g0);
+  bodyGrad.addColorStop(0.55,GP.g1);
+  bodyGrad.addColorStop(1,GP.g2);
   ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
   ctx.fillStyle=bodyGrad;ctx.fill();
   ctx.beginPath();
   ctx.ellipse(cx+rx*0.22,cy+ry*0.28,rx*0.44,ry*0.5,0.1,0,Math.PI*2);
-  ctx.fillStyle='#D8D2C4';ctx.fill();
+  ctx.fillStyle=GP.belly;ctx.fill();
   ctx.beginPath();
   ctx.ellipse(cx-rx*0.12,cy-ry*0.82,6,8,0.18,0,Math.PI*2);
-  ctx.fillStyle='#3A3530';ctx.fill();
+  ctx.fillStyle=GP.bear;ctx.fill();
   const faceX=cx+rx*0.46,faceY=cy-ry*0.06;
   ctx.beginPath();
   ctx.ellipse(faceX-5,faceY-1,rx*0.56,ry*0.22,-0.12,0,Math.PI*2);
@@ -773,30 +793,42 @@ function _drawJimCanvas(cx,cy,flip,jumping,walkTick){
   ctx.beginPath();ctx.arc(eyeX+1.5,eyeY-1.5,1.2,0,Math.PI*2);ctx.fillStyle='#FFFFFF';ctx.fill();
   ctx.beginPath();
   ctx.ellipse(faceX+rx*0.18,faceY+ry*0.18,rx*0.16,ry*0.15,0,0,Math.PI*2);
-  ctx.fillStyle='#C8C2B4';ctx.fill();
+  ctx.fillStyle=GP.muz;ctx.fill();
   ctx.beginPath();
   ctx.ellipse(faceX+rx*0.36,faceY+ry*0.1,2,1.5,0,0,Math.PI*2);
   ctx.fillStyle='#1E1C1C';ctx.fill();
   const ear1X=cx+rx*0.28,ear1Y=cy-ry*0.84;
   ctx.beginPath();ctx.ellipse(ear1X,ear1Y,7,9,-0.25,0,Math.PI*2);
-  ctx.fillStyle='#4A4540';ctx.fill();
+  ctx.fillStyle=GP.e1;ctx.fill();
   ctx.beginPath();ctx.ellipse(ear1X,ear1Y+1,3.5,5,-0.25,0,Math.PI*2);
-  ctx.fillStyle='#7A6068';ctx.fill();
+  ctx.fillStyle=GP.e2;ctx.fill();
   ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
   ctx.strokeStyle='#1C1810';ctx.lineWidth=1.5;ctx.stroke();
   const swing=Math.sin(walkTick*0.55)*8;
   ctx.beginPath();
   ctx.ellipse(cx+rx*0.36,cy+ry*0.84+swing*0.25,5,7,0.08+swing*0.015,0,Math.PI*2);
-  ctx.fillStyle='#555048';ctx.fill();
+  ctx.fillStyle=GP.l1;ctx.fill();
   ctx.beginPath();
   ctx.ellipse(cx+rx*0.4,cy+ry+1.5+swing*0.35,6,4,0,0,Math.PI*2);
-  ctx.fillStyle='#222018';ctx.fill();
+  ctx.fillStyle=GP.l2;ctx.fill();
   ctx.beginPath();
   ctx.ellipse(cx-rx*0.18,cy+ry*0.88-swing*0.25,5,7,-0.08-swing*0.015,0,Math.PI*2);
-  ctx.fillStyle='#444038';ctx.fill();
+  ctx.fillStyle=GP.l3;ctx.fill();
   ctx.beginPath();
   ctx.ellipse(cx-rx*0.14,cy+ry+1-swing*0.35,6,4,0,0,Math.PI*2);
-  ctx.fillStyle='#222018';ctx.fill();
+  ctx.fillStyle=GP.l2;ctx.fill();
+  if(GOLDJIM){
+    for(let i=0;i<3;i++){
+      const sa=frame*0.06+i*2.1;
+      const sx2=cx+Math.cos(sa)*(rx+7),sy2=cy+Math.sin(sa*1.3)*(ry+5);
+      const tw=0.4+0.6*Math.abs(Math.sin(frame*0.12+i*1.7));
+      ctx.fillStyle=`rgba(255,236,150,${tw})`;
+      ctx.beginPath();
+      ctx.moveTo(sx2,sy2-3);ctx.lineTo(sx2+1.2,sy2-1);ctx.lineTo(sx2+3,sy2);
+      ctx.lineTo(sx2+1.2,sy2+1);ctx.lineTo(sx2,sy2+3);ctx.lineTo(sx2-1.2,sy2+1);
+      ctx.lineTo(sx2-3,sy2);ctx.lineTo(sx2-1.2,sy2-1);ctx.closePath();ctx.fill();
+    }
+  }
   ctx.restore();
 }
 function drawJimAt(sx,sy){
@@ -1424,6 +1456,21 @@ function drawHUD(){
     ctx.fillStyle='#FFF';ctx.font='bold 13px Courier New';ctx.textAlign='center';
     ctx.fillText('☕ BOING!',VW-48,58);ctx.textAlign='left';
   }
+  // Golden Jimothy unlock toast
+  if(goldToastT>0){
+    goldToastT--;
+    const a=Math.min(1,goldToastT/60);
+    ctx.save();
+    ctx.fillStyle=`rgba(30,22,2,${0.85*a})`;
+    ctx.beginPath();ctx.roundRect(VW/2-165,64,330,52,12);ctx.fill();
+    ctx.strokeStyle=`rgba(245,215,110,${a})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(VW/2-165,64,330,52,12);ctx.stroke();
+    ctx.fillStyle=`rgba(255,236,150,${a})`;ctx.font='bold 17px Courier New';ctx.textAlign='center';
+    ctx.fillText('✨ GOLDEN JIMOTHY UNLOCKED ✨',VW/2,86);
+    ctx.fillStyle=`rgba(255,255,255,${0.85*a})`;ctx.font='12px Courier New';
+    ctx.fillText('thank you, supporter — shine on',VW/2,106);
+    ctx.textAlign='left';ctx.restore();
+  }
   popups=popups.filter(p=>{
     p.y+=p.vy;p.alpha-=0.014;
     if(p.alpha<=0)return false;
@@ -1608,7 +1655,7 @@ function drawWinScreen(){
   ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 16px Courier New';
   ctx.fillText('playjimothy.com',VW/2,panTop+93);
   ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='13px Courier New';
-  ctx.fillText('tap the sky to climb again 🦝',VW/2,panTop+116);
+  ctx.fillText(GOLDJIM?'✨ golden climb — tap the sky to go again':'☕ coffee on Ko-fi → GOLDEN JIMOTHY skin ✨',VW/2,panTop+116);
   ctx.textAlign='left';
   // share/tip row appears once the fanfare settles — same flow as level 1
   if(winFrame===90){
