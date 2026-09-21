@@ -868,29 +868,34 @@ function drawBackdrop(){
     // base coat: the wall is COMPLETELY gummed over — no bare wall shows
     ctx.fillStyle='#B87A98';ctx.fillRect(bx,WT,bw,GY-WT);
     const rnd=seedRand(5309);
-    // melted, chewed, stretched smears in muted shades, layered everywhere
-    for(let i=0;i<420;i++){
+    // small melted, chewed smears in muted shades, densely layered everywhere.
+    // every rnd() is drawn BEFORE the visibility cull so the pattern is
+    // identical no matter where the camera is — no shimmering while scrolling
+    for(let i=0;i<800;i++){
       const gx2=GUM_X0-20+rnd()*(GUM_X1-GUM_X0+40),gy2=WT+rnd()*(GY-WT);
-      const sx2=w2s(gx2);
-      if(sx2<-30||sx2>VW+30)continue;
-      const hue=Math.floor(rnd()*360);
-      ctx.fillStyle=`hsl(${hue},${32+rnd()*26}%,${40+rnd()*24}%)`;
-      const rw=7+rnd()*16,rh=3+rnd()*6;
-      ctx.beginPath();ctx.ellipse(sx2,gy2,rw,rh,(rnd()-0.5)*0.9,0,Math.PI*2);ctx.fill();
-      if(rnd()<0.3){                                     // long drips
-        ctx.fillRect(sx2-1.5,gy2,3,5+rnd()*14);
-        ctx.beginPath();ctx.arc(sx2,gy2+8+rnd()*10,2.2,0,Math.PI*2);ctx.fill();
-      }
-    }
-    // just a few fresh glossy ones catch the light
-    for(let i=0;i<10;i++){
-      const gx2=GUM_X0+rnd()*(GUM_X1-GUM_X0),gy2=WT+10+rnd()*(GY-WT-20);
+      const hue=Math.floor(rnd()*360),sat=32+rnd()*26,lit=40+rnd()*24;
+      const rw=3.5+rnd()*8,rh=1.5+rnd()*3,rot=(rnd()-0.5)*0.9;
+      const hasDrip=rnd()<0.25,dl=3+rnd()*7,dy=4+rnd()*6;
       const sx2=w2s(gx2);
       if(sx2<-20||sx2>VW+20)continue;
-      ctx.fillStyle=`hsl(${Math.floor(rnd()*360)},78%,58%)`;
-      ctx.beginPath();ctx.ellipse(sx2,gy2,8,4.5,(rnd()-0.5),0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.5)';
-      ctx.beginPath();ctx.ellipse(sx2-2,gy2-1.5,2.4,1.2,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=`hsl(${hue},${sat}%,${lit}%)`;
+      ctx.beginPath();ctx.ellipse(sx2,gy2,rw,rh,rot,0,Math.PI*2);ctx.fill();
+      if(hasDrip){                                       // little drips
+        ctx.fillRect(sx2-1,gy2,2,dl);
+        ctx.beginPath();ctx.arc(sx2,gy2+dy,1.4,0,Math.PI*2);ctx.fill();
+      }
+    }
+    // only these ten get a slow, gentle sheen — everything else is dead still
+    for(let i=0;i<10;i++){
+      const gx2=GUM_X0+rnd()*(GUM_X1-GUM_X0),gy2=WT+10+rnd()*(GY-WT-20);
+      const hue=Math.floor(rnd()*360),rot=(rnd()-0.5);
+      const sx2=w2s(gx2);
+      if(sx2<-20||sx2>VW+20)continue;
+      ctx.fillStyle=`hsl(${hue},78%,56%)`;
+      ctx.beginPath();ctx.ellipse(sx2,gy2,4,2.4,rot,0,Math.PI*2);ctx.fill();
+      const tw=0.28+0.22*Math.sin(frame*0.05+i*2.2);
+      ctx.fillStyle=`rgba(255,255,255,${tw})`;
+      ctx.beginPath();ctx.ellipse(sx2-1,gy2-0.8,1.4,0.8,0,0,Math.PI*2);ctx.fill();
     }
   }
 }
