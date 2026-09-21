@@ -393,6 +393,9 @@ const STALLS=[
   {x:6390,w:230,type:'coffee'},
 ];
 const GUM_X0=140,GUM_X1=1060;
+// the gum alley sits TWO STEPS below the main market level (like the real one)
+const STEP1_X=1160,STEP2_X=1110,STEP_H=12;
+function floorY(x){return x<STEP2_X?GY+2*STEP_H:(x<STEP1_X?GY+STEP_H:GY);}
 // pictogram shop signs — pictures, not words
 const SIGNS=[
   {x:2320,type:'fish'},
@@ -421,14 +424,14 @@ function buildWorld(){
   const rnd=seedRand(19071912);   // the market opened August 17, 1907 (and 1912 Pike Pl)
   // crates to hop on
   [[520,54],[1180,54],[2320,60],[2760,54],[3520,60],[3900,54],[4700,50],[5540,56],[6140,54],[6760,60]]
-    .forEach(([x,h])=>plats.push({x,y:GY-h,w:86,h}));
+    .forEach(([x,h])=>plats.push({x,y:floorY(x)-h,w:86,h}));
   // snacks along the run — gum alley to the LEFT of start, market to the RIGHT
   const kinds=['fish','donut','piroshky','cheese','peach','coffee'];
   const sx=[260,470,700,930,1180,1430,1660,2040,2300,2560,2860,3120,3400,3700,3980,4260,4600,4880,5160,5420,5680,5940,6180,6420,6760,7060];
   sx.forEach((x,i)=>{
     const onCrate=plats.find(p=>x>p.x-10&&x<p.x+p.w+10);
     const k=i%7===5?'coffee':kinds[Math.floor(rnd()*5)];
-    snacks.push({x,y:(onCrate?onCrate.y:GY)-20,kind:k,got:false});
+    snacks.push({x,y:(onCrate?onCrate.y:floorY(x))-20,kind:k,got:false});
   });
   snacks.find(s=>s.x===470).kind='coffee';   // a guaranteed coffee hidden in the gum alley
   // rummage spots, one flavor per market zone
@@ -565,7 +568,8 @@ function update(){
   if(jim.x>WORLD_W-JIM_W-2)jim.x=WORLD_W-JIM_W-2;
 
   jim.onGround=false;
-  if(jim.y+JIM_H>=GY){jim.y=GY-JIM_H;jim.vy=0;jim.onGround=true;}
+  const fy=floorY(jim.x+JIM_W/2);
+  if(jim.y+JIM_H>=fy){jim.y=fy-JIM_H;jim.vy=0;jim.onGround=true;}
   for(const p of plats){
     if(jim.vy>=0&&prevBottom<=p.y+1&&jim.y+JIM_H>=p.y&&jim.x+JIM_W>p.x+4&&jim.x<p.x+p.w-4){
       jim.y=p.y-JIM_H;jim.vy=0;jim.onGround=true;
@@ -828,6 +832,9 @@ function drawBackdrop(){
       const sx2=w2s(x)+(Math.floor(x/30)%2?15:0);
       if(sx2>=x0&&sx2<x1)ctx.fillRect(sx2,254,2,GY-254);
     }
+    // the alley end sits two steps below the main level — brick runs lower there
+    const aR=Math.min(x1,w2s(STEP1_X));
+    if(aR>x0){ctx.fillStyle='#8A5040';ctx.fillRect(x0,GY,aR-x0,2*STEP_H);}
     for(let i=0;i<3;i++){                                               // arched windows
       const wx2=w2s(1150+i*250);
       if(wx2>-70&&wx2<x1){
@@ -859,20 +866,24 @@ function drawBackdrop(){
     const asky=ctx.createLinearGradient(0,140,0,WT);
     asky.addColorStop(0,'#BFDCF0');asky.addColorStop(1,'#DCEEF8');
     ctx.fillStyle=asky;ctx.fillRect(bx,182,bw,WT-182);   // sky above the wall
+    ctx.save();ctx.beginPath();ctx.rect(bx,182,bw,WT-182);ctx.clip();
     ctx.fillStyle='rgba(124,140,160,0.45)';              // rooftops peeking over
     for(let i=0;i<4;i++){
       const rx=w2s(170+i*260);
       ctx.fillRect(rx,322-(i%2)*24,160,WT-322+(i%2)*24);
     }
+    ctx.restore();
     ctx.fillStyle='#6E5A4A';ctx.fillRect(bx,WT-8,bw,8);  // wall cap
     // base coat: the wall is COMPLETELY gummed over — no bare wall shows
-    ctx.fillStyle='#B87A98';ctx.fillRect(bx,WT,bw,GY-WT);
+    // (runs down to the alley floor, two steps below main level)
+    const AF=GY+2*STEP_H;
+    ctx.fillStyle='#B87A98';ctx.fillRect(bx,WT,bw,AF-WT);
     const rnd=seedRand(5309);
     // small melted, chewed smears in muted shades, densely layered everywhere.
     // every rnd() is drawn BEFORE the visibility cull so the pattern is
     // identical no matter where the camera is — no shimmering while scrolling
     for(let i=0;i<800;i++){
-      const gx2=GUM_X0-20+rnd()*(GUM_X1-GUM_X0+40),gy2=WT+rnd()*(GY-WT);
+      const gx2=GUM_X0-20+rnd()*(GUM_X1-GUM_X0+40),gy2=WT+rnd()*(AF-WT);
       const hue=Math.floor(rnd()*360),sat=32+rnd()*26,lit=40+rnd()*24;
       const rw=3.5+rnd()*8,rh=1.5+rnd()*3,rot=(rnd()-0.5)*0.9;
       const hasDrip=rnd()<0.25,dl=3+rnd()*7,dy=4+rnd()*6;
@@ -887,7 +898,7 @@ function drawBackdrop(){
     }
     // only these ten get a slow, gentle sheen — everything else is dead still
     for(let i=0;i<10;i++){
-      const gx2=GUM_X0+rnd()*(GUM_X1-GUM_X0),gy2=WT+10+rnd()*(GY-WT-20);
+      const gx2=GUM_X0+rnd()*(GUM_X1-GUM_X0),gy2=WT+10+rnd()*(AF-WT-20);
       const hue=Math.floor(rnd()*360),rot=(rnd()-0.5);
       const sx2=w2s(gx2);
       if(sx2<-20||sx2>VW+20)continue;
@@ -963,14 +974,27 @@ function drawFloor(){
   ctx.fillStyle='rgba(0,0,0,0.2)';
   ctx.fillRect(0,GY,VW,4);
   for(let y=GY+26;y<VH;y+=26)ctx.fillRect(0,y,VW,2);                  // boards
-  // entrance + alley cobblestones (everything left of the arcade)
+  // entrance + alley cobblestones — three heights: alley (two steps down),
+  // the two steps, and the main market level
   const e1=w2s(2140);
   if(e1>0){
-    ctx.fillStyle='#8A8A92';ctx.fillRect(0,GY,Math.min(VW,e1),VH-GY);
+    for(const [zx0,zx1] of [[0,STEP2_X],[STEP2_X,STEP1_X],[STEP1_X,2140]]){
+      const a=Math.max(0,w2s(zx0)),b=Math.min(VW,w2s(zx1));
+      if(b<=a)continue;
+      const zy=floorY(zx0);
+      ctx.fillStyle='#8A8A92';ctx.fillRect(a,zy,b-a,VH-zy);
+      ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(a,zy,b-a,3);
+    }
+    for(const [rx,ry] of [[STEP2_X,GY+STEP_H],[STEP1_X,GY]]){   // step risers
+      const sxr=w2s(rx);
+      if(sxr>-10&&sxr<VW+10){ctx.fillStyle='#6E6E76';ctx.fillRect(sxr-2,ry,4,STEP_H);}
+    }
     ctx.fillStyle='rgba(0,0,0,0.25)';
-    for(let x=Math.floor(camX/36)*36;x<Math.min(camX+VW,2140);x+=36)
-      for(let y=GY+6;y<VH;y+=22)
+    for(let x=Math.floor(camX/36)*36;x<Math.min(camX+VW,2140);x+=36){
+      const fy2=floorY(x+18);
+      for(let y=fy2+6;y<VH;y+=22)
         ctx.fillRect(w2s(x)+(y%44<22?0:18),y,30,16);
+    }
   }
 }
 
@@ -1398,8 +1422,8 @@ function drawViewpoint(){
   ctx.beginPath();ctx.moveTo(w2s(7000),280);ctx.lineTo(w2s(7180),190);ctx.lineTo(w2s(7360),280);ctx.closePath();ctx.fill();
   ctx.fillStyle='rgba(244,248,252,0.95)';
   ctx.beginPath();ctx.moveTo(w2s(7130),215);ctx.lineTo(w2s(7180),190);ctx.lineTo(w2s(7230),215);ctx.lineTo(w2s(7200),222);ctx.lineTo(w2s(7160),218);ctx.closePath();ctx.fill();
-  // the Great Wheel out on its pier
-  drawGreatWheel(w2s(6960),392,frame);
+  // the Great Wheel out on its pier, docked right at the railing line
+  drawGreatWheel(w2s(6960),GY-44,frame);
   // railing
   ctx.strokeStyle='#2A2018';ctx.lineWidth=4;
   ctx.beginPath();ctx.moveTo(Math.max(0,w2s(6680)),GY-44);ctx.lineTo(w2s(WORLD_W),GY-44);ctx.stroke();
@@ -1427,10 +1451,11 @@ function drawWorldObjects(){
     ctx.beginPath();ctx.moveTo(sx+2,p.y+2);ctx.lineTo(sx+p.w-2,p.y+p.h-2);ctx.stroke();
     ctx.beginPath();ctx.moveTo(sx+p.w-2,p.y+2);ctx.lineTo(sx+2,p.y+p.h-2);ctx.stroke();
   }
-  // rummables
+  // rummables (alley ones sit two steps lower)
   for(const r of rums){
     const sx=w2s(r.x);
     if(sx<-40||sx>VW+40)continue;
+    ctx.save();ctx.translate(0,floorY(r.x)-GY);
     if(r.type==='bucket'){
       ctx.fillStyle=r.used?'#24523E':'#2E6B4F';ctx.fillRect(sx-14,GY-30,28,30);
       ctx.fillStyle='#3E8B65';ctx.fillRect(sx-14,GY-30,28,6);
@@ -1472,15 +1497,17 @@ function drawWorldObjects(){
       ctx.font='bold 11px Courier New';ctx.textAlign='center';
       ctx.fillText('⬇ / S',sx,GY-58);ctx.textAlign='left';
     }
+    ctx.restore();
   }
   // gum blobs on the floor
   for(const g of gumSpots){
     const sx=w2s(g.x);
     if(sx+g.w<-20||sx>VW+20)continue;
+    const fg=floorY(g.x+g.w/2);
     ctx.fillStyle='#E86AB8';
-    ctx.beginPath();ctx.ellipse(sx+g.w/2,GY+2,g.w/2,5,0,Math.PI,0,true);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+g.w/2,fg+2,g.w/2,5,0,Math.PI,0,true);ctx.fill();
     ctx.fillStyle='#C0509A';
-    ctx.beginPath();ctx.ellipse(sx+g.w/2+8,GY+1,g.w/4,3,0,Math.PI,0,true);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+g.w/2+8,fg+1,g.w/4,3,0,Math.PI,0,true);ctx.fill();
   }
   // rolling oranges
   for(const o of rollers){
@@ -1544,6 +1571,7 @@ function drawWorldObjects(){
     const wx=pd.a+off;
     const sx=w2s(wx);
     if(sx<-40||sx>VW+40)continue;
+    ctx.save();ctx.translate(0,floorY(wx)-GY);
     const step=Math.sin(frame*0.22+pd.x)*4;
     const h=pd.balloon?22:32;
     ctx.fillStyle='#2A2018';                                             // swinging legs
@@ -1564,6 +1592,7 @@ function drawWorldObjects(){
       ctx.beginPath();ctx.arc(sx+9*dir,GY-30+step*0.3,4,Math.PI,0);ctx.stroke();
       ctx.fillStyle='#3E8B45';ctx.fillRect(sx+9*dir-2,GY-36+step*0.3,2,7); // greens poking out
     }
+    ctx.restore();
   }
   // the famous fish-toss show, always running behind the counters
   for(const st of STALLS){
