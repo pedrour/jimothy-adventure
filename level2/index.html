@@ -145,12 +145,23 @@ canvas{
   border-radius:8px;cursor:pointer;z-index:20;
   display:flex;align-items:center;justify-content:center;padding:0;
 }
-/* Win-screen action row — same experience as level 1 */
+/* Win-screen action stack — same experience as level 1 */
 #win-actions{
   display:none;position:fixed;z-index:20;
-  gap:8px;align-items:center;
+  flex-direction:column;gap:8px;align-items:center;
   transform-origin:center center;
 }
+#win-actions .wa-row{display:flex;gap:8px;align-items:center}
+#next3-btn{
+  background:linear-gradient(135deg,#c0392b,#e8762c);
+  color:#fff;border:1px solid rgba(255,180,120,0.5);padding:11px 22px;
+  font-family:'Courier New',monospace;font-size:15px;font-weight:bold;
+  border-radius:10px;cursor:pointer;white-space:nowrap;
+  box-shadow:0 0 16px rgba(232,118,44,0.6),0 4px 12px rgba(0,0,0,0.5);
+  animation:kp-pulse 1.1s ease-in-out infinite alternate;
+}
+@keyframes kp-pulse{from{box-shadow:0 0 12px rgba(232,118,44,0.5)}to{box-shadow:0 0 26px rgba(255,140,60,0.9)}}
+#win-actions .hub-btn{background:rgba(30,60,45,0.9);}
 #share-btn{
   background:linear-gradient(135deg,#ff6644,#ffcc22,#ff44aa);
   color:#111;border:none;padding:13px 24px;
@@ -196,15 +207,21 @@ canvas{
   Collect every snack on the way up for a surprise at the top. Free in any browser on
   phone, tablet or desktop — no download, no sign-up.</p>
   <p>New here? Start with level 1, <a href="/">Jimothy Eats Seattle — the original Jimothy
-  game</a>, then take the win-screen shortcut up the tower.</p>
+  game</a>, then take the win-screen shortcut up the tower. Beaten the climb? Try level 3,
+  the <a href="/level3/">Pike Place Market game</a> — dodge the flying fish — or pick any
+  level at the <a href="/levels/">all-levels page</a>.</p>
 </header>
 
-<a id="home-btn" href="/">← LEVEL 1</a>
+<a id="home-btn" href="/levels/" onclick="return goHubChip(event)">🗺 LEVELS</a>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
 <div id="win-actions">
-  <button id="share-btn" onclick="doShare()">🦝 SHARE CLIMB</button>
-  <button class="soc x-btn" onclick="shareToX()" title="Share on X" aria-label="Share on X">𝕏</button>
-  <button class="soc kofi-btn" onclick="openTip()" title="Tip the raccoon on Ko-fi" aria-label="Tip the raccoon on Ko-fi">☕</button>
+  <button id="next3-btn" onclick="goLevel3()">▶ KEEP PLAYING · LEVEL 3: PIKE PLACE 🐟</button>
+  <div class="wa-row">
+    <button id="share-btn" onclick="doShare()">🦝 SHARE CLIMB</button>
+    <button class="soc x-btn" onclick="shareToX()" title="Share on X" aria-label="Share on X">𝕏</button>
+    <button class="soc kofi-btn" onclick="openTip()" title="Tip the raccoon on Ko-fi" aria-label="Tip the raccoon on Ko-fi">☕</button>
+    <button class="soc hub-btn" onclick="goHub('win_screen')" title="All levels" aria-label="All levels">🗺</button>
+  </div>
 </div>
 <canvas id="c" aria-label="Jimothy climbs the Space Needle game screen" role="img"></canvas>
 <div id="mob">
@@ -277,7 +294,17 @@ function openTip(){
   track('tip_click',{placement:'win_screen',level:2});
   window.open('https://ko-fi.com/nebulaailabs','_blank','noopener');
 }
-const WIN_ACTIONS_Y=660;
+function goLevel3(){
+  track('next_level_click',{score,from:2,to:3});
+  // brief grace period so the analytics beacon survives the navigation
+  setTimeout(()=>{location.href='/level3/';},200);
+}
+function goHub(placement){
+  track('all_levels_click',{level:2,placement});
+  setTimeout(()=>{location.href='/levels/';},150);
+}
+function goHubChip(e){e.preventDefault();goHub('chip');return false;}
+const WIN_ACTIONS_Y=656;
 function layoutWinActions(){
   const wa=document.getElementById('win-actions');
   if(!wa||wa.style.display==='none')return;
@@ -743,6 +770,7 @@ function update(){
     fullClear=snacks.every(s=>s.got);
     stopBgMusic();sndVictory();
     track('level2_win',{snacks:score,full_clear:fullClear});
+    try{localStorage.setItem('jimothy_l2_done','1');}catch(e){}
   }
 }
 
@@ -1648,14 +1676,14 @@ function drawWinScreen(){
   ctx.strokeStyle='#ffcc44';ctx.lineWidth=2;ctx.strokeRect(0,panTop,VW,panH);
   ctx.textAlign='center';
   ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(26+Math.sin(winFrame*0.1)*2)}px Courier New`;
-  ctx.fillText(fullClear?'🦝 PERFECT CLIMB!':'🦝 TOP OF THE NEEDLE!',VW/2,panTop+38);
+  ctx.fillText(fullClear?'🦝 PERFECT CLIMB!':'🦝 TOP OF THE NEEDLE!',VW/2,panTop+30);
   const _got=snacks.filter(s=>s.got).length;
-  ctx.fillStyle='#88ddff';ctx.font='17px Courier New';
-  ctx.fillText(`${NEEDLE_FT} ft · ${_got}/${snacks.length} snacks · ${score} bites`,VW/2,panTop+68);
-  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 16px Courier New';
-  ctx.fillText('playjimothy.com',VW/2,panTop+93);
-  ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='13px Courier New';
-  ctx.fillText(GOLDJIM?'✨ golden climb — tap the sky to go again':'☕ $2 coffee → GOLDEN JIMOTHY skin ✨',VW/2,panTop+116);
+  ctx.fillStyle='#88ddff';ctx.font='16px Courier New';
+  ctx.fillText(`${NEEDLE_FT} ft · ${_got}/${snacks.length} snacks · ${score} bites`,VW/2,panTop+54);
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 14px Courier New';
+  ctx.fillText('playjimothy.com',VW/2,panTop+76);
+  ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='12px Courier New';
+  ctx.fillText(GOLDJIM?'✨ golden climb — tap the sky to go again':'☕ $2 coffee → GOLDEN JIMOTHY skin ✨',VW/2,panTop+94);
   ctx.textAlign='left';
   // share/tip row appears once the fanfare settles — same flow as level 1
   if(winFrame===90){
