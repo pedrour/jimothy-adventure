@@ -1,0 +1,38 @@
+# Jimothy Eats Seattle
+
+> Free browser platformer game series starring Jimothy Piggerton, the very round
+> raccoon who went viral in Seattle. Three levels set in real Seattle places:
+> Ballard, the Space Needle, and Pike Place Market. Plays instantly in any
+> browser on phone, tablet or desktop — no download, no sign-up, no ads.
+
+The games are a fan tribute to the real Jimothy, an unusually round raccoon and
+Seattle celebrity whose stomping grounds are the Ballard neighborhood. Controls:
+arrow keys or on-screen buttons to move, Space/up to jump, S/down to rummage.
+Collect every snack in a level, then reach the goal to win. Optional: a $2
+coffee on Ko-fi (https://ko-fi.com/nebulaailabs) unlocks the Golden Jimothy
+skin across all levels.
+
+## Levels
+
+- [Level 1 — Ballard Dash](https://playjimothy.com/): the original Jimothy
+  raccoon game. Raid trash cans and snack carts through Ballard beneath the
+  Seattle skyline, Space Needle and Great Wheel.
+- [Level 2 — Climb the Needle](https://playjimothy.com/level2/): a Space Needle
+  climbing game. Scale the real tower 605 feet past planes, drones and tourists
+  to the observation deck, with Mount Rainier and Elliott Bay in view.
+- [Level 3 — Raid Pike Place](https://playjimothy.com/level3/): a Pike Place
+  Market game. Dodge the famous flying fish at the fish stalls, rub Rachel the
+  bronze pig for luck, browse the market stalls, and brave the Post Alley gum
+  wall on the way to the bay viewpoint by the Great Wheel.
+- [All levels (level select)](https://playjimothy.com/levels/): pick any level.
+
+## Facts
+
+- Title: Jimothy Eats Seattle (also known as: the Jimothy game, the Jimothy
+  raccoon game, Jimothy Piggerton game)
+- Price: free (optional $2 supporter cosmetic)
+- Platform: web browser (mobile and desktop), HTML5 canvas
+- Genre: casual platformer / arcade
+- Setting: real Seattle landmarks — Ballard, Space Needle, Pike Place Market,
+  the gum wall, Rachel the pig, the Great Wheel, Washington State ferries
+- Best starting point for new players: https://playjimothy.com/
