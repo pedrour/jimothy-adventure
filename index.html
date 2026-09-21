@@ -2817,7 +2817,7 @@ function drawWinScene(){
   // Comeback hook — daily mode sells the streak; normal wins alternate
   // between promoting Daily and the coffee ask (the ☕ button sits right below)
   const hook=_isDly?'🔥 come back tomorrow to keep your streak'
-    :winHookCoffee?(GOLDJIM?'✨ golden supporter — thank you!':'☕ $3 coffee → unlock GOLDEN JIMOTHY ✨')
+    :winHookCoffee?(GOLDJIM?'✨ golden supporter — thank you!':'☕ $2 coffee → unlock GOLDEN JIMOTHY ✨')
     :'📅 new run every day — try JIMOTHY DAILY';
   const hookPulse=0.72+0.24*Math.sin(winFrame*0.08);
   ctx.fillStyle=`rgba(255,215,80,${hookPulse})`;ctx.font='bold 14px Courier New';
