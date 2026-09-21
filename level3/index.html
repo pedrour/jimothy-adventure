@@ -1038,24 +1038,27 @@ function drawSign(){          // the roof-mounted icon, right above the starting
 function drawRachel(){
   const sx=w2s(RACHEL_X);
   if(sx<-90||sx>VW+90)return;
-  const shine=rachelDone?0.4:0.18;
-  ctx.fillStyle='#7A5B2E';
+  const shine=rachelDone?0.55:0.35;
+  ctx.fillStyle='#C9A227';                                                // gold!
   ctx.beginPath();ctx.ellipse(sx,GY-40,46,30,0,0,Math.PI*2);ctx.fill();   // body
   ctx.beginPath();ctx.ellipse(sx+40,GY-50,18,15,0,0,Math.PI*2);ctx.fill();// head
-  ctx.fillStyle='#8F6C38';
-  ctx.beginPath();ctx.ellipse(sx-10,GY-48,24,15,0,0,Math.PI*2);ctx.fill();// bronze sheen
-  ctx.fillStyle='#7A5B2E';
+  ctx.fillStyle='#EFD98E';
+  ctx.beginPath();ctx.ellipse(sx-10,GY-48,24,15,0,0,Math.PI*2);ctx.fill();// golden sheen
+  ctx.fillStyle='#C9A227';
   for(const lx of [-34,-14,10,30])ctx.fillRect(sx+lx,GY-14,11,14);        // legs
   ctx.beginPath();ctx.ellipse(sx+56,GY-50,6,5,0,0,Math.PI*2);ctx.fill();  // snout
-  ctx.fillStyle='#5C4420';
+  ctx.fillStyle='#9A7A16';
   ctx.beginPath();ctx.moveTo(sx+42,GY-64);ctx.lineTo(sx+50,GY-77);ctx.lineTo(sx+55,GY-62);ctx.closePath();ctx.fill(); // ear
   ctx.beginPath();ctx.moveTo(sx+30,GY-66);ctx.lineTo(sx+37,GY-78);ctx.lineTo(sx+42,GY-64);ctx.closePath();ctx.fill();
-  ctx.strokeStyle='#5C4420';ctx.lineWidth=3;                              // curly tail
+  ctx.strokeStyle='#9A7A16';ctx.lineWidth=3;                              // curly tail
   ctx.beginPath();ctx.arc(sx-48,GY-52,6,0.4,Math.PI*1.6);ctx.stroke();
   ctx.fillStyle='#2A2018';ctx.fillRect(sx-12,GY-68,24,4);                 // coin slot
   ctx.fillStyle='#111';ctx.beginPath();ctx.arc(sx+46,GY-54,2,0,Math.PI*2);ctx.fill(); // eye
-  ctx.fillStyle=`rgba(255,236,150,${shine})`;
+  ctx.fillStyle=`rgba(255,244,190,${shine})`;
   ctx.beginPath();ctx.ellipse(sx-12,GY-52,16,9,0.4,0,Math.PI*2);ctx.fill();
+  const gl=Math.sin(frame*0.04)*30;                                       // roving glint
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.beginPath();ctx.ellipse(sx+gl,GY-46,5,16,0.5,0,Math.PI*2);ctx.fill();
   if(!rachelDone){                                                        // beckoning glint
     const tw=0.4+0.4*Math.sin(frame*0.1);
     ctx.fillStyle=`rgba(255,244,180,${tw})`;
@@ -1655,6 +1658,21 @@ function drawWorldObjects(){
       ctx.fillStyle='#3E8B45';ctx.fillRect(sx+9*dir-2,GY-36+step*0.3,2,7); // greens poking out
     }
     ctx.restore();
+  }
+  // a stray flying fish sails past just left of Rachel
+  {
+    const per=200,t=(frame%per)/per;
+    if(t<0.55){
+      const p=t/0.55;
+      const fx=RACHEL_X-90-240*p;                       // 1640 → 1400, flying left
+      const fy=GY-72-Math.sin(p*Math.PI)*62;
+      const fsx=w2s(fx);
+      if(fsx>-40&&fsx<VW+40){
+        drawFishSprite(fsx,fy,0.25-Math.sin(p*Math.PI*2)*0.3);
+        ctx.fillStyle='rgba(200,230,250,0.3)';
+        ctx.beginPath();ctx.ellipse(fsx+12,fy+2,9,3,0,0,Math.PI*2);ctx.fill();
+      }
+    }
   }
   // the famous fish-toss show, always running behind the counters
   for(const st of STALLS){
