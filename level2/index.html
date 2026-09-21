@@ -131,7 +131,7 @@ canvas{
 #mob button:active{background:rgba(60,100,160,.95)}
 #mob-left{display:flex;gap:8px}
 #home-btn{
-  position:fixed;top:10px;left:10px;
+  position:fixed;top:48px;left:10px;
   background:rgba(20,40,70,0.55);border:1px solid rgba(255,255,255,0.25);
   color:#dceaff;font-size:12px;font-weight:bold;padding:7px 10px;
   border-radius:8px;cursor:pointer;z-index:20;text-decoration:none;
@@ -304,7 +304,8 @@ function goHub(placement){
   setTimeout(()=>{location.href='/levels/';},150);
 }
 function goHubChip(e){e.preventDefault();goHub('chip');return false;}
-const WIN_ACTIONS_Y=656;
+const WIN_ACTIONS_Y=650;
+const WIN_TEXT_BOTTOM=579;   // last panel text baseline+descender
 function layoutWinActions(){
   const wa=document.getElementById('win-actions');
   if(!wa||wa.style.display==='none')return;
@@ -1675,15 +1676,13 @@ function drawWinScreen(){
   ctx.fillStyle='rgba(24,34,52,0.93)';ctx.fillRect(0,panTop,VW,panH);
   ctx.strokeStyle='#ffcc44';ctx.lineWidth=2;ctx.strokeRect(0,panTop,VW,panH);
   ctx.textAlign='center';
-  ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(26+Math.sin(winFrame*0.1)*2)}px Courier New`;
-  ctx.fillText(fullClear?'🦝 PERFECT CLIMB!':'🦝 TOP OF THE NEEDLE!',VW/2,panTop+30);
+  ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(21+Math.sin(winFrame*0.1)*1.5)}px Courier New`;
+  ctx.fillText(fullClear?'🦝 PERFECT CLIMB!':'🦝 TOP OF THE NEEDLE!',VW/2,panTop+26);
   const _got=snacks.filter(s=>s.got).length;
-  ctx.fillStyle='#88ddff';ctx.font='16px Courier New';
-  ctx.fillText(`${NEEDLE_FT} ft · ${_got}/${snacks.length} snacks · ${score} bites`,VW/2,panTop+54);
-  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 14px Courier New';
-  ctx.fillText('playjimothy.com',VW/2,panTop+76);
-  ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='12px Courier New';
-  ctx.fillText(GOLDJIM?'✨ golden climb — tap the sky to go again':'☕ $2 coffee → GOLDEN JIMOTHY skin ✨',VW/2,panTop+94);
+  ctx.fillStyle='#88ddff';ctx.font='14px Courier New';
+  ctx.fillText(`${NEEDLE_FT} ft · ${_got}/${snacks.length} snacks · ${score} bites`,VW/2,panTop+46);
+  ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='11px Courier New';
+  ctx.fillText(GOLDJIM?'playjimothy.com · ✨ golden climb!':'playjimothy.com · ☕ $2 → GOLDEN JIMOTHY ✨',VW/2,panTop+64);
   ctx.textAlign='left';
   // share/tip row appears once the fanfare settles — same flow as level 1
   if(winFrame===90){
