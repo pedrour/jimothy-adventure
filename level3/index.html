@@ -1363,6 +1363,71 @@ function drawBusker(){
   }
 }
 
+// WSF double-ended ferry (same one as level 1)
+function drawWSFerry(cx,cy,s){
+  ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);
+  // hull — white with the green WSF boot stripe
+  ctx.fillStyle='#EDEAE2';
+  ctx.beginPath();
+  ctx.moveTo(-88,0);ctx.lineTo(-100,8);ctx.lineTo(100,8);ctx.lineTo(88,0);
+  ctx.lineTo(88,-14);ctx.lineTo(-88,-14);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#2A2820';ctx.fillRect(-100,7,200,3);          // keel
+  ctx.fillStyle='#1A6B3C';ctx.fillRect(-88,-3,176,5);          // boot stripe
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(-85,-13,170,5);
+  // car deck
+  ctx.fillStyle='#E4E0D8';ctx.fillRect(-80,-14,160,28);
+  ctx.fillStyle='#1A6B3C';ctx.fillRect(-80,-14,160,3);
+  ctx.fillStyle='#2A2820';
+  for(let i=0;i<5;i++)ctx.fillRect(-70+i*28,-10,18,18);
+  // passenger deck
+  ctx.fillStyle='#DEDAD2';ctx.fillRect(-72,-42,144,28);
+  ctx.fillStyle='#1A6B3C';ctx.fillRect(-72,-42,144,3);
+  ctx.fillStyle='#D06820';
+  for(let i=0;i<10;i++)ctx.fillRect(-66+i*14,-38,12,16);
+  ctx.fillStyle='#7CC0E8';
+  for(let i=0;i<10;i++)ctx.fillRect(-65+i*14,-37,10,12);
+  ctx.fillStyle='#DEDAD2';
+  for(let i=1;i<10;i++)ctx.fillRect(-66+i*14,-38,2,16);
+  // upper deck
+  ctx.fillStyle='#D8D4CC';ctx.fillRect(-60,-60,120,18);
+  ctx.fillStyle='#1A6B3C';ctx.fillRect(-60,-60,120,3);
+  ctx.fillStyle='#D06820';
+  for(let i=0;i<7;i++)ctx.fillRect(-54+i*16,-57,14,12);
+  ctx.fillStyle='#7CC0E8';
+  for(let i=0;i<7;i++)ctx.fillRect(-53+i*16,-56,12,9);
+  // wheelhouses, both ends
+  ctx.fillStyle='#CCC8C0';ctx.fillRect(-80,-76,28,16);
+  ctx.fillStyle='#1A6B3C';ctx.fillRect(-80,-76,28,3);
+  ctx.fillStyle='#88B8D8';
+  for(let i=0;i<4;i++)ctx.fillRect(-77+i*7,-73,5,10);
+  ctx.fillStyle='#CCC8C0';ctx.fillRect(52,-76,28,16);
+  ctx.fillStyle='#1A6B3C';ctx.fillRect(52,-76,28,3);
+  ctx.fillStyle='#88B8D8';
+  for(let i=0;i<4;i++)ctx.fillRect(55+i*7,-73,5,10);
+  // funnel + faint smoke
+  ctx.fillStyle='#1A6B3C';ctx.fillRect(-8,-78,16,18);
+  ctx.fillStyle='#0A4A28';ctx.fillRect(-8,-78,16,4);
+  ctx.fillStyle='#1A1A1A';ctx.fillRect(-9,-80,18,4);
+  ctx.save();ctx.globalAlpha=0.18;
+  ctx.fillStyle='#888';ctx.beginPath();ctx.ellipse(0,-90,8,12,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(4,-104,5,8,0.3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  // mast + navigation lights
+  ctx.strokeStyle='#B0ACA4';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0,-80);ctx.lineTo(0,-95);ctx.stroke();
+  ctx.fillStyle='rgba(255,80,80,0.95)';ctx.beginPath();ctx.arc(-92,0,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(100,220,100,0.95)';ctx.beginPath();ctx.arc(92,0,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,200,0.95)';ctx.beginPath();ctx.arc(0,-93,2.5,0,Math.PI*2);ctx.fill();
+  // wake
+  ctx.strokeStyle='rgba(200,230,245,0.22)';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(-98,6);ctx.lineTo(-160,18);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(98,6);ctx.lineTo(160,18);ctx.stroke();
+  ctx.strokeStyle='rgba(200,230,245,0.12)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-98,2);ctx.lineTo(-150,10);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(98,2);ctx.lineTo(150,10);ctx.stroke();
+  ctx.restore();
+}
+
 // Seattle Great Wheel (same one as level 1's skyline)
 function drawGreatWheel(cx,base,fr){
   const r=56;
@@ -1412,11 +1477,8 @@ function drawViewpoint(){
   ctx.fillStyle='#7C9CB4';ctx.fillRect(skx,280,VW-skx,GY-280);          // bay
   ctx.fillStyle='rgba(255,255,255,0.3)';
   for(let i=0;i<8;i++)ctx.fillRect(skx+((i*67+frame*0.2)%(VW-skx+1)),300+i*22,20,2);
-  const fx=w2s(7090)+Math.sin(frame*0.01)*4;                            // ferry
-  ctx.fillStyle='#f4f6f4';ctx.fillRect(fx,318,56,12);
-  ctx.fillStyle='#eef2ee';ctx.fillRect(fx+8,308,40,10);
-  ctx.fillStyle='#2e7d46';ctx.fillRect(fx,328,56,3);
-  for(let i=0;i<4;i++){ctx.fillStyle='#3d4a58';ctx.fillRect(fx+12+i*8,311,4,4);}
+  // the WSF ferry crossing the bay (level 1's ferry)
+  drawWSFerry(w2s(7090)+Math.sin(frame*0.01)*4,338,0.42);
   // Rainier
   ctx.fillStyle='rgba(148,164,186,0.8)';
   ctx.beginPath();ctx.moveTo(w2s(7000),280);ctx.lineTo(w2s(7180),190);ctx.lineTo(w2s(7360),280);ctx.closePath();ctx.fill();
