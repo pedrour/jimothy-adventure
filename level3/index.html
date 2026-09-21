@@ -1339,6 +1339,44 @@ function drawBusker(){
   }
 }
 
+// Seattle Great Wheel (same one as level 1's skyline)
+function drawGreatWheel(cx,base,fr){
+  const r=56;
+  const axleY=base-r-28;
+  ctx.fillStyle='#D0CCCA';
+  ctx.beginPath();ctx.moveTo(cx-r*0.68,base);ctx.lineTo(cx-4,axleY);ctx.lineTo(cx+4,axleY);ctx.lineTo(cx-r*0.68+12,base);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(cx+r*0.68,base);ctx.lineTo(cx-4,axleY);ctx.lineTo(cx+4,axleY);ctx.lineTo(cx+r*0.68-12,base);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#C8C4BC';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(cx-r*0.5,base-26);ctx.lineTo(cx+r*0.5,base-26);ctx.stroke();
+  ctx.fillStyle='#8A9090';ctx.fillRect(cx-r*0.72,base-8,r*1.44,10);   // pier
+  const rot=fr*0.010;
+  ctx.strokeStyle='#C4C0B8';ctx.lineWidth=1.8;
+  for(let i=0;i<16;i++){
+    const a=rot+(i/16)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,axleY);ctx.lineTo(cx+Math.cos(a)*r,axleY+Math.sin(a)*r);ctx.stroke();
+  }
+  ctx.strokeStyle='#D0CCC4';ctx.lineWidth=5;
+  ctx.beginPath();ctx.arc(cx,axleY,r,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#C0BCB4';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(cx,axleY,r*0.62,0,Math.PI*2);ctx.stroke();
+  const lh=(fr*3)%360;                                                 // LED glow ring
+  ctx.save();ctx.shadowColor=`hsl(${lh},100%,65%)`;ctx.shadowBlur=14;
+  ctx.strokeStyle=`hsla(${lh},100%,72%,0.9)`;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,axleY,r+3,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+  for(let i=0;i<20;i++){                                               // gondolas
+    const a=rot+(i/20)*Math.PI*2;
+    const gx=cx+Math.cos(a)*r;const gy=axleY+Math.sin(a)*r;
+    const gh=(i*18+fr*2)%360;
+    ctx.fillStyle=`hsl(${gh},72%,68%)`;
+    ctx.beginPath();ctx.roundRect(gx-5,gy,10,8,2);ctx.fill();
+    ctx.strokeStyle='#B8B4AC';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx,gy-4);ctx.stroke();
+  }
+  ctx.fillStyle='#B4B0A8';ctx.beginPath();ctx.arc(cx,axleY,9,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#D8D4CC';ctx.beginPath();ctx.arc(cx,axleY,4,0,Math.PI*2);ctx.fill();
+}
+
 function drawViewpoint(){
   const sx=w2s(6680);
   if(sx>VW+60)return;
@@ -1360,6 +1398,8 @@ function drawViewpoint(){
   ctx.beginPath();ctx.moveTo(w2s(7000),280);ctx.lineTo(w2s(7180),190);ctx.lineTo(w2s(7360),280);ctx.closePath();ctx.fill();
   ctx.fillStyle='rgba(244,248,252,0.95)';
   ctx.beginPath();ctx.moveTo(w2s(7130),215);ctx.lineTo(w2s(7180),190);ctx.lineTo(w2s(7230),215);ctx.lineTo(w2s(7200),222);ctx.lineTo(w2s(7160),218);ctx.closePath();ctx.fill();
+  // the Great Wheel out on its pier
+  drawGreatWheel(w2s(6960),392,frame);
   // railing
   ctx.strokeStyle='#2A2018';ctx.lineWidth=4;
   ctx.beginPath();ctx.moveTo(Math.max(0,w2s(6680)),GY-44);ctx.lineTo(w2s(WORLD_W),GY-44);ctx.stroke();
