@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>All Levels — Jimothy Eats Seattle · Free Seattle Raccoon Games</title>
+<meta name="description" content="Pick your level: raid downtown Seattle, climb the Space Needle, or dodge flying fish at Pike Place Market as Jimothy, Seattle's viral round raccoon. Free browser games, no download.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://playjimothy.com/levels/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jimothy Eats Seattle">
+<meta property="og:title" content="All Levels — Jimothy Eats Seattle">
+<meta property="og:description" content="Three free Seattle raccoon games: Downtown Dash, Climb the Needle, Raid Pike Place. Pick your heist.">
+<meta property="og:url" content="https://playjimothy.com/levels/">
+<meta property="og:image" content="https://playjimothy.com/icon-192.png">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#3c231d">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Jimothy Eats Seattle — All Levels",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"url":"https://playjimothy.com/","name":"Level 1 — Downtown Dash"},
+    {"@type":"ListItem","position":2,"url":"https://playjimothy.com/level2/","name":"Level 2 — Climb the Needle (Space Needle game)"},
+    {"@type":"ListItem","position":3,"url":"https://playjimothy.com/level3/","name":"Level 3 — Raid Pike Place (Pike Place Market game)"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Jimothy Eats Seattle","item":"https://playjimothy.com/"},
+    {"@type":"ListItem","position":2,"name":"All Levels","item":"https://playjimothy.com/levels/"}
+  ]
+}
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BMBX27898J"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BMBX27898J');
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Courier New',monospace;color:#f4e4c8;min-height:100vh;
+  background:#3c231d;
+  background-image:
+    linear-gradient(rgba(0,0,0,.22) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,0,0,.16) 1px,transparent 1px),
+    linear-gradient(#4a2a22,#38201a);
+  background-size:100% 22px,34px 22px,100% 100%;}
+.wrap{max-width:520px;margin:0 auto;padding:0 12px 40px}
+header{text-align:center;padding:24px 0 6px}
+.mkt{display:inline-block;background:#2a1712;border:3px solid #1a0e0a;border-radius:8px;padding:12px 18px;
+  box-shadow:0 4px 18px rgba(0,0,0,.5)}
+.mkt .neon{font-size:21px;font-weight:bold;letter-spacing:2px;color:#ff4438;
+  text-shadow:0 0 8px #ff4438,0 0 22px rgba(255,68,56,.6)}
+.mkt .sub{font-size:10px;letter-spacing:4px;color:#ffb347;margin-top:5px;
+  text-shadow:0 0 7px rgba(255,179,71,.7)}
+.face{font-size:38px;margin-top:10px}
+.tag{font-size:12px;color:#e8d8c0;margin:8px 0 14px}
+.lvls{display:flex;flex-direction:column;gap:14px}
+a.sign{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;
+  background:#1c1210;border-radius:10px;padding:20px 16px;min-height:132px;position:relative;
+  border:2px solid #0e0806;box-shadow:inset 0 0 26px rgba(0,0,0,.65),0 3px 14px rgba(0,0,0,.45)}
+a.sign:active{transform:scale(.985)}
+.sign .glow{position:absolute;inset:0;border-radius:10px;pointer-events:none;border:2px solid transparent}
+.n-red   {--c:#ff5a4e}
+.n-cyan  {--c:#5ad8ff}
+.n-gold  {--c:#ffcf5a}
+.sign .glow{box-shadow:inset 0 0 16px color-mix(in srgb,var(--c) 34%,transparent)}
+.pic{font-size:46px;width:64px;text-align:center;
+  filter:drop-shadow(0 0 10px var(--c))}
+.pic canvas{width:56px;height:78px;display:block;margin:0 auto}
+.meta{flex:1;min-width:0}
+.lnum{font-size:10px;letter-spacing:4px;color:#c8b49a}
+.lname{font-size:23px;font-weight:bold;letter-spacing:1px;color:var(--c);margin:4px 0 6px;
+  text-shadow:0 0 7px var(--c),0 0 20px color-mix(in srgb,var(--c) 55%,transparent)}
+.lhook{font-size:12px;color:#e8d8c0;opacity:.92;line-height:1.5}
+.pips{font-size:11px;margin-top:6px;color:#c8b49a}
+.arrow{font-size:24px;color:var(--c);text-shadow:0 0 8px var(--c)}
+.done{display:none;position:absolute;top:-9px;right:12px;background:#2e7d46;color:#fff;font-size:10px;font-weight:bold;
+  border-radius:999px;padding:4px 10px;border:2px solid #1a0e0a}
+.soon{opacity:.5}
+.soon .lname{color:#8a94a0;text-shadow:none}
+.soon .pic{filter:none;font-size:30px;color:#c8b49a}
+footer{text-align:center;margin-top:22px;font-size:11px;color:#d8c8b0;line-height:1.7}
+footer a{color:#ffb347}
+.seo{max-width:520px;margin:28px auto 0;padding:0 4px;font-size:11px;color:#a08a74;line-height:1.8}
+.seo a{color:#c8a878}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mkt">
+      <div class="neon">JIMOTHY EATS SEATTLE</div>
+      <div class="sub">PUBLIC GAME CENTER</div>
+    </div>
+    <div class="face">🦝</div>
+    <div class="tag">pick a level · free · made with ❤️ in Seattle</div>
+  </header>
+
+  <nav class="lvls" aria-label="Levels">
+    <a class="sign n-gold" href="/" data-to="level1" aria-label="Play Level 1, Downtown Dash">
+      <span class="glow"></span>
+      <div class="done" id="done1">✓ BEATEN</div>
+      <div class="pic">🌆</div>
+      <div class="meta">
+        <div class="lnum">LEVEL 1</div>
+        <div class="lname">DOWNTOWN DASH</div>
+        <div class="lhook">Raid dumpsters &amp; snack carts across the Emerald City.</div>
+        <div class="pips">difficulty ●○○</div>
+      </div>
+      <div class="arrow">▶</div>
+    </a>
+
+    <a class="sign n-cyan" href="/level2/" data-to="level2" aria-label="Play Level 2, Climb the Needle — the Space Needle game">
+      <span class="glow"></span>
+      <div class="done" id="done2">✓ BEATEN</div>
+      <div class="pic"><canvas id="needle" width="112" height="156" aria-hidden="true"></canvas></div>
+      <div class="meta">
+        <div class="lnum">LEVEL 2</div>
+        <div class="lname">CLIMB THE NEEDLE</div>
+        <div class="lhook">Scale the Space Needle past planes, drones &amp; tourists.</div>
+        <div class="pips">difficulty ●●○</div>
+      </div>
+      <div class="arrow">▶</div>
+    </a>
+
+    <a class="sign n-red" href="/level3/" data-to="level3" aria-label="Play Level 3, Raid Pike Place — the Pike Place Market game">
+      <span class="glow"></span>
+      <div class="done" id="done3">✓ BEATEN</div>
+      <div class="pic">🐟</div>
+      <div class="meta">
+        <div class="lnum">LEVEL 3 · NEW</div>
+        <div class="lname">RAID PIKE PLACE</div>
+        <div class="lhook">Dodge flying fish, rub the golden pig, brave the gum wall.</div>
+        <div class="pips">difficulty ●●●</div>
+      </div>
+      <div class="arrow">▶</div>
+    </a>
+
+    <a class="sign soon" href="https://ko-fi.com/nebulaailabs" target="_blank" rel="noopener" id="l4-sign" aria-label="Vote for level 4 on Ko-fi">
+      <div class="pic">❓</div>
+      <div class="meta">
+        <div class="lnum">LEVEL 4</div>
+        <div class="lname">???</div>
+        <div class="lhook">Where should Jimothy strike next? Tell us on Ko-fi.</div>
+      </div>
+      <div class="arrow">…</div>
+    </a>
+  </nav>
+
+  <footer>
+    ☕ <a href="https://ko-fi.com/nebulaailabs" target="_blank" rel="noopener" id="kofi-link">$2 coffee → unlock GOLDEN JIMOTHY ✨</a> (works in every level)<br>
+    inspired by Seattle's real viral raccoon, Jimothy Piggerton
+  </footer>
+
+  <section class="seo">
+    <p><b>Jimothy Eats Seattle</b> is a series of free browser games starring Jimothy
+    Piggerton, the very round raccoon who went viral in Seattle. Play the original
+    <a href="/">Jimothy raccoon game</a> downtown, the
+    <a href="/level2/">Space Needle climbing game</a>, or the new
+    <a href="/level3/">Pike Place Market game</a> — dodge the famous flying fish,
+    rub Rachel the bronze pig for luck and visit the gum wall. No download, no
+    sign-up; works on phone, tablet and desktop.</p>
+  </section>
+</div>
+
+<script>
+// the actual Space Needle, drawn in the games' art style
+(function(){
+  const c=document.getElementById('needle'),ctx=c.getContext('2d');
+  ctx.scale(2,2);
+  const cx=28,W='#EDE9E0',S='#C9C4B8';
+  ctx.strokeStyle=W;ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(cx-13,76);ctx.quadraticCurveTo(cx-5,50,cx-3,36);ctx.stroke();   // legs
+  ctx.beginPath();ctx.moveTo(cx+13,76);ctx.quadraticCurveTo(cx+5,50,cx+3,36);ctx.stroke();
+  ctx.lineWidth=2.2;
+  ctx.beginPath();ctx.moveTo(cx,76);ctx.lineTo(cx,36);ctx.stroke();                          // core leg
+  ctx.strokeStyle=S;ctx.lineWidth=1.2;                                                       // braces
+  ctx.beginPath();ctx.moveTo(cx-9,63);ctx.lineTo(cx+9,63);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx-6,51);ctx.lineTo(cx+6,51);ctx.stroke();
+  ctx.strokeStyle=W;ctx.lineWidth=3.5;                                                       // waist
+  ctx.beginPath();ctx.moveTo(cx,38);ctx.lineTo(cx,29);ctx.stroke();
+  ctx.strokeStyle=S;ctx.lineWidth=1.5;                                                       // halo ring
+  ctx.beginPath();ctx.ellipse(cx,27,12.5,3,0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=W;                                                                           // saucer
+  ctx.beginPath();ctx.ellipse(cx,23,14,4.2,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx,20.5,10,3,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2b3340';                                                                   // windows
+  for(let i=-3;i<=3;i++)ctx.fillRect(cx+i*3.7-1.2,21.6,2.4,1.9);
+  ctx.fillStyle=W;ctx.fillRect(cx-2.5,14,5,4.5);                                             // top house
+  ctx.strokeStyle=W;ctx.lineWidth=1.7;                                                       // spire
+  ctx.beginPath();ctx.moveTo(cx,14);ctx.lineTo(cx,4);ctx.stroke();
+  ctx.fillStyle='#ff5a4e';                                                                   // warning light
+  ctx.beginPath();ctx.arc(cx,3.5,1.7,0,Math.PI*2);ctx.fill();
+})();
+
+// safe tracker — never blocks navigation if GA is unavailable
+function track(name,params){try{gtag('event',name,params||{});}catch(e){}}
+
+// ✓ BEATEN badges from per-level win flags (set by each game on victory)
+const cleared={l1:false,l2:false,l3:false};
+try{
+  cleared.l1=localStorage.getItem('jimothy_l1_done')==='1';
+  cleared.l2=localStorage.getItem('jimothy_l2_done')==='1';
+  cleared.l3=localStorage.getItem('jimothy_l3_done')==='1';
+}catch(e){}
+if(cleared.l1)document.getElementById('done1').style.display='block';
+if(cleared.l2)document.getElementById('done2').style.display='block';
+if(cleared.l3)document.getElementById('done3').style.display='block';
+track('hub_view',{cleared_l1:cleared.l1?1:0,cleared_l2:cleared.l2?1:0,cleared_l3:cleared.l3?1:0});
+
+// level banners: fire the event, give the beacon a beat, then go
+document.querySelectorAll('a.sign[data-to]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const to=a.dataset.to;
+    track('hub_level_click',{to,beaten:cleared[to.replace('level','l')]?1:0});
+    setTimeout(()=>{location.href=a.getAttribute('href');},150);
+  });
+});
+document.getElementById('l4-sign').addEventListener('click',()=>track('hub_l4_vote_click',{}));
+document.getElementById('kofi-link').addEventListener('click',()=>track('tip_click',{placement:'hub'}));
+</script>
+</body>
+</html>

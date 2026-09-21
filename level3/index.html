@@ -6,9 +6,48 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2E6B4F">
-<title>Jimothy Level 3 — Pike Place Market (prototype)</title>
-<!-- Prototype: unlisted until launch -->
-<meta name="robots" content="noindex, nofollow">
+<title>Pike Place Market Game 🐟 Dodge the Flying Fish — Jimothy Level 3</title>
+<meta name="description" content="Free Pike Place Market game: run the arcade as Jimothy the raccoon, dodge the famous flying fish, rub Rachel the pig for luck, brave the gum wall and reach Elliott Bay. Level 3 of Jimothy Eats Seattle — plays in any browser, no download.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://playjimothy.com/level3/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jimothy Eats Seattle">
+<meta property="og:title" content="Pike Place Market Game — Dodge the Flying Fish as Jimothy the Raccoon">
+<meta property="og:description" content="Seattle's viral round raccoon raids Pike Place: flying fish, Rachel the pig, the gum wall, the Great Wheel. Free browser game.">
+<meta property="og:url" content="https://playjimothy.com/level3/">
+<meta property="og:image" content="https://playjimothy.com/icon-192.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Jimothy Raids Pike Place Market",
+  "alternateName": ["Pike Place Market Game", "Flying Fish Game", "Gum Wall Game", "Jimothy Game Level 3"],
+  "url": "https://playjimothy.com/level3/",
+  "image": "https://playjimothy.com/icon-192.png",
+  "description": "Run Pike Place Market as Jimothy, Seattle's viral round raccoon: dodge the flying fish throws, rub Rachel the bronze pig for luck, get stuck on the gum wall, rummage the stalls and reach the bay viewpoint by the Great Wheel.",
+  "genre": ["Platformer", "Casual", "Adventure"],
+  "gamePlatform": ["Web Browser", "Mobile Web"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "playMode": "SinglePlayer",
+  "isPartOf": {"@type": "VideoGame", "name": "Jimothy Eats Seattle", "url": "https://playjimothy.com/"},
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Jimothy Eats Seattle","item":"https://playjimothy.com/"},
+    {"@type":"ListItem","position":2,"name":"All Levels","item":"https://playjimothy.com/levels/"},
+    {"@type":"ListItem","position":3,"name":"Pike Place Market Game","item":"https://playjimothy.com/level3/"}
+  ]
+}
+</script>
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -51,12 +90,6 @@ canvas{
   border-radius:8px;cursor:pointer;z-index:20;text-decoration:none;
   font-family:'Courier New',monospace;
 }
-#proto-tag{
-  position:fixed;top:10px;right:52px;
-  background:rgba(120,40,160,0.45);border:1px solid rgba(200,120,255,0.5);
-  color:#f0d8ff;font-size:10px;letter-spacing:1px;padding:6px 8px;
-  border-radius:8px;z-index:20;font-family:'Courier New',monospace;
-}
 #vol-btn{
   position:fixed;top:10px;right:10px;
   background:rgba(16,38,28,0.6);border:1px solid rgba(255,255,255,0.25);
@@ -89,6 +122,15 @@ canvas{
 }
 #win-actions .x-btn{background:rgba(0,0,0,0.8);}
 #win-actions .kofi-btn{background:rgba(255,94,91,0.9);}
+#hub-btn-main{
+  background:linear-gradient(135deg,#1F4A37,#3E8B65);
+  color:#fff;border:1px solid rgba(140,230,180,0.5);padding:11px 22px;
+  font-family:'Courier New',monospace;font-size:15px;font-weight:bold;
+  border-radius:10px;cursor:pointer;white-space:nowrap;
+  box-shadow:0 0 16px rgba(62,139,101,0.6),0 4px 12px rgba(0,0,0,0.5);
+  animation:kp-pulse 1.1s ease-in-out infinite alternate;
+}
+@keyframes kp-pulse{from{box-shadow:0 0 12px rgba(62,139,101,0.5)}to{box-shadow:0 0 26px rgba(90,200,140,0.9)}}
 </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMBX27898J"></script>
@@ -102,17 +144,26 @@ canvas{
 <body>
 
 <header style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
-  <h1>Jimothy Level 3 — Pike Place Market (prototype)</h1>
-  <p>Third level of the Jimothy game: Jimothy the round raccoon raids Pike Place Market —
-  dodge flying salmon at the fish market, rub Rachel the bronze piggy bank for luck, sneak
-  through the flower row and the produce high stalls, brave the Post Alley gum wall, and
-  snack your way to the Elliott Bay viewpoint. Play level 1 at playjimothy.com.</p>
+  <h1>The Pike Place Market Game — dodge the flying fish as Jimothy the raccoon</h1>
+  <p>A free Pike Place Market game, and level 3 of Jimothy Eats Seattle. Jimothy, Seattle's
+  viral round raccoon, raids the real market: dodge flying salmon tossed across the famous
+  fish stalls, rub Rachel the bronze piggy bank for luck under the Public Market Center
+  sign, browse the flower row, produce stands, bakery and spice stalls, get stuck on the
+  Post Alley gum wall (two steps down, fully gummed), and snack your way to the Elliott
+  Bay viewpoint where the Great Wheel spins and a Washington State ferry crosses the bay.</p>
+  <h2>How to play the Pike Place Market game</h2>
+  <p>Arrow keys or on-screen buttons to move and jump, S or the down button to rummage.
+  Jump the low fish throws, walk under the high ones, and eat everything before the bay.
+  Free in any browser on phone, tablet or desktop — no download, no sign-up.</p>
+  <p>New here? Start with <a href="/">Jimothy Eats Seattle — the original Jimothy game</a>,
+  climb the <a href="/level2/">Space Needle in level 2</a>, or pick any level at the
+  <a href="/levels/">all-levels page</a>.</p>
 </header>
 
-<a id="home-btn" href="/">← LEVEL 1</a>
-<div id="proto-tag">PROTOTYPE</div>
+<a id="home-btn" href="/levels/" onclick="return goHubChip(event)">🗺 LEVELS</a>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
 <div id="win-actions">
+  <button id="hub-btn-main" onclick="goHub('win_screen')">▶ KEEP PLAYING: MORE LEVELS 🗺</button>
   <div class="wa-row">
     <button id="share-btn" onclick="doShare()">🦝 SHARE THE RAID</button>
     <button class="soc x-btn" onclick="shareToX()" title="Share on X" aria-label="Share on X">𝕏</button>
@@ -190,7 +241,13 @@ function openTip(){
   track('tip_click',{placement:'win_screen',level:3});
   window.open('https://ko-fi.com/nebulaailabs','_blank','noopener');
 }
-const WIN_ACTIONS_Y=662;
+function goHub(placement){
+  track('all_levels_click',{level:3,placement});
+  // brief grace period so the analytics beacon survives the navigation
+  setTimeout(()=>{location.href='/levels/';},150);
+}
+function goHubChip(e){e.preventDefault();goHub('chip');return false;}
+const WIN_ACTIONS_Y=650;
 function layoutWinActions(){
   const wa=document.getElementById('win-actions');
   if(!wa||wa.style.display==='none')return;
@@ -666,6 +723,7 @@ function update(){
     won=true;winFrame=0;
     stopBgMusic();sndVictory();
     track('level3_win',{score,fish_hits:fishHits,fish_dodged:fishDodged});
+    try{localStorage.setItem('jimothy_l3_done','1');}catch(e){}
   }else if(!won&&jim.x>WORLD_W-540&&frame%90===0&&!allGot){
     const left=snacks.filter(s=>!s.got).length+rums.filter(r=>!r.used).length;
     addPopup(`still ${left} treats back in the market!`,jim.x,jim.y-24);
@@ -1751,8 +1809,6 @@ function drawHUD(){
 function drawStart(){
   ctx.fillStyle='rgba(20,14,8,0.66)';ctx.fillRect(0,0,VW,VH);
   ctx.textAlign='center';
-  ctx.fillStyle='#d9a8ff';ctx.font='bold 13px Courier New';
-  ctx.fillText('P R O T O T Y P E',VW/2,200);
   ctx.fillStyle='#ffe9a8';ctx.font='bold 30px Courier New';
   ctx.fillText('LEVEL 3',VW/2,242);
   ctx.fillStyle='#FF6B5A';ctx.font='bold 19px Courier New';
@@ -1840,17 +1896,17 @@ function drawWinScreen(){
   ctx.fillStyle='#FF4438';ctx.shadowColor='#FF4438';ctx.shadowBlur=12;
   ctx.fillText('PUBLIC MARKET CENTER',VW/2,398);
   ctx.shadowBlur=0;
-  // big bronze Rachel, properly piggy
+  // big golden Rachel, properly piggy (same gold as in-level)
   const rx2=VW/2,ry2=482;
-  ctx.fillStyle='#7A5B2E';
+  ctx.fillStyle='#C9A227';
   ctx.beginPath();ctx.ellipse(rx2,ry2,52,32,0,0,Math.PI*2);ctx.fill();       // body
   ctx.beginPath();ctx.ellipse(rx2+46,ry2-12,20,16,0,0,Math.PI*2);ctx.fill(); // head
-  ctx.fillStyle='#8F6C38';
+  ctx.fillStyle='#EFD98E';
   ctx.beginPath();ctx.ellipse(rx2-12,ry2-10,26,16,0,0,Math.PI*2);ctx.fill(); // sheen
-  ctx.fillStyle='#7A5B2E';
+  ctx.fillStyle='#C9A227';
   for(const lx of [-36,-14,12,34])ctx.fillRect(rx2+lx,ry2+26,12,16);          // legs
   ctx.beginPath();ctx.ellipse(rx2+64,ry2-12,7,6,0,0,Math.PI*2);ctx.fill();   // snout
-  ctx.fillStyle='#5C4420';
+  ctx.fillStyle='#9A7A16';
   ctx.beginPath();ctx.moveTo(rx2+50,ry2-28);ctx.lineTo(rx2+58,ry2-42);ctx.lineTo(rx2+62,ry2-26);ctx.closePath();ctx.fill();
   ctx.fillStyle='#2A2018';ctx.fillRect(rx2-14,ry2-32,28,4);                   // coin slot
   ctx.fillStyle='#111';ctx.beginPath();ctx.arc(rx2+52,ry2-16,2.2,0,Math.PI*2);ctx.fill();
@@ -1861,13 +1917,11 @@ function drawWinScreen(){
   ctx.fillStyle='rgba(24,20,12,0.93)';ctx.fillRect(0,panTop,VW,panH);
   ctx.strokeStyle='#FF6B5A';ctx.lineWidth=2;ctx.strokeRect(0,panTop,VW,panH);
   ctx.fillStyle='#ffcc44';ctx.font=`bold ${Math.round(22+Math.sin(winFrame*0.1)*2)}px Courier New`;
-  ctx.fillText('🦝 MARKET CONQUERED!',VW/2,panTop+30);
+  ctx.fillText('🦝 MARKET CONQUERED!',VW/2,panTop+26);
   ctx.fillStyle='#88ddff';ctx.font='14px Courier New';
-  ctx.fillText(`🍖 ${score} bites · 🐟 ${fishDodged} dodged · ${fishHits} bonk${fishHits===1?'':'s'}`,VW/2,panTop+54);
-  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 13px Courier New';
-  ctx.fillText('playjimothy.com',VW/2,panTop+76);
+  ctx.fillText(`🍖 ${score} bites · 🐟 ${fishDodged} dodged · ${fishHits} bonk${fishHits===1?'':'s'}`,VW/2,panTop+48);
   ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='12px Courier New';
-  ctx.fillText(GOLDJIM?'✨ golden raid — tap the sky to go again':'☕ $2 coffee → GOLDEN JIMOTHY skin ✨',VW/2,panTop+96);
+  ctx.fillText(GOLDJIM?'✨ golden raid — tap the sky to go again':'☕ $2 coffee → GOLDEN JIMOTHY skin ✨',VW/2,panTop+68);
   ctx.textAlign='left';
   if(winFrame===90){
     const wa=document.getElementById('win-actions');
