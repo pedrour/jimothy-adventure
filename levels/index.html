@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>All Levels — Jimothy Eats Seattle · Free Seattle Raccoon Games</title>
-<meta name="description" content="Pick your level: raid downtown Seattle, climb the Space Needle, or dodge flying fish at Pike Place Market as Jimothy, Seattle's viral round raccoon. Free browser games, no download.">
+<meta name="description" content="Pick your level: dash through Ballard, climb the Space Needle, or dodge flying fish at Pike Place Market as Jimothy Piggerton, Seattle's viral round raccoon. Three free browser games — no download, no sign-up.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://playjimothy.com/levels/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Jimothy Eats Seattle">
 <meta property="og:title" content="All Levels — Jimothy Eats Seattle">
-<meta property="og:description" content="Three free Seattle raccoon games: Downtown Dash, Climb the Needle, Raid Pike Place. Pick your heist.">
+<meta property="og:description" content="Three free Seattle raccoon games: Ballard Dash, Climb the Needle, Raid Pike Place. Pick your heist.">
 <meta property="og:url" content="https://playjimothy.com/levels/">
 <meta property="og:image" content="https://playjimothy.com/icon-192.png">
 <meta name="twitter:card" content="summary">
@@ -21,12 +21,53 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "ItemList",
-  "name": "Jimothy Eats Seattle — All Levels",
-  "itemListElement": [
-    {"@type":"ListItem","position":1,"url":"https://playjimothy.com/","name":"Level 1 — Downtown Dash"},
-    {"@type":"ListItem","position":2,"url":"https://playjimothy.com/level2/","name":"Level 2 — Climb the Needle (Space Needle game)"},
-    {"@type":"ListItem","position":3,"url":"https://playjimothy.com/level3/","name":"Level 3 — Raid Pike Place (Pike Place Market game)"}
+  "@type": "CollectionPage",
+  "name": "All Levels — Jimothy Eats Seattle",
+  "url": "https://playjimothy.com/levels/",
+  "description": "Level select for Jimothy Eats Seattle, the free browser game series starring Jimothy Piggerton, Seattle's viral round raccoon: Ballard Dash, Climb the Needle, and Raid Pike Place.",
+  "isPartOf": {"@type": "WebSite", "name": "Jimothy Eats Seattle", "url": "https://playjimothy.com/"},
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "Jimothy Eats Seattle — All Levels",
+    "numberOfItems": 3,
+    "itemListElement": [
+      {"@type":"ListItem","position":1,"item":{
+        "@type":"VideoGame","url":"https://playjimothy.com/",
+        "name":"Level 1 — Ballard Dash",
+        "alternateName":["Jimothy Game","The Jimothy Raccoon Game","Ballard Raccoon Game"],
+        "description":"The original Jimothy game: raid trash cans and snack carts through Ballard, the Seattle neighborhood the real Jimothy roams.",
+        "isAccessibleForFree":true,"gamePlatform":["Web Browser","Mobile Web"]}},
+      {"@type":"ListItem","position":2,"item":{
+        "@type":"VideoGame","url":"https://playjimothy.com/level2/",
+        "name":"Level 2 — Climb the Needle",
+        "alternateName":["Space Needle Game","Space Needle Climbing Game"],
+        "description":"Climb the Space Needle 605 feet to the observation deck past planes, drones and tourists.",
+        "isAccessibleForFree":true,"gamePlatform":["Web Browser","Mobile Web"]}},
+      {"@type":"ListItem","position":3,"item":{
+        "@type":"VideoGame","url":"https://playjimothy.com/level3/",
+        "name":"Level 3 — Raid Pike Place",
+        "alternateName":["Pike Place Market Game","Flying Fish Game","Gum Wall Game"],
+        "description":"Run Pike Place Market: dodge the famous flying fish, rub Rachel the bronze pig for luck, and brave the Post Alley gum wall.",
+        "isAccessibleForFree":true,"gamePlatform":["Web Browser","Mobile Web"]}}
+    ]
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"What is Jimothy Eats Seattle?",
+     "acceptedAnswer":{"@type":"Answer","text":"Jimothy Eats Seattle is a series of free browser platformer games starring Jimothy Piggerton, the very round raccoon who went viral in Seattle. There are three levels: Ballard Dash, Climb the Needle (a Space Needle climbing game), and Raid Pike Place (a Pike Place Market game with flying fish, Rachel the pig and the gum wall)."}},
+    {"@type":"Question","name":"Is the Jimothy game free?",
+     "acceptedAnswer":{"@type":"Answer","text":"Yes — every level is completely free to play in any web browser on phone, tablet or desktop. No download, no sign-up, no ads. Supporters can optionally buy a $2 coffee on Ko-fi to unlock the Golden Jimothy skin."}},
+    {"@type":"Question","name":"Where can I play the Pike Place Market game?",
+     "acceptedAnswer":{"@type":"Answer","text":"Play it at playjimothy.com/level3/ — dodge the flying fish at the fish market, rub Rachel the bronze piggy bank for luck, browse the flower and produce stalls, and visit the Post Alley gum wall."}},
+    {"@type":"Question","name":"Who is Jimothy Piggerton?",
+     "acceptedAnswer":{"@type":"Answer","text":"Jimothy Piggerton is a real, unusually round raccoon who became a viral Seattle celebrity. The games are a fan tribute: you play as Jimothy snacking his way across the city, starting in Ballard, his real stomping grounds."}},
+    {"@type":"Question","name":"How do I play the Jimothy games?",
+     "acceptedAnswer":{"@type":"Answer","text":"Use the arrow keys (or on-screen buttons on mobile) to move, Space or up to jump, and S or the down button to rummage. Collect every snack in a level, then reach the goal to win."}}
   ]
 }
 </script>
@@ -61,7 +102,7 @@ body{font-family:'Courier New',monospace;color:#f4e4c8;min-height:100vh;
 header{text-align:center;padding:24px 0 6px}
 .mkt{display:inline-block;background:#2a1712;border:3px solid #1a0e0a;border-radius:8px;padding:12px 18px;
   box-shadow:0 4px 18px rgba(0,0,0,.5)}
-.mkt .neon{font-size:21px;font-weight:bold;letter-spacing:2px;color:#ff4438;
+.mkt .neon{font-size:21px;font-weight:bold;letter-spacing:2px;color:#ff4438;margin:0;
   text-shadow:0 0 8px #ff4438,0 0 22px rgba(255,68,56,.6)}
 .mkt .sub{font-size:10px;letter-spacing:4px;color:#ffb347;margin-top:5px;
   text-shadow:0 0 7px rgba(255,179,71,.7)}
@@ -96,13 +137,15 @@ footer{text-align:center;margin-top:22px;font-size:11px;color:#d8c8b0;line-heigh
 footer a{color:#ffb347}
 .seo{max-width:520px;margin:28px auto 0;padding:0 4px;font-size:11px;color:#a08a74;line-height:1.8}
 .seo a{color:#c8a878}
+.seo h2{font-size:12px;color:#c8a878;letter-spacing:1px;margin:16px 0 4px}
+.seo p{margin:6px 0}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="mkt">
-      <div class="neon">JIMOTHY EATS SEATTLE</div>
+      <h1 class="neon">JIMOTHY EATS SEATTLE</h1>
       <div class="sub">PUBLIC GAME CENTER</div>
     </div>
     <div class="face">🦝</div>
@@ -110,14 +153,14 @@ footer a{color:#ffb347}
   </header>
 
   <nav class="lvls" aria-label="Levels">
-    <a class="sign n-gold" href="/" data-to="level1" aria-label="Play Level 1, Downtown Dash">
+    <a class="sign n-gold" href="/" data-to="level1" aria-label="Play Level 1, Ballard Dash">
       <span class="glow"></span>
       <div class="done" id="done1">✓ BEATEN</div>
       <div class="pic">🌆</div>
       <div class="meta">
         <div class="lnum">LEVEL 1</div>
-        <div class="lname">DOWNTOWN DASH</div>
-        <div class="lhook">Raid dumpsters &amp; snack carts across the Emerald City.</div>
+        <div class="lname">BALLARD DASH</div>
+        <div class="lhook">Raid dumpsters &amp; snack carts through Jimothy's real home turf.</div>
         <div class="pips">difficulty ●○○</div>
       </div>
       <div class="arrow">▶</div>
@@ -166,13 +209,38 @@ footer a{color:#ffb347}
   </footer>
 
   <section class="seo">
+    <h2>The Jimothy games, level by level</h2>
     <p><b>Jimothy Eats Seattle</b> is a series of free browser games starring Jimothy
-    Piggerton, the very round raccoon who went viral in Seattle. Play the original
-    <a href="/">Jimothy raccoon game</a> downtown, the
-    <a href="/level2/">Space Needle climbing game</a>, or the new
-    <a href="/level3/">Pike Place Market game</a> — dodge the famous flying fish,
-    rub Rachel the bronze pig for luck and visit the gum wall. No download, no
-    sign-up; works on phone, tablet and desktop.</p>
+    Piggerton, the very round raccoon who went viral in Seattle. No download, no
+    sign-up, no ads; every level works on phone, tablet and desktop.</p>
+    <p><b>Level 1 — Ballard Dash</b>: the original
+    <a href="/">Jimothy raccoon game</a>. Dash through Ballard — the Seattle
+    neighborhood the real Jimothy actually roams — raiding trash cans and snack
+    carts beneath the skyline, with the Space Needle and the Great Wheel on the
+    horizon.</p>
+    <p><b>Level 2 — Climb the Needle</b>: a free
+    <a href="/level2/">Space Needle climbing game</a>. Scale the real tower beam by
+    beam, 605 feet past planes, drones and tourists to the observation deck, with
+    Mount Rainier and Elliott Bay ferries in view.</p>
+    <p><b>Level 3 — Raid Pike Place</b>: the new
+    <a href="/level3/">Pike Place Market game</a>. Dodge the famous flying fish at
+    the fish stalls, rub Rachel the bronze pig for luck under the Public Market
+    Center sign, browse flower, produce, bakery and spice stalls, and brave the
+    fully-gummed Post Alley gum wall on the way to the bay.</p>
+    <h2>Frequently asked questions</h2>
+    <p><b>What is Jimothy Eats Seattle?</b> A free browser platformer series
+    starring Jimothy Piggerton, Seattle's viral round raccoon, across three
+    levels: Ballard, the Space Needle and Pike Place Market.</p>
+    <p><b>Is the Jimothy game free?</b> Yes — every level is completely free in
+    any web browser. Supporters can optionally buy a
+    <a href="https://ko-fi.com/nebulaailabs" rel="noopener" target="_blank">$2 coffee
+    on Ko-fi</a> to unlock the Golden Jimothy skin in all levels.</p>
+    <p><b>Who is Jimothy Piggerton?</b> A real, unusually round raccoon who became
+    a Seattle celebrity; the games are a fan tribute set in his real stomping
+    grounds.</p>
+    <p><b>How do I play?</b> Arrow keys or on-screen buttons to move, Space or up
+    to jump, S or the down button to rummage. Collect every snack, then reach the
+    goal.</p>
   </section>
 </div>
 
