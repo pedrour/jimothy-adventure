@@ -1,0 +1,42 @@
+name: Jimothy Daily Digest
+
+# Posts a daily funnel + sales digest as a comment on the "Jimothy Daily Digest"
+# issue. GitHub then notifies the repo owner (email / app push) — with a 💰 SALE
+# headline whenever a purchase event fired.
+#
+# One-time setup (until then, runs skip gracefully):
+#   1. console.cloud.google.com → new project → enable "Google Analytics Data API"
+#      → create a service account → create a JSON key.
+#   2. GA4 → Admin → Property access management → add the service account's
+#      email as Viewer.
+#   3. Repo → Settings → Secrets and variables → Actions:
+#        GA4_PROPERTY_ID  = the numeric property id (GA4 Admin → Property details)
+#        GA4_SA_JSON      = the full JSON key file contents
+#   4. Test with Actions → Jimothy Daily Digest → Run workflow.
+
+on:
+  schedule:
+    - cron: '0 15 * * *'   # 8am Seattle (PDT) / 7am PST
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install GA client
+        run: pip install --quiet google-analytics-data
+      - name: Build and post digest
+        env:
+          GA4_SA_JSON: ${{ secrets.GA4_SA_JSON }}
+          GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/digest.py
