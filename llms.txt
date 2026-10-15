@@ -1,9 +1,10 @@
 # Jimothy Eats Seattle
 
 > Free browser platformer game series starring Jimothy Piggerton, the very round
-> raccoon who went viral in Seattle. Three levels set in real Seattle places:
-> Ballard, the Space Needle, and Pike Place Market. Plays instantly in any
-> browser on phone, tablet or desktop — no download, no sign-up, no ads.
+> raccoon who went viral in Seattle. Four levels set in real Seattle places:
+> Ballard, the Space Needle, Pike Place Market, and the Seattle Underground.
+> Plays instantly in any browser on phone, tablet or desktop — no download,
+> no sign-up, no ads.
 
 The games are a fan tribute to the real Jimothy, an unusually round raccoon and
 Seattle celebrity whose stomping grounds are the Ballard neighborhood. Controls:
@@ -24,6 +25,11 @@ skin across all levels.
   Market game. Dodge the famous flying fish at the fish stalls, rub Rachel the
   bronze pig for luck, browse the market stalls, and brave the Post Alley gum
   wall on the way to the bay viewpoint by the Great Wheel.
+- [Level 4 — The Underground](https://playjimothy.com/level4/): a Seattle
+  Underground game. Descend from the Pioneer Square pergola into the real
+  buried city of 1889 — purple glass sidewalk prisms, the old bank vault, a
+  speakeasy and a raccoon camp — dodging rats and moles while collecting seven
+  true history plaques, from the glue-pot fire to Bill Speidel's 1965 tour.
 - [All levels (level select)](https://playjimothy.com/levels/): pick any level.
 
 ## Facts
@@ -34,5 +40,6 @@ skin across all levels.
 - Platform: web browser (mobile and desktop), HTML5 canvas
 - Genre: casual platformer / arcade
 - Setting: real Seattle landmarks — Ballard, Space Needle, Pike Place Market,
-  the gum wall, Rachel the pig, the Great Wheel, Washington State ferries
+  the gum wall, Rachel the pig, the Great Wheel, Washington State ferries, the
+  Seattle Underground, the Pioneer Square pergola and Smith Tower
 - Best starting point for new players: https://playjimothy.com/

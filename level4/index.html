@@ -6,9 +6,48 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2A2136">
-<title>Jimothy Level 4 — Seattle Underground (prototype)</title>
-<meta name="description" content="Prototype level: Jimothy the raccoon descends from the Pioneer Square pergola into the real Seattle Underground — purple glass skylights, buried storefronts, rats, moles and fellow raccoons.">
-<meta name="robots" content="noindex, nofollow">
+<title>Seattle Underground Game 🟣 Explore the Buried City — Jimothy Level 4</title>
+<meta name="description" content="Free Seattle Underground game: descend from the Pioneer Square pergola into the real buried city of 1889 as Jimothy the raccoon — purple glass skylights, bank vaults, speakeasies, rats, moles and fellow raccoons. Level 4 of Jimothy Eats Seattle — plays in any browser, no download.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://playjimothy.com/level4/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jimothy Eats Seattle">
+<meta property="og:title" content="Seattle Underground Game — Explore the Buried City as Jimothy the Raccoon">
+<meta property="og:description" content="Seattle's viral round raccoon goes under Pioneer Square: purple glass prisms, the old bank vault, a speakeasy, rats, moles and a raccoon camp. Free browser game.">
+<meta property="og:url" content="https://playjimothy.com/level4/">
+<meta property="og:image" content="https://playjimothy.com/icon-192.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Jimothy and the Seattle Underground",
+  "alternateName": ["Seattle Underground Game", "Pioneer Square Game", "Underground Tour Game", "Jimothy Game Level 4"],
+  "url": "https://playjimothy.com/level4/",
+  "image": "https://playjimothy.com/icon-192.png",
+  "description": "Descend from the Pioneer Square pergola into the real Seattle Underground as Jimothy, Seattle's viral round raccoon: walk the streets buried after the Great Fire of 1889 under purple glass sidewalk prisms, raid the old bank vault and a speakeasy, dodge rats and moles, meet the underground raccoons, and collect seven true history plaques on the way to the tour exit.",
+  "genre": ["Platformer", "Casual", "Adventure", "Educational"],
+  "gamePlatform": ["Web Browser", "Mobile Web"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "playMode": "SinglePlayer",
+  "isPartOf": {"@type": "VideoGame", "name": "Jimothy Eats Seattle", "url": "https://playjimothy.com/"},
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Jimothy Eats Seattle","item":"https://playjimothy.com/"},
+    {"@type":"ListItem","position":2,"name":"All Levels","item":"https://playjimothy.com/levels/"},
+    {"@type":"ListItem","position":3,"name":"Seattle Underground Game","item":"https://playjimothy.com/level4/"}
+  ]
+}
+</script>
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -96,11 +135,26 @@ canvas{
 <body>
 
 <header style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
-  <h1>Jimothy Level 4 — the Seattle Underground (prototype)</h1>
-  <p>Jimothy the raccoon starts at the Pioneer Square pergola, takes the stairs down
-  into the real Seattle Underground — the streets buried after the Great Fire of 1889 —
-  and explores bank vaults, hotel lobbies and speakeasies under the purple glass
-  sidewalk prisms, dodging rats and moles with the help of two local raccoons.</p>
+  <h1>The Seattle Underground game — explore the buried city as Jimothy the raccoon</h1>
+  <p>A free Seattle Underground game, and level 4 of Jimothy Eats Seattle. Jimothy,
+  Seattle's viral round raccoon, starts at the Pioneer Square pergola at dusk, passes
+  the totem pole and the five-globe lamps, and takes the stairs down into the real
+  Seattle Underground — the streets buried when the city rebuilt 10 to 35 feet higher
+  after the Great Fire of June 6, 1889. Under the famous purple glass sidewalk prisms
+  he raids the old bank vault, a hotel lobby, the barbershop, the elevated high-tide
+  crapper and a speakeasy, dodges rats and moles, meets Gerald and Bianca of the
+  underground raccoon camp, and collects seven true history plaques — from the
+  glue-pot fire to Bill Speidel's 1965 underground tour — before climbing out at
+  the tour exit.</p>
+  <h2>How to play the Seattle Underground game</h2>
+  <p>Arrow keys or on-screen buttons to move and jump, S or the down button to
+  rummage. Jump the rat packs, step back when a mole mound starts to rumble, and
+  read every plaque. Free in any browser on phone, tablet or desktop — no download,
+  no sign-up.</p>
+  <p>New here? Start with <a href="/">Jimothy Eats Seattle — the original Jimothy game</a>,
+  climb the <a href="/level2/">Space Needle in level 2</a>, raid
+  <a href="/level3/">Pike Place Market in level 3</a>, or pick any level at the
+  <a href="/levels/">all-levels page</a>.</p>
 </header>
 
 <a id="home-btn" href="/levels/" onclick="return goHubChip(event)">🗺 LEVELS</a>
@@ -1796,8 +1850,6 @@ function drawStart(){
   ctx.shadowColor='#8A5AC0';ctx.shadowBlur=12;
   ctx.fillText('🦝 THE SEATTLE UNDERGROUND',VW/2,272);
   ctx.shadowBlur=0;
-  ctx.fillStyle='rgba(216,180,255,0.8)';ctx.font='12px Courier New';
-  ctx.fillText('— prototype —',VW/2,292);
   ctx.fillStyle='#ece4f8';ctx.font='13px Courier New';
   ctx.fillText('◀ ▶ move · ⬆/SPACE jump · ⬇/S rummage',VW/2,330);
   ctx.fillText('take the stairs DOWN under Pioneer Square',VW/2,354);
