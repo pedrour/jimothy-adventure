@@ -124,8 +124,14 @@ canvas{
 #win-actions .kofi-btn{background:rgba(255,94,91,0.9);}
 #daily-run-btn{
   background:rgba(24,20,12,0.55);color:#ffe9a8;border:2px solid rgba(255,233,168,0.65);
-  padding:8px 26px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;
+  padding:8px 14px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;
   border-radius:10px;cursor:pointer;white-space:nowrap;
+}
+#next-lvl-btn{
+  background:linear-gradient(135deg,#3A2A5E,#5E3A8E);color:#E8DCFF;border:2px solid rgba(192,154,248,0.85);
+  padding:8px 14px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;
+  border-radius:10px;cursor:pointer;white-space:nowrap;
+  box-shadow:0 0 12px rgba(138,90,192,0.5);
 }
 #gold-link{
   color:#f5d76e;font-size:13px;font-weight:bold;text-decoration:underline;cursor:pointer;white-space:nowrap;
@@ -164,7 +170,10 @@ canvas{
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
 <div id="win-actions">
   <button id="share-btn" onclick="doShare()">🦝 SHARE THE ENDING</button>
-  <button id="daily-run-btn" onclick="goDaily()">▶ TODAY'S DAILY RUN</button>
+  <div class="wa-row">
+    <button id="next-lvl-btn" onclick="goLevel4()">▶ LEVEL 4: UNDERGROUND</button>
+    <button id="daily-run-btn" onclick="goDaily()">🗓 DAILY</button>
+  </div>
   <a id="gold-link" href="#" onclick="return goldCta(event)">✨ keep the gold coat forever · $2</a>
 </div>
 <canvas id="c" aria-label="Jimothy at Pike Place Market game screen" role="img"></canvas>
@@ -251,6 +260,10 @@ const KOFI_GOLD_URL='https://ko-fi.com/nebulaailabs?src=goldpass'; // ← swap i
 function goDaily(){
   track('finale_daily_click',{});
   setTimeout(()=>{location.href='/?daily=1';},150);
+}
+function goLevel4(){
+  track('next_level_click',{from:3,to:4});
+  setTimeout(()=>{location.href='/level4/';},150);
 }
 function goldCta(e){
   e.preventDefault();
