@@ -182,6 +182,34 @@ canvas{
 }
 #win-actions .x-btn{background:rgba(0,0,0,0.8);}
 #win-actions .kofi-btn{background:rgba(255,94,91,0.9);}
+/* ── THE TOLL ── */
+#trial-chip{position:fixed;top:10px;right:52px;z-index:20;background:rgba(201,162,39,.18);border:1px solid rgba(245,215,110,.6);
+  color:#f5d76e;font-size:10px;letter-spacing:1px;font-weight:bold;padding:8px 9px;border-radius:8px;font-family:'Courier New',monospace}
+#ov{display:none;position:fixed;inset:0;z-index:40;background:#15100c;justify-content:center;font-family:'Courier New',monospace}
+.ov-screen{display:none;flex-direction:column;align-items:center;width:min(100vw,460px);padding:28px 24px;position:relative}
+.ov-tag{color:#c8b49a;font-size:11px;letter-spacing:4px}
+.shutterwrap{margin-top:16px;width:290px;border:6px solid #1F4A37;border-radius:8px 8px 0 0;background:#2a1712;padding:10px 10px 0;position:relative}
+.shutsign{background:#3E2F20;color:#FF4438;font-weight:bold;font-size:13px;text-align:center;padding:7px 4px;letter-spacing:1px;
+  text-shadow:0 0 8px #ff4438;border-radius:4px}
+.shutter{margin-top:8px;height:138px;background:repeating-linear-gradient(180deg,#6e7880 0 10px,#59636b 10px 14px,#848e96 14px 20px);
+  border-radius:3px;position:relative}
+.shutter:after{content:'CLOSED';position:absolute;left:0;right:0;bottom:50px;text-align:center;color:#2a2018;background:rgba(244,239,223,.92);
+  font-weight:bold;font-size:16px;letter-spacing:6px;padding:7px 0;transform:rotate(-3deg)}
+#ov-jim{position:absolute;left:-66px;bottom:-8px;width:100px;height:100px;border:none;background:transparent}
+.ov-head{color:#ffe9a8;font-size:26px;font-weight:bold;margin-top:24px;letter-spacing:1px;text-align:center}
+.ov-sub{color:#d8c8b0;font-size:13px;margin-top:9px;text-align:center;line-height:1.6}
+.ov-pay{margin-top:24px;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,#c9a227,#f5d76e,#c9a227);color:#241a02;box-shadow:0 0 26px rgba(245,215,110,.45)}
+.ov-pay b{display:block;font-size:18px;letter-spacing:1px}
+.ov-pay span{display:block;font-size:11px;margin-top:4px;font-weight:normal}
+.ov-link{margin-top:14px;color:#8fa2b8;font-size:14px;text-decoration:underline;padding:12px;cursor:pointer}
+.ov-foot{margin-top:14px;color:#5a6a7a;font-size:10px;text-align:center}
+.ov-clock{color:#ffe9a8;font-size:44px;font-weight:bold;letter-spacing:3px;margin-top:8px}
+.ov-cdsub{color:#8fa2b8;font-size:11px;margin-top:6px;letter-spacing:2px}
+.ov-coat{margin-top:14px;color:#c0567a;font-size:12px;text-align:center}
+.ov-daily{margin-top:26px;width:100%;padding:17px;border:none;border-radius:12px;cursor:pointer;font-family:inherit;
+  font-size:15px;font-weight:bold;color:#1a1205;background:linear-gradient(135deg,#ff8a2a,#ffc23c);box-shadow:0 0 18px rgba(255,170,50,.4)}
+.ov-ics{margin-top:14px;color:#8fd0ff;font-size:13px;text-decoration:underline;padding:8px}
 </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMBX27898J"></script>
@@ -213,14 +241,37 @@ canvas{
 </header>
 
 <a id="home-btn" href="/levels/" onclick="return goHubChip(event)">🗺 LEVELS</a>
+<div id="trial-chip" style="display:none">✨ GOLD TRIAL</div>
 <button id="vol-btn" onclick="toggleMute()" title="Toggle sound">🔊</button>
-<div id="win-actions">
-  <button id="next3-btn" onclick="goLevel3()">▶ KEEP PLAYING · LEVEL 3: PIKE PLACE 🐟</button>
-  <div class="wa-row">
-    <button id="share-btn" onclick="doShare()">🦝 SHARE CLIMB</button>
-    <button class="soc x-btn" onclick="shareToX()" title="Share on X" aria-label="Share on X">𝕏</button>
-    <button class="soc kofi-btn" onclick="openTip()" title="Tip the raccoon on Ko-fi" aria-label="Tip the raccoon on Ko-fi">☕</button>
-    <button class="soc hub-btn" onclick="goHub('win_screen')" title="All levels" aria-label="All levels">🗺</button>
+
+<!-- THE TOLL — full-screen flow after the level 2 win -->
+<div id="ov">
+  <div class="ov-screen" id="ov-toll">
+    <div class="ov-tag">LEVEL 3 · PIKE PLACE MARKET</div>
+    <div class="shutterwrap">
+      <div class="shutsign">PUBLIC MARKET CENTER</div>
+      <div class="shutter"><canvas id="ov-jim" width="200" height="200"></canvas></div>
+    </div>
+    <div class="ov-head">THE MARKET'S CLOSED.</div>
+    <div class="ov-sub">the fish guys open in 24 hours.<br>Jimothy cannot wait.</div>
+    <button class="ov-pay" id="toll-pay"><b>⚡ SKIP THE LINE — $3</b><span>opens Pike Place now · keeps your gold coat forever</span></button>
+    <div class="ov-link" id="toll-wait">I'll wait 24h (free)</div>
+    <div class="ov-foot">paid already? tap the unlock link in your Ko-fi receipt</div>
+  </div>
+  <div class="ov-screen" id="ov-wait">
+    <div class="ov-tag" style="margin-top:14px">PIKE PLACE OPENS IN</div>
+    <div class="ov-clock" id="toll-cd">23:59:59</div>
+    <div class="ov-cdsub">COUNTING DOWN FOR REAL</div>
+    <div class="ov-coat">gold trial over — the coat went back to the closet 🥲</div>
+    <button class="ov-daily" id="toll-daily">🔥 PLAY TODAY'S DAILY WHILE YOU WAIT →</button>
+    <a class="ov-ics" id="toll-ics" download="pike-place-opens.ics">📅 add reminder to calendar</a>
+    <div class="ov-foot" style="margin-top:auto">or come back tomorrow — we'll hold your spot</div>
+  </div>
+  <div class="ov-screen" id="ov-open">
+    <div class="ov-tag" style="margin-top:60px">LEVEL 3 · PIKE PLACE MARKET</div>
+    <div class="ov-head" style="color:#5ad88f;text-shadow:0 0 14px rgba(90,216,143,.5)">PIKE PLACE IS OPEN.</div>
+    <div class="ov-sub" id="open-sub">in you go.</div>
+    <button class="ov-pay" id="open-enter" style="background:linear-gradient(135deg,#1F4A37,#3E8B65);color:#fff"><b>🐟 ENTER THE MARKET →</b></button>
   </div>
 </div>
 <canvas id="c" aria-label="Jimothy climbs the Space Needle game screen" role="img"></canvas>
@@ -245,6 +296,18 @@ function track(name,params){
 // GOLDEN JIMOTHY supporter skin — shared with level 1 via localStorage
 let GOLDJIM=false,goldToastT=0;
 try{GOLDJIM=localStorage.getItem('jimothy_gold')==='1';}catch(e){}
+// gold trial (granted by a level 1 win) and timed gold (daily streak reward)
+let GOLDTRIAL=false,GOLDUNTIL=0;
+try{
+  GOLDTRIAL=localStorage.getItem('jimothy_gold_trial')==='1';
+  GOLDUNTIL=+(localStorage.getItem('jimothy_gold_until')||0);
+}catch(e){}
+function goldOn(){return GOLDJIM||GOLDTRIAL||Date.now()<GOLDUNTIL;}
+function updateTrialChip(){
+  const t=document.getElementById('trial-chip');
+  if(t)t.style.display=(GOLDTRIAL&&!GOLDJIM)?'block':'none';
+}
+updateTrialChip();
 try{
   const _gc=new URLSearchParams(location.search).get('code');
   if(_gc&&_gc.toUpperCase()==='GOLDENJIM'){
@@ -304,6 +367,118 @@ function goHub(placement){
   setTimeout(()=>{location.href='/levels/';},150);
 }
 function goHubChip(e){e.preventDefault();goHub('chip');return false;}
+
+// ── THE TOLL ── win level 2 → gold trial ends → pay $3 to enter Pike Place now,
+// or wait a real 24 hours. Gold owners (and 24h-gold holders) skip the line.
+// Direct visits to /level3/ are never gated — this lives only in the win flow.
+const KOFI_GOLD_URL='https://ko-fi.com/nebulaailabs?src=goldpass'; // ← swap in the Ko-fi Shop item URL
+let _tollPoll=null,_cdInt=null;
+function ovShow(id,bg){
+  const ov=document.getElementById('ov');
+  ov.style.display='flex';ov.style.background=bg||'#15100c';
+  for(const s of document.querySelectorAll('.ov-screen'))s.style.display='none';
+  document.getElementById(id).style.display='flex';
+}
+function ovHide(){
+  const ov=document.getElementById('ov');if(ov)ov.style.display='none';
+  if(_tollPoll){clearInterval(_tollPoll);_tollPoll=null;}
+  if(_cdInt){clearInterval(_cdInt);_cdInt=null;}
+}
+function ovOn(){const ov=document.getElementById('ov');return !!ov&&ov.style.display==='flex';}
+function tollUntil(){try{return +(localStorage.getItem('jimothy_toll_until')||0);}catch(e){return 0;}}
+function showTollFlow(){
+  try{localStorage.removeItem('jimothy_gold_trial');}catch(e){}   // the trial ends here
+  GOLDTRIAL=false;updateTrialChip();
+  const w=tollUntil();
+  if(GOLDJIM||Date.now()<GOLDUNTIL)showOpen('gold');
+  else if(w&&Date.now()>=w)showOpen('waited');
+  else if(w)showWait();
+  else showToll();
+}
+function showToll(){
+  ovShow('ov-toll');track('toll_view',{});
+  if(!_tollPoll)_tollPoll=setInterval(()=>{   // the Ko-fi unlock tab writes jimothy_gold
+    try{
+      if(localStorage.getItem('jimothy_gold')==='1'){
+        GOLDJIM=true;track('gold_unlocked',{level:2,src:'toll'});showOpen('paid');
+      }
+    }catch(e){}
+  },1500);
+}
+function fmtCd(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  const z=n=>String(n).padStart(2,'0');
+  return z(Math.floor(s/3600))+':'+z(Math.floor(s%3600/60))+':'+z(s%60);
+}
+function showWait(){
+  ovShow('ov-wait','#0e1620');track('toll_wait_view',{});
+  const cd=document.getElementById('toll-cd');
+  const tick=()=>{
+    const left=tollUntil()-Date.now();
+    if(left<=0){showOpen('waited');return;}
+    cd.textContent=fmtCd(left);
+  };
+  tick();
+  if(_cdInt)clearInterval(_cdInt);
+  _cdInt=setInterval(tick,1000);
+  const dt=new Date(tollUntil()),z=n=>String(n).padStart(2,'0');
+  const stamp=dt.getUTCFullYear()+z(dt.getUTCMonth()+1)+z(dt.getUTCDate())+'T'+z(dt.getUTCHours())+z(dt.getUTCMinutes())+'00Z';
+  const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//playjimothy//EN\r\nBEGIN:VEVENT\r\nUID:'+Date.now()+'@playjimothy.com\r\nDTSTART:'+stamp+'\r\nSUMMARY:Pike Place is open — Jimothy level 3 🐟\r\nDESCRIPTION:https://playjimothy.com/level3/\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n';
+  document.getElementById('toll-ics').href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+}
+function showOpen(via){
+  if(_tollPoll){clearInterval(_tollPoll);_tollPoll=null;}
+  if(_cdInt){clearInterval(_cdInt);_cdInt=null;}
+  ovShow('ov-open','#0e1a14');track('pike_open',{via});
+  document.getElementById('open-sub').textContent=
+    via==='paid'?'gold unlocked. welcome back, shiny.':
+    via==='gold'?'gold members skip the line. in you go.':
+    'you waited. the fish guys respect that.';
+}
+document.getElementById('toll-pay').addEventListener('click',()=>{
+  track('toll_pay_click',{});
+  window.open(KOFI_GOLD_URL,'_blank','noopener');
+  document.getElementById('toll-pay').innerHTML=
+    '<b>⏳ WAITING FOR YOUR COAT…</b><span>finish on Ko-fi, then tap the unlock link it sends you</span>';
+});
+document.getElementById('toll-wait').addEventListener('click',()=>{
+  try{localStorage.setItem('jimothy_toll_until',String(Date.now()+86400000));}catch(e){}
+  track('toll_wait_click',{});showWait();
+});
+document.getElementById('toll-daily').addEventListener('click',()=>{
+  track('toll_daily_click',{});
+  setTimeout(()=>{location.href='/?daily=1';},150);
+});
+document.getElementById('open-enter').addEventListener('click',()=>{
+  try{localStorage.removeItem('jimothy_toll_until');}catch(e){}
+  goLevel3();
+});
+// golden Jimothy locked out by the shutter
+(function(){
+  const c=document.getElementById('ov-jim');if(!c)return;
+  const x=c.getContext('2d');x.scale(c.width/74,c.width/74);
+  const cx=40,cy=42,rx=17,ry=16;
+  const P={r:['#8A6410','#F5D76E','#8A6410','#F5D76E','#8A6410','#FDF3C8'],g0:'#F9E9A8',g1:'#D9AC2E',g2:'#7A5A0E',b:'#F9EFC6',e:'#B8901C',m:'#EFE0A0'};
+  for(let i=0;i<=9;i++){const t=i/9,tx=cx-9-t*12,ty=cy+12-t*14+Math.sin(t*Math.PI)*4;
+    x.beginPath();x.arc(tx,ty,5.4-t*2.9,0,7);x.fillStyle=P.r[Math.floor(t*5)];x.fill();}
+  const g=x.createRadialGradient(cx+4,cy+4,2,cx,cy,22);
+  g.addColorStop(0,P.g0);g.addColorStop(.55,P.g1);g.addColorStop(1,P.g2);
+  x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,7);x.fillStyle=g;x.fill();
+  x.beginPath();x.ellipse(cx+3,cy+5,7.6,8.6,.1,0,7);x.fillStyle=P.b;x.fill();
+  x.fillStyle=P.e;
+  x.beginPath();x.ellipse(cx+6,cy-14,4,5,-.25,0,7);x.fill();
+  x.beginPath();x.ellipse(cx-5,cy-14,4,5,.25,0,7);x.fill();
+  x.beginPath();x.ellipse(cx+5,cy-2.5,10,4,-.12,0,7);x.fillStyle='#111';x.fill();
+  x.beginPath();x.arc(cx+7,cy-3.5,2.7,0,7);x.fillStyle='#fff';x.fill();
+  x.beginPath();x.arc(cx+8,cy-3.2,1.6,0,7);x.fillStyle='#0a0a0a';x.fill();
+  x.beginPath();x.ellipse(cx+9,cy+1.8,3,2.7,0,0,7);x.fillStyle=P.m;x.fill();
+  x.beginPath();x.ellipse(cx+12,cy+1,1.4,1.2,0,0,7);x.fillStyle='#1E1C1C';x.fill();
+  x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,7);x.strokeStyle='#1C1810';x.lineWidth=1.4;x.stroke();
+  for(let i=0;i<3;i++){const a=i*2.1+.6,sx=cx+Math.cos(a)*(rx+7),sy=cy+Math.sin(a)*(ry+6);
+    x.fillStyle='rgba(255,236,150,.9)';x.beginPath();
+    x.moveTo(sx,sy-3);x.lineTo(sx+1.1,sy-1);x.lineTo(sx+3,sy);x.lineTo(sx+1.1,sy+1);
+    x.lineTo(sx,sy+3);x.lineTo(sx-1.1,sy+1);x.lineTo(sx-3,sy);x.lineTo(sx-1.1,sy-1);x.closePath();x.fill();}
+})();
 const WIN_ACTIONS_Y=650;
 const WIN_TEXT_BOTTOM=579;   // last panel text baseline+descender
 function layoutWinActions(){
@@ -589,7 +764,7 @@ function resetGame(){
   coffeeT=0;featherT=0;rummaging=false;rumTarget=null;rumTick=0;
   popups=[];particles=[];prevElY=elevY(0);hornPlayed=false;planeX=-999;planeOn=false;gullCryT=0;
   drone=null;droneCd=900;screenFlash=0;lastRainFrame=-99999;fallT=0;chuteOn=false;fullClear=false;
-  const _wa=document.getElementById('win-actions');if(_wa)_wa.style.display='none';
+  ovHide();
   stopBgMusic();
 }
 resetGame();
@@ -599,7 +774,7 @@ const keys={};
 addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
   if(!started&&!won&&(e.key===' '||e.key==='ArrowUp')){startRun();}
-  if(won&&winFrame>90&&e.key===' '){resetGame();return;}
+  if(won&&winFrame>90&&!ovOn()&&e.key===' '){resetGame();return;}
   keys[e.key]=true;
   if((e.key==='s'||e.key==='S'||e.key==='ArrowDown')&&!e.repeat)tryRummage();
   if(e.key==='ArrowDown'){
@@ -613,7 +788,7 @@ function bindBtn(id,key,tap){
   const el=document.getElementById(id);
   el.addEventListener('pointerdown',e=>{e.preventDefault();
     if(!started&&!won)startRun();
-    if(won&&winFrame>90){resetGame();return;}
+    if(won&&winFrame>90&&!ovOn()){resetGame();return;}
     keys[key]=true;if(tap)tap();});
   el.addEventListener('pointerup',e=>{e.preventDefault();keys[key]=false;});
   el.addEventListener('pointercancel',()=>{keys[key]=false;});
@@ -621,7 +796,7 @@ function bindBtn(id,key,tap){
 }
 bindBtn('btn-l','ArrowLeft');bindBtn('btn-r','ArrowRight');bindBtn('btn-j',' ');
 bindBtn('btn-d','_d',tryRummage);
-C.addEventListener('pointerdown',()=>{if(!started&&!won)startRun();else if(won&&winFrame>90)resetGame();});
+C.addEventListener('pointerdown',()=>{if(!started&&!won)startRun();else if(won&&winFrame>90&&!ovOn())resetGame();});
 function startRun(){started=true;track('level2_start',{});if(!muted&&audio&&audio.state==='running')startBgMusic();}
 
 function addPopup(text,x,y){popups.push({text,x,y,vy:-0.7,alpha:1});}
@@ -782,7 +957,7 @@ function _drawJimCanvas(cx,cy,flip,jumping,walkTick){
   if(flip){ctx.translate(cx*2,0);ctx.scale(-1,1);}
   const rx=jumping?14:17;
   const ry=jumping?21:17;
-  const GP=GOLDJIM
+  const GP=goldOn()
     ?{rings:['#8A6410','#F5D76E','#8A6410','#F5D76E','#8A6410','#FDF3C8'],
       g0:'#F9E9A8',g1:'#D9AC2E',g2:'#7A5A0E',belly:'#F9EFC6',bear:'#A5801A',
       muz:'#EFE0A0',e1:'#B8901C',e2:'#E8C86A',l1:'#9A7A20',l2:'#5C450A',l3:'#8A6E18'}
@@ -846,7 +1021,7 @@ function _drawJimCanvas(cx,cy,flip,jumping,walkTick){
   ctx.beginPath();
   ctx.ellipse(cx-rx*0.14,cy+ry+1-swing*0.35,6,4,0,0,Math.PI*2);
   ctx.fillStyle=GP.l2;ctx.fill();
-  if(GOLDJIM){
+  if(goldOn()){
     for(let i=0;i<3;i++){
       const sa=frame*0.06+i*2.1;
       const sx2=cx+Math.cos(sa)*(rx+7),sy2=cy+Math.sin(sa*1.3)*(ry+5);
@@ -1682,14 +1857,10 @@ function drawWinScreen(){
   ctx.fillStyle='#88ddff';ctx.font='14px Courier New';
   ctx.fillText(`${NEEDLE_FT} ft · ${_got}/${snacks.length} snacks · ${score} bites`,VW/2,panTop+46);
   ctx.fillStyle='rgba(216,168,255,0.95)';ctx.font='11px Courier New';
-  ctx.fillText(GOLDJIM?'playjimothy.com · ✨ golden climb!':'playjimothy.com · ☕ $2 → GOLDEN JIMOTHY ✨',VW/2,panTop+64);
+  ctx.fillText(goldOn()?'playjimothy.com · ✨ golden climb!':'playjimothy.com · your gold trial is on ✨',VW/2,panTop+64);
   ctx.textAlign='left';
-  // share/tip row appears once the fanfare settles — same flow as level 1
-  if(winFrame===90){
-    const wa=document.getElementById('win-actions');
-    wa.style.display='flex';layoutWinActions();
-  }
-  if(winFrame>90&&winFrame%15===0)layoutWinActions();
+  // the celebration plays with the orcas and the fanfare, then THE TOLL takes over
+  if(winFrame===110)showTollFlow();
 }
 
 function draw(){
