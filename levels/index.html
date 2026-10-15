@@ -287,6 +287,16 @@ try{
 if(cleared.l1)document.getElementById('done1').style.display='block';
 if(cleared.l2)document.getElementById('done2').style.display='block';
 if(cleared.l3)document.getElementById('done3').style.display='block';
+// a waited-out Toll opens Pike Place — light the door for returning players
+try{
+  const _tw=+(localStorage.getItem('jimothy_toll_until')||0);
+  if(_tw&&Date.now()>=_tw&&!cleared.l3){
+    const b=document.createElement('div');
+    b.innerHTML='🐟 PIKE PLACE IS OPEN — your wait is over';
+    b.style.cssText='margin:0 0 12px;background:rgba(31,74,55,.85);border:1px solid rgba(90,216,143,.6);color:#8ff0b8;font-size:12px;font-weight:bold;padding:10px 12px;border-radius:10px;text-align:center';
+    document.querySelector('.lvls').prepend(b);
+  }
+}catch(e){}
 track('hub_view',{cleared_l1:cleared.l1?1:0,cleared_l2:cleared.l2?1:0,cleared_l3:cleared.l3?1:0});
 
 // level banners: fire the event, give the beacon a beat, then go
