@@ -206,7 +206,7 @@ canvas{
 <div id="gate" role="dialog" aria-modal="true" aria-label="Jimothy's toll booth">
   <div class="gate-panel">
     <button class="gate-x" id="gate-x" aria-label="Close">✕</button>
-    <div class="gate-tag">LEVEL 4 · THE UNDERGROUND</div>
+    <div class="gate-tag" id="gate-tag">LEVEL 4 · THE UNDERGROUND</div>
     <div class="gate-head">🚧 THE TOLL BOOTH</div>
     <div class="gate-sub" id="gate-sub">the stairs down open in 24 hours.<br>Jimothy cannot wait.</div>
     <button class="gate-pay" id="gate-pay"><b>⚡ SKIP THE LINE — $3</b><span>opens every level now · gold coat forever</span></button>
@@ -307,42 +307,62 @@ function goDaily(){
 }
 function goLevel4(){
   track('next_level_click',{from:3,to:4});
-  if(l4Locked()){gateShow();return;}
+  if(l4Locked()){gateShow('door');return;}
   setTimeout(()=>{location.href='/level4/';},150);
 }
 
-// ── THE TOLL on the door down to level 4 ──
-// You just beat Pike Place; the Underground is your NEXT level, so the toll
-// applies: pay $3, wait a real 24h, or hold gold. A served wait
-// (jimothy_pass) opens both gated levels forever. Direct /level4/ visits
-// are never gated.
-let _gatePoll=null,_gateCd=null;
+// ── THE TOLL ── two doors on this page.
+// 'door' mode: the finale's stairs down to level 4 — unlocking navigates.
+// 'front' mode: the page itself, for RETURNING players (something already
+// beaten) who haven't earned Pike Place — unlocking lets them play here.
+// Stateless visitors (search engines, first-time players) are never gated,
+// and replays of a beaten level are always free. One served 24h wait
+// (jimothy_pass) opens every gated level forever.
+let _gatePoll=null,_gateCd=null,_gateMode='door',_gatePlace='l3_finale';
 function _ls(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function _lset(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function tollUntil(){return +(_ls('jimothy_toll_until')||0);}
+function hasHistory(){return ['l1','l2','l3','l4'].some(k=>_ls('jimothy_'+k+'_done')==='1');}
+function _unlocked(placement){
+  if(goldOn())return true;
+  if(_ls('jimothy_pass')==='1')return true;
+  const w=tollUntil();
+  if(w&&Date.now()>=w){_lset('jimothy_pass','1');track('toll_open',{via:'waited',placement});return true;}
+  return false;
+}
 function l4Locked(){
   if(_ls('jimothy_l4_done')==='1')return false;    // replays are free
-  if(goldOn())return false;
-  if(_ls('jimothy_pass')==='1')return false;
-  const w=tollUntil();
-  if(w&&Date.now()>=w){_lset('jimothy_pass','1');track('toll_open',{via:'waited',placement:'l3_finale'});return false;}
-  return true;
+  return !_unlocked('l3_finale');
+}
+function frontLocked(){
+  if(_ls('jimothy_l3_done')==='1')return false;    // replays are free
+  if(!hasHistory())return false;                   // a first level is free
+  return !_unlocked('l3_direct');
 }
 function gateOn(){const g=document.getElementById('gate');return !!g&&g.style.display==='flex';}
-function gateShow(){
+function gateShow(mode){
+  _gateMode=mode||'door';
+  _gatePlace=_gateMode==='front'?'l3_direct':'l3_finale';
+  if(_gateMode==='front'){
+    document.getElementById('gate-tag').textContent='LEVEL 3 · PIKE PLACE MARKET';
+    document.getElementById('gate-sub').innerHTML='the market opens in 24 hours.<br>Jimothy cannot wait.';
+  }else{
+    document.getElementById('gate-tag').textContent='LEVEL 4 · THE UNDERGROUND';
+    document.getElementById('gate-sub').innerHTML='the stairs down open in 24 hours.<br>Jimothy cannot wait.';
+  }
   document.getElementById('gate').style.display='flex';
   const w=tollUntil();
-  if(w&&Date.now()<w){_gateWaitMode();track('toll_wait_view',{placement:'l3_finale'});}
+  if(w&&Date.now()<w){_gateWaitMode();track('toll_wait_view',{placement:_gatePlace});}
   else{
     document.getElementById('gate-clockwrap').style.display='none';
     document.getElementById('gate-wait').style.display='block';
     document.getElementById('gate-sub').style.display='block';
-    track('toll_view',{placement:'l3_finale'});
+    track('toll_view',{placement:_gatePlace});
   }
   if(!_gatePoll)_gatePoll=setInterval(()=>{   // the Ko-fi unlock tab writes jimothy_gold
     if(_ls('jimothy_gold')==='1'){
       GOLDJIM=true;
-      track('gold_unlocked',{src:'toll',placement:'l3_finale'});
+      track('gold_unlocked',{src:'toll',placement:_gatePlace});
       gateGo('paid');
     }
   },1500);
@@ -354,9 +374,9 @@ function gateHide(){
 }
 function gateGo(via){
   if(via==='waited')_lset('jimothy_pass','1');
-  track('toll_open',{via,placement:'l3_finale'});
+  track('toll_open',{via,placement:_gatePlace});
   gateHide();
-  setTimeout(()=>{location.href='/level4/';},150);
+  if(_gateMode==='door')setTimeout(()=>{location.href='/level4/';},150);
 }
 function _gateWaitMode(){
   document.getElementById('gate-sub').style.display='none';
@@ -371,9 +391,10 @@ function _gateWaitMode(){
   tick();
   if(_gateCd)clearInterval(_gateCd);
   _gateCd=setInterval(tick,1000);
+  const url=_gateMode==='front'?'https://playjimothy.com/level3/':'https://playjimothy.com/level4/';
   const dt=new Date(tollUntil()),z=n=>String(n).padStart(2,'0');
   const stamp=dt.getUTCFullYear()+z(dt.getUTCMonth()+1)+z(dt.getUTCDate())+'T'+z(dt.getUTCHours())+z(dt.getUTCMinutes())+'00Z';
-  const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//playjimothy//EN\r\nBEGIN:VEVENT\r\nUID:'+Date.now()+'@playjimothy.com\r\nDTSTART:'+stamp+'\r\nSUMMARY:The Underground is open — Jimothy level 4 🟣\r\nDESCRIPTION:https://playjimothy.com/level4/\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n';
+  const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//playjimothy//EN\r\nBEGIN:VEVENT\r\nUID:'+Date.now()+'@playjimothy.com\r\nDTSTART:'+stamp+'\r\nSUMMARY:Jimothy\'s gate is open 🦝\r\nDESCRIPTION:'+url+'\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n';
   document.getElementById('gate-ics').href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
 }
 function fmtCd(ms){
@@ -382,23 +403,24 @@ function fmtCd(ms){
   return z(Math.floor(s/3600))+':'+z(Math.floor(s%3600/60))+':'+z(s%60);
 }
 document.getElementById('gate-pay').addEventListener('click',()=>{
-  track('toll_pay_click',{placement:'l3_finale'});
+  track('toll_pay_click',{placement:_gatePlace});
   window.open(KOFI_GOLD_URL,'_blank','noopener');
   document.getElementById('gate-pay').innerHTML=
     '<b>⏳ WAITING FOR YOUR COAT…</b><span>finish on Ko-fi, then tap the unlock link it sends you</span>';
 });
 document.getElementById('gate-wait').addEventListener('click',()=>{
   _lset('jimothy_toll_until',String(Date.now()+86400000));
-  track('toll_wait_click',{placement:'l3_finale'});
+  track('toll_wait_click',{placement:_gatePlace});
   _gateWaitMode();
 });
 document.getElementById('gate-daily').addEventListener('click',()=>{
-  track('toll_daily_click',{placement:'l3_finale'});
+  track('toll_daily_click',{placement:_gatePlace});
   setTimeout(()=>{location.href='/?daily=1';},150);
 });
 document.getElementById('gate-x').addEventListener('click',()=>{
-  track('gate_dismiss',{placement:'l3_finale'});
+  track('gate_dismiss',{placement:_gatePlace});
   gateHide();
+  if(_gateMode==='front')setTimeout(()=>{location.href='/levels/';},150);
 });
 function goldCta(e){
   e.preventDefault();
@@ -712,7 +734,7 @@ function bindBtn(id,key,tap){
 bindBtn('btn-l','ArrowLeft');bindBtn('btn-r','ArrowRight');bindBtn('btn-j',' ');
 bindBtn('btn-d','_d',tryRummage);
 C.addEventListener('pointerdown',()=>{if(!started&&!won)startRun();else if(won&&winFrame>90&&!gateOn())resetGame();});
-function startRun(){started=true;track('level3_start',{});if(!muted&&audio&&audio.state==='running')startBgMusic();}
+function startRun(){if(gateOn())return;started=true;track('level3_start',{});if(!muted&&audio&&audio.state==='running')startBgMusic();}
 
 function addPopup(text,x,y){popups.push({text,x,y,vy:-0.7,alpha:1});}
 
@@ -2123,6 +2145,8 @@ function loop(){
   requestAnimationFrame(loop);
 }
 loop();
+// returning players who haven't earned the market yet meet the booth here too
+if(frontLocked())gateShow('front');
 </script>
 </body>
 </html>
