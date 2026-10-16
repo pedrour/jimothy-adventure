@@ -148,6 +148,32 @@ footer a{color:#ffb347}
 .seo a{color:#c8a878}
 .seo h2{font-size:12px;color:#c8a878;letter-spacing:1px;margin:16px 0 4px}
 .seo p{margin:6px 0}
+/* ── THE TOLL at the hub ── */
+#gate{display:none;position:fixed;inset:0;z-index:60;background:rgba(10,6,3,.93);
+  align-items:center;justify-content:center;padding:18px}
+.gate-panel{position:relative;width:100%;max-width:360px;background:#1c1210;
+  border:2px solid #ffcf5a;border-radius:14px;padding:24px 18px 18px;text-align:center;
+  box-shadow:0 0 34px rgba(255,207,90,.25),inset 0 0 26px rgba(0,0,0,.6)}
+.gate-x{position:absolute;top:8px;right:10px;background:none;border:none;color:#a08a74;
+  font-size:16px;cursor:pointer;font-family:inherit;padding:4px}
+.gate-tag{font-size:10px;letter-spacing:3px;color:#c8b49a}
+.gate-head{font-size:20px;font-weight:bold;color:#ffcf5a;margin:10px 0 8px;
+  text-shadow:0 0 10px rgba(255,207,90,.6)}
+.gate-sub{font-size:12px;color:#e8d8c0;line-height:1.6;margin-bottom:14px}
+.gate-pay{display:block;width:100%;background:linear-gradient(135deg,#f5d76e,#e8a93c);
+  color:#231503;border:none;border-radius:10px;padding:12px 10px;cursor:pointer;
+  font-family:inherit;font-weight:bold;box-shadow:0 0 16px rgba(245,215,110,.45)}
+.gate-pay b{display:block;font-size:15px}
+.gate-pay span{display:block;font-size:10px;font-weight:normal;margin-top:3px;opacity:.85}
+.gate-link{margin:12px 0 2px;font-size:12px;color:#c8b49a;text-decoration:underline;cursor:pointer}
+.gate-clock{font-size:34px;font-weight:bold;color:#5ad8ff;letter-spacing:2px;margin:10px 0 2px;
+  text-shadow:0 0 12px rgba(90,216,255,.55)}
+.gate-cdsub{font-size:9px;letter-spacing:3px;color:#8aa4b4}
+.gate-ics{display:inline-block;font-size:11px;color:#ffb347;margin-top:8px}
+.gate-daily{display:block;width:100%;margin-top:12px;background:rgba(42,23,18,.9);color:#ffb347;
+  border:2px solid rgba(255,179,71,.55);border-radius:10px;padding:9px;cursor:pointer;
+  font-family:inherit;font-size:12px;font-weight:bold}
+.gate-foot{font-size:10px;color:#a08a74;margin-top:12px}
 </style>
 </head>
 <body>
@@ -219,6 +245,25 @@ footer a{color:#ffb347}
     ☕ <a href="https://ko-fi.com/nebulaailabs" target="_blank" rel="noopener" id="kofi-link">$2 coffee → unlock GOLDEN JIMOTHY ✨</a> (works in every level)<br>
     inspired by Seattle's real viral raccoon, Jimothy Piggerton
   </footer>
+
+  <!-- THE TOLL: internal doors to levels 3-4 for returning players -->
+  <div id="gate" role="dialog" aria-modal="true" aria-label="Jimothy's toll booth">
+    <div class="gate-panel">
+      <button class="gate-x" id="gate-x" aria-label="Close">✕</button>
+      <div class="gate-tag" id="gate-tag">LEVEL 4 · THE UNDERGROUND</div>
+      <div class="gate-head">🚧 THE TOLL BOOTH</div>
+      <div class="gate-sub" id="gate-sub">this door opens in 24 hours.<br>Jimothy cannot wait.</div>
+      <button class="gate-pay" id="gate-pay"><b>⚡ SKIP THE LINE — $3</b><span>opens every level now · gold coat forever</span></button>
+      <div class="gate-link" id="gate-wait">I'll wait 24h (free)</div>
+      <div id="gate-clockwrap" style="display:none">
+        <div class="gate-clock" id="gate-cd">23:59:59</div>
+        <div class="gate-cdsub">COUNTING DOWN FOR REAL</div>
+        <br><a class="gate-ics" id="gate-ics" download="jimothy-gate-opens.ics">📅 add reminder to calendar</a>
+      </div>
+      <button class="gate-daily" id="gate-daily">🔥 PLAY TODAY'S DAILY WHILE YOU WAIT →</button>
+      <div class="gate-foot">paid already? tap the unlock link in your Ko-fi receipt</div>
+    </div>
+  </div>
 
   <section class="seo">
     <h2>The Jimothy games, level by level</h2>
@@ -355,12 +400,110 @@ try{
 }catch(e){}
 track('hub_view',{cleared_l1:cleared.l1?1:0,cleared_l2:cleared.l2?1:0,cleared_l3:cleared.l3?1:0,cleared_l4:cleared.l4?1:0});
 
-// level banners: fire the event, give the beacon a beat, then go
+// ── THE TOLL at the hub ──
+// Internal doors to levels 3-4 are gated for RETURNING players only:
+// direct URL landings are never gated (SEO-safe), and a fresh visitor's
+// first level is always free. Pay $3, wait a real 24h, or hold a daily
+// streak — one served wait (jimothy_pass) opens both doors forever.
+const KOFI_GOLD_URL='https://ko-fi.com/nebulaailabs?src=goldpass'; // ← swap in the Ko-fi Shop item URL
+const GATE_NAMES={level3:'LEVEL 3 · PIKE PLACE MARKET',level4:'LEVEL 4 · THE UNDERGROUND'};
+let _gateHref=null,_gatePlace=null,_gatePoll=null,_gateCd=null;
+function _ls(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function _lset(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function hasHistory(){return ['l1','l2','l3','l4'].some(k=>_ls('jimothy_'+k+'_done')==='1');}
+function goldNow(){return _ls('jimothy_gold')==='1'||Date.now()<+(_ls('jimothy_gold_until')||0);}
+function tollUntil(){return +(_ls('jimothy_toll_until')||0);}
+function lockedFor(to,placement){
+  if(!hasHistory())return false;                                        // first level is free
+  if(_ls('jimothy_'+to.replace('level','l')+'_done')==='1')return false; // replays are free
+  if(goldNow())return false;
+  if(_ls('jimothy_pass')==='1')return false;
+  const w=tollUntil();
+  if(w&&Date.now()>=w){_lset('jimothy_pass','1');track('toll_open',{via:'waited',placement});return false;}
+  return true;
+}
+function gateShow(to,href,placement){
+  _gateHref=href;_gatePlace=placement;
+  document.getElementById('gate-tag').textContent=GATE_NAMES[to]||'';
+  document.getElementById('gate').style.display='flex';
+  const w=tollUntil();
+  if(w&&Date.now()<w){_gateWaitMode();track('toll_wait_view',{placement});}
+  else{
+    document.getElementById('gate-clockwrap').style.display='none';
+    document.getElementById('gate-wait').style.display='block';
+    document.getElementById('gate-sub').style.display='block';
+    track('toll_view',{placement});
+  }
+  if(!_gatePoll)_gatePoll=setInterval(()=>{   // the Ko-fi unlock tab writes jimothy_gold
+    if(_ls('jimothy_gold')==='1'){
+      track('gold_unlocked',{src:'toll',placement:_gatePlace});
+      gateGo('paid');
+    }
+  },1500);
+}
+function gateHide(){
+  document.getElementById('gate').style.display='none';
+  if(_gatePoll){clearInterval(_gatePoll);_gatePoll=null;}
+  if(_gateCd){clearInterval(_gateCd);_gateCd=null;}
+}
+function gateGo(via){
+  if(via==='waited')_lset('jimothy_pass','1');
+  track('toll_open',{via,placement:_gatePlace});
+  const href=_gateHref;gateHide();
+  setTimeout(()=>{location.href=href;},150);
+}
+function _gateWaitMode(){
+  document.getElementById('gate-sub').style.display='none';
+  document.getElementById('gate-wait').style.display='none';
+  document.getElementById('gate-clockwrap').style.display='block';
+  const cd=document.getElementById('gate-cd');
+  const tick=()=>{
+    const left=tollUntil()-Date.now();
+    if(left<=0){gateGo('waited');return;}
+    cd.textContent=fmtCd(left);
+  };
+  tick();
+  if(_gateCd)clearInterval(_gateCd);
+  _gateCd=setInterval(tick,1000);
+  const dt=new Date(tollUntil()),z=n=>String(n).padStart(2,'0');
+  const stamp=dt.getUTCFullYear()+z(dt.getUTCMonth()+1)+z(dt.getUTCDate())+'T'+z(dt.getUTCHours())+z(dt.getUTCMinutes())+'00Z';
+  const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//playjimothy//EN\r\nBEGIN:VEVENT\r\nUID:'+Date.now()+'@playjimothy.com\r\nDTSTART:'+stamp+'\r\nSUMMARY:Jimothy\'s gate is open 🦝\r\nDESCRIPTION:https://playjimothy.com/levels/\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n';
+  document.getElementById('gate-ics').href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+}
+function fmtCd(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  const z=n=>String(n).padStart(2,'0');
+  return z(Math.floor(s/3600))+':'+z(Math.floor(s%3600/60))+':'+z(s%60);
+}
+document.getElementById('gate-pay').addEventListener('click',()=>{
+  track('toll_pay_click',{placement:_gatePlace});
+  window.open(KOFI_GOLD_URL,'_blank','noopener');
+  document.getElementById('gate-pay').innerHTML=
+    '<b>⏳ WAITING FOR YOUR COAT…</b><span>finish on Ko-fi, then tap the unlock link it sends you</span>';
+});
+document.getElementById('gate-wait').addEventListener('click',()=>{
+  _lset('jimothy_toll_until',String(Date.now()+86400000));
+  track('toll_wait_click',{placement:_gatePlace});
+  _gateWaitMode();
+});
+document.getElementById('gate-daily').addEventListener('click',()=>{
+  track('toll_daily_click',{placement:_gatePlace});
+  setTimeout(()=>{location.href='/?daily=1';},150);
+});
+document.getElementById('gate-x').addEventListener('click',()=>{
+  track('gate_dismiss',{placement:_gatePlace});
+  gateHide();
+});
+
+// level banners: fire the event, give the beacon a beat, then go (or toll)
 document.querySelectorAll('a.sign[data-to]').forEach(a=>{
   a.addEventListener('click',e=>{
     e.preventDefault();
     const to=a.dataset.to;
     track('hub_level_click',{to,beaten:cleared[to.replace('level','l')]?1:0});
+    if((to==='level3'||to==='level4')&&lockedFor(to,'hub_'+to)){
+      gateShow(to,a.getAttribute('href'),'hub_'+to);return;
+    }
     setTimeout(()=>{location.href=a.getAttribute('href');},150);
   });
 });

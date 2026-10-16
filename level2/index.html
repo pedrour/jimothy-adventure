@@ -429,6 +429,8 @@ function showWait(){
 function showOpen(via){
   if(_tollPoll){clearInterval(_tollPoll);_tollPoll=null;}
   if(_cdInt){clearInterval(_cdInt);_cdInt=null;}
+  // a served wait (or payment) is a permanent pass — it opens level 4's door too
+  if(via==='waited'||via==='paid'){try{localStorage.setItem('jimothy_pass','1');}catch(e){}}
   ovShow('ov-open','#0e1a14');track('pike_open',{via});
   document.getElementById('open-sub').textContent=
     via==='paid'?'gold unlocked. welcome back, shiny.':
