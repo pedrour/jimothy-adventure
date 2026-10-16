@@ -137,6 +137,32 @@ canvas{
   color:#f5d76e;font-size:13px;font-weight:bold;text-decoration:underline;cursor:pointer;white-space:nowrap;
   font-family:'Courier New',monospace;text-shadow:0 0 8px rgba(245,215,110,0.5);padding:0;
 }
+/* ── THE TOLL on the way down ── */
+#gate{display:none;position:fixed;inset:0;z-index:60;background:rgba(10,6,3,.93);
+  align-items:center;justify-content:center;padding:18px;font-family:'Courier New',monospace}
+.gate-panel{position:relative;width:100%;max-width:360px;background:#1c1210;
+  border:2px solid #ffcf5a;border-radius:14px;padding:24px 18px 18px;text-align:center;
+  box-shadow:0 0 34px rgba(255,207,90,.25),inset 0 0 26px rgba(0,0,0,.6)}
+.gate-x{position:absolute;top:8px;right:10px;background:none;border:none;color:#a08a74;
+  font-size:16px;cursor:pointer;font-family:inherit;padding:4px}
+.gate-tag{font-size:10px;letter-spacing:3px;color:#c8b49a}
+.gate-head{font-size:20px;font-weight:bold;color:#ffcf5a;margin:10px 0 8px;
+  text-shadow:0 0 10px rgba(255,207,90,.6)}
+.gate-sub{font-size:12px;color:#e8d8c0;line-height:1.6;margin-bottom:14px}
+.gate-pay{display:block;width:100%;background:linear-gradient(135deg,#f5d76e,#e8a93c);
+  color:#231503;border:none;border-radius:10px;padding:12px 10px;cursor:pointer;
+  font-family:inherit;font-weight:bold;box-shadow:0 0 16px rgba(245,215,110,.45)}
+.gate-pay b{display:block;font-size:15px}
+.gate-pay span{display:block;font-size:10px;font-weight:normal;margin-top:3px;opacity:.85}
+.gate-link{margin:12px 0 2px;font-size:12px;color:#c8b49a;text-decoration:underline;cursor:pointer}
+.gate-clock{font-size:34px;font-weight:bold;color:#5ad8ff;letter-spacing:2px;margin:10px 0 2px;
+  text-shadow:0 0 12px rgba(90,216,255,.55)}
+.gate-cdsub{font-size:9px;letter-spacing:3px;color:#8aa4b4}
+.gate-ics{display:inline-block;font-size:11px;color:#ffb347;margin-top:8px}
+.gate-daily{display:block;width:100%;margin-top:12px;background:rgba(42,23,18,.9);color:#ffb347;
+  border:2px solid rgba(255,179,71,.55);border-radius:10px;padding:9px;cursor:pointer;
+  font-family:inherit;font-size:12px;font-weight:bold}
+.gate-foot{font-size:10px;color:#a08a74;margin-top:12px}
 </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMBX27898J"></script>
@@ -175,6 +201,24 @@ canvas{
     <button id="daily-run-btn" onclick="goDaily()">🗓 DAILY</button>
   </div>
   <a id="gold-link" href="#" onclick="return goldCta(event)">✨ keep the gold coat forever · $2</a>
+</div>
+<!-- THE TOLL: the door down to level 4 -->
+<div id="gate" role="dialog" aria-modal="true" aria-label="Jimothy's toll booth">
+  <div class="gate-panel">
+    <button class="gate-x" id="gate-x" aria-label="Close">✕</button>
+    <div class="gate-tag">LEVEL 4 · THE UNDERGROUND</div>
+    <div class="gate-head">🚧 THE TOLL BOOTH</div>
+    <div class="gate-sub" id="gate-sub">the stairs down open in 24 hours.<br>Jimothy cannot wait.</div>
+    <button class="gate-pay" id="gate-pay"><b>⚡ SKIP THE LINE — $3</b><span>opens every level now · gold coat forever</span></button>
+    <div class="gate-link" id="gate-wait">I'll wait 24h (free)</div>
+    <div id="gate-clockwrap" style="display:none">
+      <div class="gate-clock" id="gate-cd">23:59:59</div>
+      <div class="gate-cdsub">COUNTING DOWN FOR REAL</div>
+      <br><a class="gate-ics" id="gate-ics" download="jimothy-gate-opens.ics">📅 add reminder to calendar</a>
+    </div>
+    <button class="gate-daily" id="gate-daily">🔥 PLAY TODAY'S DAILY WHILE YOU WAIT →</button>
+    <div class="gate-foot">paid already? tap the unlock link in your Ko-fi receipt</div>
+  </div>
 </div>
 <canvas id="c" aria-label="Jimothy at Pike Place Market game screen" role="img"></canvas>
 <div id="mob">
@@ -263,8 +307,99 @@ function goDaily(){
 }
 function goLevel4(){
   track('next_level_click',{from:3,to:4});
+  if(l4Locked()){gateShow();return;}
   setTimeout(()=>{location.href='/level4/';},150);
 }
+
+// ── THE TOLL on the door down to level 4 ──
+// You just beat Pike Place; the Underground is your NEXT level, so the toll
+// applies: pay $3, wait a real 24h, or hold gold. A served wait
+// (jimothy_pass) opens both gated levels forever. Direct /level4/ visits
+// are never gated.
+let _gatePoll=null,_gateCd=null;
+function _ls(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function _lset(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function tollUntil(){return +(_ls('jimothy_toll_until')||0);}
+function l4Locked(){
+  if(_ls('jimothy_l4_done')==='1')return false;    // replays are free
+  if(goldOn())return false;
+  if(_ls('jimothy_pass')==='1')return false;
+  const w=tollUntil();
+  if(w&&Date.now()>=w){_lset('jimothy_pass','1');track('toll_open',{via:'waited',placement:'l3_finale'});return false;}
+  return true;
+}
+function gateOn(){const g=document.getElementById('gate');return !!g&&g.style.display==='flex';}
+function gateShow(){
+  document.getElementById('gate').style.display='flex';
+  const w=tollUntil();
+  if(w&&Date.now()<w){_gateWaitMode();track('toll_wait_view',{placement:'l3_finale'});}
+  else{
+    document.getElementById('gate-clockwrap').style.display='none';
+    document.getElementById('gate-wait').style.display='block';
+    document.getElementById('gate-sub').style.display='block';
+    track('toll_view',{placement:'l3_finale'});
+  }
+  if(!_gatePoll)_gatePoll=setInterval(()=>{   // the Ko-fi unlock tab writes jimothy_gold
+    if(_ls('jimothy_gold')==='1'){
+      GOLDJIM=true;
+      track('gold_unlocked',{src:'toll',placement:'l3_finale'});
+      gateGo('paid');
+    }
+  },1500);
+}
+function gateHide(){
+  const g=document.getElementById('gate');if(g)g.style.display='none';
+  if(_gatePoll){clearInterval(_gatePoll);_gatePoll=null;}
+  if(_gateCd){clearInterval(_gateCd);_gateCd=null;}
+}
+function gateGo(via){
+  if(via==='waited')_lset('jimothy_pass','1');
+  track('toll_open',{via,placement:'l3_finale'});
+  gateHide();
+  setTimeout(()=>{location.href='/level4/';},150);
+}
+function _gateWaitMode(){
+  document.getElementById('gate-sub').style.display='none';
+  document.getElementById('gate-wait').style.display='none';
+  document.getElementById('gate-clockwrap').style.display='block';
+  const cd=document.getElementById('gate-cd');
+  const tick=()=>{
+    const left=tollUntil()-Date.now();
+    if(left<=0){gateGo('waited');return;}
+    cd.textContent=fmtCd(left);
+  };
+  tick();
+  if(_gateCd)clearInterval(_gateCd);
+  _gateCd=setInterval(tick,1000);
+  const dt=new Date(tollUntil()),z=n=>String(n).padStart(2,'0');
+  const stamp=dt.getUTCFullYear()+z(dt.getUTCMonth()+1)+z(dt.getUTCDate())+'T'+z(dt.getUTCHours())+z(dt.getUTCMinutes())+'00Z';
+  const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//playjimothy//EN\r\nBEGIN:VEVENT\r\nUID:'+Date.now()+'@playjimothy.com\r\nDTSTART:'+stamp+'\r\nSUMMARY:The Underground is open — Jimothy level 4 🟣\r\nDESCRIPTION:https://playjimothy.com/level4/\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n';
+  document.getElementById('gate-ics').href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+}
+function fmtCd(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  const z=n=>String(n).padStart(2,'0');
+  return z(Math.floor(s/3600))+':'+z(Math.floor(s%3600/60))+':'+z(s%60);
+}
+document.getElementById('gate-pay').addEventListener('click',()=>{
+  track('toll_pay_click',{placement:'l3_finale'});
+  window.open(KOFI_GOLD_URL,'_blank','noopener');
+  document.getElementById('gate-pay').innerHTML=
+    '<b>⏳ WAITING FOR YOUR COAT…</b><span>finish on Ko-fi, then tap the unlock link it sends you</span>';
+});
+document.getElementById('gate-wait').addEventListener('click',()=>{
+  _lset('jimothy_toll_until',String(Date.now()+86400000));
+  track('toll_wait_click',{placement:'l3_finale'});
+  _gateWaitMode();
+});
+document.getElementById('gate-daily').addEventListener('click',()=>{
+  track('toll_daily_click',{placement:'l3_finale'});
+  setTimeout(()=>{location.href='/?daily=1';},150);
+});
+document.getElementById('gate-x').addEventListener('click',()=>{
+  track('gate_dismiss',{placement:'l3_finale'});
+  gateHide();
+});
 function goldCta(e){
   e.preventDefault();
   track('gold_cta_click',{placement:'finale'});
@@ -541,6 +676,7 @@ function resetGame(){
   popups=[];particles=[];downTaps=0;lastDownT=0;rollT=0;gullT=600;
   FISHERS.forEach(f=>{f.cd=120+Math.random()*80;f.windup=0;});
   const wa=document.getElementById('win-actions');if(wa)wa.style.display='none';
+  gateHide();
   stopBgMusic();
 }
 resetGame();
@@ -550,7 +686,7 @@ const keys={};
 addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
   if(!started&&!won&&(e.key===' '||e.key==='ArrowUp'))startRun();
-  if(won&&winFrame>90&&e.key===' '){resetGame();return;}
+  if(won&&winFrame>90&&!gateOn()&&e.key===' '){resetGame();return;}
   keys[e.key]=true;
   if((e.key==='s'||e.key==='S'||e.key==='ArrowDown')&&!e.repeat)tryRummage();
   if(e.key==='ArrowDown'){
@@ -567,7 +703,7 @@ function bindBtn(id,key,tap){
   const el=document.getElementById(id);
   el.addEventListener('pointerdown',e=>{e.preventDefault();
     if(!started&&!won)startRun();
-    if(won&&winFrame>90){resetGame();return;}
+    if(won&&winFrame>90){if(!gateOn())resetGame();return;}
     keys[key]=true;if(tap)tap();});
   el.addEventListener('pointerup',e=>{e.preventDefault();keys[key]=false;});
   el.addEventListener('pointercancel',()=>{keys[key]=false;});
@@ -575,7 +711,7 @@ function bindBtn(id,key,tap){
 }
 bindBtn('btn-l','ArrowLeft');bindBtn('btn-r','ArrowRight');bindBtn('btn-j',' ');
 bindBtn('btn-d','_d',tryRummage);
-C.addEventListener('pointerdown',()=>{if(!started&&!won)startRun();else if(won&&winFrame>90)resetGame();});
+C.addEventListener('pointerdown',()=>{if(!started&&!won)startRun();else if(won&&winFrame>90&&!gateOn())resetGame();});
 function startRun(){started=true;track('level3_start',{});if(!muted&&audio&&audio.state==='running')startBgMusic();}
 
 function addPopup(text,x,y){popups.push({text,x,y,vy:-0.7,alpha:1});}
@@ -1952,7 +2088,15 @@ function drawWinScreen(){
     const wa=document.getElementById('win-actions');
     wa.style.display='flex';layoutWinActions();
     track('finale_view',{score});
-    try{localStorage.removeItem('jimothy_toll_until');}catch(e){}   // the raid is done
+    // a served wait becomes a permanent pass (it covers level 4 too);
+    // a still-pending wait keeps counting — don't erase it
+    try{
+      const _tw=+(localStorage.getItem('jimothy_toll_until')||0);
+      if(_tw&&Date.now()>=_tw){
+        localStorage.setItem('jimothy_pass','1');
+        localStorage.removeItem('jimothy_toll_until');
+      }
+    }catch(e){}
   }
   if(winFrame>90&&winFrame%15===0)layoutWinActions();
 }
