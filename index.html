@@ -270,7 +270,8 @@ canvas{
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-BMBX27898J');
+  // add ?gadebug=1 to any page URL to watch these events live in GA → Admin → DebugView
+  gtag('config', 'G-BMBX27898J', /[?&]gadebug=1/.test(location.search)?{debug_mode:true}:{});
 </script>
 </head>
 <body>
@@ -649,7 +650,11 @@ function goldOn(){return GOLDJIM||Date.now()<GOLDUNTIL;}
 try{
   const _gc=new URLSearchParams(location.search).get('code');
   if(_gc&&_gc.toUpperCase()==='GOLDENJIM'){
-    if(!GOLDJIM){track('gold_unlocked',{level:1});goldToastT=360;}
+    if(!GOLDJIM){
+      track('gold_unlocked',{level:1});goldToastT=360;
+      // the Gold Pass receipt link lands here — this is the sale, in GA's own currency
+      track('purchase',{currency:'USD',value:3,transaction_id:'goldpass-'+Date.now(),items:[{item_id:'gold_pass',item_name:'Jimothy Gold Pass',price:3,quantity:1}]});
+    }
     GOLDJIM=true;
     try{localStorage.setItem('jimothy_gold','1');}catch(e){}
     try{history.replaceState(null,'',location.pathname);}catch(e){}
@@ -2268,7 +2273,10 @@ try{
   const _tw=+(localStorage.getItem('jimothy_toll_until')||0);
   if(_tw&&Date.now()>=_tw&&localStorage.getItem('jimothy_l3_done')!=='1'){
     const _po=document.getElementById('pike-open');
-    if(_po){_po.style.display='block';_po.addEventListener('click',()=>track('pike_banner_click',{page:1}));}
+    if(_po){_po.style.display='block';_po.addEventListener('click',e=>{
+      e.preventDefault();track('pike_banner_click',{page:1});
+      setTimeout(()=>{location.href='/level3/';},150);   // beacon grace, like every other door
+    });}
   }
 }catch(e){}
 

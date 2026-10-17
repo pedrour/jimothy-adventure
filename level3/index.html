@@ -170,7 +170,8 @@ canvas{
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-BMBX27898J');
+  // add ?gadebug=1 to any page URL to watch these events live in GA → Admin → DebugView
+  gtag('config', 'G-BMBX27898J', /[?&]gadebug=1/.test(location.search)?{debug_mode:true}:{});
 </script>
 </head>
 <body>
@@ -248,7 +249,10 @@ function goldOn(){return GOLDJIM||Date.now()<GOLDUNTIL;}
 try{
   const _gc=new URLSearchParams(location.search).get('code');
   if(_gc&&_gc.toUpperCase()==='GOLDENJIM'){
-    if(!GOLDJIM){track('gold_unlocked',{level:3});goldToastT=360;}
+    if(!GOLDJIM){
+      track('gold_unlocked',{level:3});goldToastT=360;
+      track('purchase',{currency:'USD',value:3,transaction_id:'goldpass-'+Date.now(),items:[{item_id:'gold_pass',item_name:'Jimothy Gold Pass',price:3,quantity:1}]});
+    }
     GOLDJIM=true;
     try{localStorage.setItem('jimothy_gold','1');}catch(e){}
     try{history.replaceState(null,'',location.pathname);}catch(e){}
@@ -362,8 +366,7 @@ function gateShow(mode){
   if(!_gatePoll)_gatePoll=setInterval(()=>{   // the Ko-fi unlock tab writes jimothy_gold
     if(_ls('jimothy_gold')==='1'){
       GOLDJIM=true;
-      track('gold_unlocked',{src:'toll',placement:_gatePlace});
-      gateGo('paid');
+      gateGo('paid');   // the redeem tab logged the sale; toll_open{via:'paid'} marks this door
     }
   },1500);
 }

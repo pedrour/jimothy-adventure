@@ -7,8 +7,9 @@ import os
 import sys
 import urllib.request
 
-MONEY_EVENTS = ["gold_unlocked", "toll_pay_click"]
+MONEY_EVENTS = ["purchase"]          # one per redeemed Gold Pass receipt link
 FUNNEL_EVENTS = [
+    ("purchase", "💰 GOLD PASS SALES"),
     ("game_start", "L1 starts"),
     ("win_screen_view", "L1 wins"),
     ("trial_granted", "gold trials granted"),
@@ -24,7 +25,7 @@ FUNNEL_EVENTS = [
     ("level3_win", "L3 wins"),
     ("finale_view", "finale views"),
     ("gold_cta_click", "gold CTA clicks"),
-    ("gold_unlocked", "💰 GOLD UNLOCKS"),
+    ("gold_unlocked", "gold coat redeems"),
     ("share_completed", "shares completed"),
     ("daily_deeplink", "daily deep links"),
     ("hub_view", "hub views"),
