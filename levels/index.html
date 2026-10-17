@@ -95,7 +95,8 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-BMBX27898J');
+  // add ?gadebug=1 to any page URL to watch these events live in GA → Admin → DebugView
+  gtag('config', 'G-BMBX27898J', /[?&]gadebug=1/.test(location.search)?{debug_mode:true}:{});
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -436,8 +437,7 @@ function gateShow(to,href,placement){
   }
   if(!_gatePoll)_gatePoll=setInterval(()=>{   // the Ko-fi unlock tab writes jimothy_gold
     if(_ls('jimothy_gold')==='1'){
-      track('gold_unlocked',{src:'toll',placement:_gatePlace});
-      gateGo('paid');
+      gateGo('paid');   // the redeem tab logged the sale; toll_open{via:'paid'} marks this door
     }
   },1500);
 }
